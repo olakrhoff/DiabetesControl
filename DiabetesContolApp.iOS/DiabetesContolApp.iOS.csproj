@@ -27,6 +27,8 @@
     <MtouchArch>x86_64</MtouchArch>
     <MtouchLink>None</MtouchLink>
     <MtouchDebug>true</MtouchDebug>
+    <CodesignProvision>Provisioning DiabetesControl</CodesignProvision>
+    <CodesignKey>Apple Development: Ola Kristoffer Hoff (6NKV7782TV)</CodesignKey>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
     <DebugType>none</DebugType>
@@ -36,6 +38,8 @@
     <WarningLevel>4</WarningLevel>
     <MtouchLink>None</MtouchLink>
     <MtouchArch>x86_64</MtouchArch>
+    <CodesignProvision>VS: WildCard Development</CodesignProvision>
+    <CodesignKey>Apple Development: Ola Kristoffer Hoff (6NKV7782TV)</CodesignKey>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
     <DebugSymbols>true</DebugSymbols>
@@ -46,11 +50,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <MtouchArch>ARM64</MtouchArch>
-    <CodesignKey>iPhone Developer</CodesignKey>
+    <CodesignKey>Apple Development: Ola Kristoffer Hoff (6NKV7782TV)</CodesignKey>
     <MtouchDebug>true</MtouchDebug>
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
     <MtouchLink>None</MtouchLink>
     <MtouchInterpreter>-all</MtouchInterpreter>
+    <CodesignProvision>Provisioning DiabetesControl</CodesignProvision>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
     <DebugType>none</DebugType>
@@ -59,8 +64,10 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <MtouchArch>ARM64</MtouchArch>
-    <CodesignKey>iPhone Developer</CodesignKey>
+    <CodesignKey>Apple Development: Ola Kristoffer Hoff (6NKV7782TV)</CodesignKey>
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
+    <CodesignProvision>VS: WildCard Development</CodesignProvision>
+    <MtouchLink>SdkOnly</MtouchLink>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Main.cs" />
@@ -68,6 +75,7 @@
     <None Include="Entitlements.plist" />
     <None Include="Info.plist" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Persistence\SQLiteDB.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Resources\LaunchScreen.storyboard" />
@@ -125,6 +133,9 @@
   <ItemGroup>
     <PackageReference Include="Xamarin.Forms" Version="5.0.0.2012" />
     <PackageReference Include="Xamarin.Essentials" Version="1.6.1" />
+    <PackageReference Include="sqlite-net-pcl">
+      <Version>1.8.116</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
   <ItemGroup>
@@ -132,5 +143,31 @@
       <Project>{2FFB9483-1B54-40AF-988C-241790B43736}</Project>
       <Name>DiabetesContolApp</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Persistence\" />
+    <Folder Include="Resources\Images\" />
+    <Folder Include="Resources\Images\Intervals\" />
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="Resources\Images\Intervals\clock.png" />
+    <BundleResource Include="Resources\Images\Intervals\clock%402x.png" />
+    <BundleResource Include="Resources\Images\Intervals\clock%403x.png" />
+    <BundleResource Include="Resources\Images\Intervals\clockOline%403x.png" />
+    <BundleResource Include="Resources\Images\Intervals\heart.png" />
+    <BundleResource Include="Resources\Images\Intervals\heart%402x.png" />
+    <BundleResource Include="Resources\Images\Intervals\heart%403x.png" />
+    <BundleResource Include="Resources\Images\Intervals\left.png" />
+    <BundleResource Include="Resources\Images\Intervals\left%402x.png" />
+    <BundleResource Include="Resources\Images\Intervals\left%403x.png" />
+    <BundleResource Include="Resources\Images\Intervals\plus.png" />
+    <BundleResource Include="Resources\Images\Intervals\plus%402x.png" />
+    <BundleResource Include="Resources\Images\Intervals\plus%403x.png" />
+    <BundleResource Include="Resources\Images\Intervals\right.png" />
+    <BundleResource Include="Resources\Images\Intervals\right%402x.png" />
+    <BundleResource Include="Resources\Images\Intervals\right%403x.png" />
+    <BundleResource Include="Resources\Images\Intervals\user.png" />
+    <BundleResource Include="Resources\Images\Intervals\user%402x.png" />
+    <BundleResource Include="Resources\Images\Intervals\user%403x.png" />
   </ItemGroup>
 </Project>
