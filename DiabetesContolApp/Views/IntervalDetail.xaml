@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="DiabetesContolApp.Views.IntervalDetail">
+    <TableView Intent="Form">
+        <TableRoot>
+            <TableSection Title="Settings">
+                <EntryCell Label="Name"
+                           Text="{Binding Name}"
+                           Placeholder="Name of interval"/>
+                <EntryCell x:Name="targetBloodSugar"
+                           Label="Target bloodsugar"
+                           Text="{Binding TargetBloodSugar}"
+                           Placeholder="5.4 mmol/l"/>
+                <EntryCell x:Name="bloodSkalar"
+                           Label="Bloodsugar skalar"
+                           Text="{Binding BloodSkalar}"
+                           Placeholder="1.0"
+                           Keyboard="Numeric"/>
+                <EntryCell x:Name="karbSkalar"
+                           Label="Karb skalar"
+                           Text="{Binding KarbSkalar}"
+                           Placeholder="1.0"
+                           Keyboard="Numeric"/>
+                <ViewCell>
+                    <StackLayout Orientation="Horizontal"
+                                 VerticalOptions="Center">
+                        <Label Text="Start time of interval"
+                               VerticalOptions="Center"
+                               Margin="20, 0"/>
+                        <TimePicker x:Name="timePicker"
+                                    HorizontalOptions="Center"
+                                    Format="HH:mm"/>
+                    </StackLayout>
+                </ViewCell>
+            </TableSection>
+            <TableSection>
+                <ViewCell>
+                    <Button Text="Save"
+                            Clicked="SaveClicked"/>
+                </ViewCell>
+            </TableSection>
+        </TableRoot>
+    </TableView>
+</ContentPage>

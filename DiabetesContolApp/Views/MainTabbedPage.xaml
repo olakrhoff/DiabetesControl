@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<TabbedPage
+    xmlns:local="clr-namespace:DiabetesContolApp.Views"
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="DiabetesContolApp.Views.MainTabbedPage">
+
+  <local:Calculator Title="Calculator" IconImageSource="Images/Intervals/heart@3x.png"/>
+  <local:ListIntervals Title="Intervals" IconImageSource="Images/Intervals/clockOline@3x.png"/>
+  <local:SettingsPage Title="Settings" IconImageSource="Images/Intervals/user@3x.png"/>
+</TabbedPage>
