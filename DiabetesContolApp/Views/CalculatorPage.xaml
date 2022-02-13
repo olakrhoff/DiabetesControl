@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    Padding="30, 0, 30, 0"
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="DiabetesContolApp.Views.CalculatorPage">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Style x:Key="entries" TargetType="Entry">
+                <Setter Property="FontSize" Value="Title"/>
+                <Setter Property="FontFamily" Value="TimesNewRoman"/>
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    
+    <StackLayout HorizontalOptions="FillAndExpand"
+                 Spacing="30">
+        <Entry x:Name="glucose"
+               Placeholder="5,4 mmol/L"
+               VerticalOptions="Center"
+               Margin="0, 50, 0, 0"
+               Style="{StaticResource entries}"
+               Keyboard="Numeric"/>
+        <Picker x:Name="pickerDayprofiles"
+                ItemDisplayBinding="{Binding Name}"/>
+        <StackLayout Orientation="Horizontal">
+            <Entry x:Name="carbs"
+                   Placeholder="Carbohydrates"
+                   HorizontalOptions="FillAndExpand"
+                   VerticalOptions="Center"
+                   Style="{StaticResource entries}"
+                   Keyboard="Numeric"/>
+            <Button Text="+"
+                    HorizontalOptions="End"
+                    Clicked="AddGroceriesClicked"/>
+        </StackLayout>
+        <Label Text="Groceries"
+               HorizontalOptions="Center"
+               FontAttributes="Bold"></Label>
+        <ListView>
+            <!--TODO-->
+        </ListView>
+        <StackLayout Orientation="Horizontal"
+                     Spacing="0"
+                     HorizontalOptions="Center">
+            <Entry x:Name="insulinEstimate"
+                    IsVisible="False"
+                    FontSize="50"
+                    Keyboard="Numeric"
+                    VerticalOptions="Center"/>
+            <Label Text="Units"
+                   FontSize="50"
+                   VerticalOptions="Center"
+                   IsVisible="{Binding Source={x:Reference insulinEstimate}, Path=IsVisible}"/>
+        </StackLayout>
+        <StackLayout Orientation="Horizontal"
+                     VerticalOptions="EndAndExpand"
+                     HorizontalOptions="Center"
+                     Margin="0, 0, 0, 25"
+                     Spacing="35">
+            <Button Text="Calculate"
+                    BackgroundColor="CadetBlue"
+                    BorderRadius="20"
+                    TextColor="WhiteSmoke"
+                    VerticalOptions="Center"
+                    FontSize="Title"
+                    Clicked="CalculateClicked"
+                    Padding="15, 5"/>
+            <Button Text="Log insulin"
+                    BackgroundColor="CadetBlue"
+                    BorderRadius="20"
+                    TextColor="WhiteSmoke"
+                    VerticalOptions="Center"
+                    FontSize="Title"
+                    Clicked="LogInsulinClicked"
+                    Padding="15, 5"/>
+        </StackLayout>
+    </StackLayout>
+</ContentPage>

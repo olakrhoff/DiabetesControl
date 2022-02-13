@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DiabetesContolApp.GlobalLogic;
 
 using Xamarin.Forms;
 
@@ -32,12 +33,9 @@ namespace DiabetesContolApp.Views
             else
                 BaseSensitivity.LabelColor = Color.Red;
 
-            float NewSensitivityWithoutFood = -1f;
-            float.TryParse(SensitivitySkalarNoFood.Text, out NewSensitivityWithoutFood);
-
-            if (NewSensitivityWithoutFood > 0f)
+            if (Helper.ConvertToFloat(SensitivitySkalarNoFood.Text, out float sensitivitySkalarNoFoodFloat) && sensitivitySkalarNoFoodFloat > 0f)
             {
-                app.SenesitivityWithoutFood = NewSensitivityWithoutFood;
+                app.SenesitivityWithoutFood = sensitivitySkalarNoFoodFloat;
                 SensitivitySkalarNoFood.LabelColor = Color.Green;
             }
             else

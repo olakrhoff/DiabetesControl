@@ -9,11 +9,13 @@
                 <EntryCell x:Name="BaseSensitivity"
                            Label="Base sensitivity:"
                            Placeholder="10g carbs/E"
-                           PropertyChanged="OnChange"/>
+                           PropertyChanged="OnChange"
+                           Keyboard="Numeric"/>
                 <EntryCell x:Name="SensitivitySkalarNoFood"
                            Label="Sensitivity skalar without food:"
-                           Placeholder="0.5 skalar"
-                           PropertyChanged="OnChange"/>
+                           Placeholder="0,5 skalar"
+                           PropertyChanged="OnChange"
+                           Keyboard="Numeric"/>
             </TableSection>
         </TableRoot>
     </TableView>

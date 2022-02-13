@@ -18,13 +18,13 @@
   <ItemGroup>
     <None Remove="View\" />
     <None Remove="Model\" />
-    <None Remove="ViewModels\" />
     <None Remove="sqlite-net-pcl" />
+    <None Remove="GlobalLogic\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Views\" />
     <Folder Include="Models\" />
-    <Folder Include="ViewModels\" />
+    <Folder Include="GlobalLogic\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Views\MainTabbedPage.xaml.cs">

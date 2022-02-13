@@ -16,7 +16,7 @@ namespace DiabetesContolApp
         {
             InitializeComponent();
 
-            MainPage = new NavigationPage(new MainTabbedPage()); //kommentar
+            MainPage = new NavigationPage(new MainTabbedPage());
         }
 
         protected override void OnStart()

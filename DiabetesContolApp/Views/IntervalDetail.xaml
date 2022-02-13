@@ -12,16 +12,17 @@
                 <EntryCell x:Name="targetBloodSugar"
                            Label="Target bloodsugar"
                            Text="{Binding TargetBloodSugar}"
-                           Placeholder="5.4 mmol/l"/>
+                           Placeholder="5,4 mmol/l"
+                           Keyboard="Numeric"/>
                 <EntryCell x:Name="bloodSkalar"
                            Label="Bloodsugar skalar"
                            Text="{Binding BloodSkalar}"
-                           Placeholder="1.0"
+                           Placeholder="1,0"
                            Keyboard="Numeric"/>
                 <EntryCell x:Name="karbSkalar"
                            Label="Karb skalar"
                            Text="{Binding KarbSkalar}"
-                           Placeholder="1.0"
+                           Placeholder="1,0"
                            Keyboard="Numeric"/>
                 <ViewCell>
                     <StackLayout Orientation="Horizontal"

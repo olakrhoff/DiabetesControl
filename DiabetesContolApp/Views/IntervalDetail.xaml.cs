@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using DiabetesContolApp.Models;
+using DiabetesContolApp.GlobalLogic;
 using Xamarin.Forms;
 
 namespace DiabetesContolApp.Views
@@ -39,6 +40,21 @@ namespace DiabetesContolApp.Views
 
         async void SaveClicked(System.Object sender, System.EventArgs e)
         {
+            if (String.IsNullOrWhiteSpace(targetBloodSugar.Text) ||
+                String.IsNullOrWhiteSpace(bloodSkalar.Text) ||
+                String.IsNullOrWhiteSpace(karbSkalar.Text) ||
+                !Helper.ConvertToFloat(targetBloodSugar.Text, out float targetBloodSugarFloat) ||
+                !Helper.ConvertToFloat(bloodSkalar.Text, out float bloodSkalarFloat) ||
+                !Helper.ConvertToFloat(karbSkalar.Text, out float karbSkalarFloat))
+            {
+                await DisplayAlert("Error", "All fields must be filled", "OK");
+                return;
+            }
+
+            Interval.TargetBloodSugar = targetBloodSugarFloat;
+            Interval.BloodSkalar = bloodSkalarFloat;
+            Interval.KarbSkalar = karbSkalarFloat;
+
             if (String.IsNullOrWhiteSpace(Interval.Name) || Interval.BloodSkalar < 0 || Interval.KarbSkalar < 0 || Interval.TargetBloodSugar < 4)
             {
                 await DisplayAlert("Error", "All fields must be filled", "OK");

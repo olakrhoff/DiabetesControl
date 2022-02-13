@@ -5,7 +5,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="DiabetesContolApp.Views.MainTabbedPage">
 
-  <local:Calculator Title="Calculator" IconImageSource="Images/Intervals/heart@3x.png"/>
-  <local:ListIntervals Title="Intervals" IconImageSource="Images/Intervals/clockOline@3x.png"/>
-  <local:SettingsPage Title="Settings" IconImageSource="Images/Intervals/user@3x.png"/>
+    <local:LogPage Title="Log" IconImageSource="Images/Intervals/user@3x.png"/>
+    <local:CalculatorPage Title="Calculator" IconImageSource="Images/Intervals/heart@3x.png"/>
+    <local:GroceryPage Title="Groceries" IconImageSource="Images/Intervals/user@3x.png"/>
+    <local:DayProfilePage Title="Day profiles" IconImageSource="Images/Intervals/clockOline@3x.png"/>
+    
 </TabbedPage>

@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="DiabetesContolApp.Views.GroceryDetailPage">
+    <TableView>
+        <TableRoot>
+            <TableSection Title="Grocery settings">
+                <EntryCell Label="Name"
+                           Text="{Binding Name}"
+                           Placeholder="Name of grocery"/>
+                <EntryCell Label="Carbs per 100g"
+                           Text="{Binding CarbsPer100Grams}"
+                           Placeholder="e.g. 57,3g"
+                           Keyboard="Numeric"/>
+                <EntryCell Label="Name of portion"
+                           Text="{Binding NameOfPortion}"
+                           Placeholder="e.g table spoon"/>
+                <EntryCell Label="Grams per portion"
+                           Text="{Binding GramsPerPortion}"
+                           Placeholder="e.g. 50g"
+                           Keyboard="Numeric"/>
+            </TableSection>
+        </TableRoot>
+    </TableView>
+</ContentPage>
