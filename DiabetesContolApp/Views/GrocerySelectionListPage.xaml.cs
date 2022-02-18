@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.Persistence;
@@ -30,13 +32,22 @@ namespace DiabetesContolApp.Views
 
         protected override async void OnAppearing()
         {
-            await connection.CreateTableAsync<GroceryModel>(); //Creates table if it does not already exist
-            var groceries = NumberOfGroceryModel.GetNumberOfGroceries(await connection.Table<GroceryModel>().ToListAsync());
-
-            Groceries = new ObservableCollection<NumberOfGroceryModel>(groceries);
+            Groceries = new ObservableCollection<NumberOfGroceryModel>(await GetNumberOfGroceries());
             groceriesList.ItemsSource = Groceries;
 
             base.OnAppearing();
+        }
+
+        async private Task<List<NumberOfGroceryModel>> GetNumberOfGroceries(string searchText = null)
+        {
+            await connection.CreateTableAsync<GroceryModel>(); //Creates table if it does not already exist
+
+            var numberOfGroceryList = NumberOfGroceryModel.GetNumberOfGroceries(await connection.Table<GroceryModel>().ToListAsync());
+
+            if (String.IsNullOrWhiteSpace(searchText))
+                return numberOfGroceryList;
+
+            return numberOfGroceryList.Where(numberOfGrocery => numberOfGrocery.Grocery.Name.ToLower().Contains(searchText.ToLower())).ToList<NumberOfGroceryModel>();
         }
 
         async void AddNewClicked(System.Object sender, System.EventArgs e)
@@ -63,7 +74,7 @@ namespace DiabetesContolApp.Views
                 return;
 
             var selectedGrocery = (e as ItemTappedEventArgs).Item as NumberOfGroceryModel;
-            groceriesList.SelectedItem = null; //Remove the selection
+            groceriesList.SelectedItem = null;
             selectedGrocery.NumberOfGrocery++;
         }
 
@@ -96,6 +107,11 @@ namespace DiabetesContolApp.Views
             };
 
             await Navigation.PushAsync(page);
+        }
+
+        async void SearchBarTextChanged(System.Object sender, Xamarin.Forms.TextChangedEventArgs e)
+        {
+            groceriesList.ItemsSource = Groceries = new ObservableCollection<NumberOfGroceryModel>(await GetNumberOfGroceries(e.NewTextValue));
         }
     }
 }

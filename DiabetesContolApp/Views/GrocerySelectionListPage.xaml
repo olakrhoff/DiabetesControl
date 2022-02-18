@@ -12,7 +12,8 @@
     </ContentPage.ToolbarItems>
 
     <StackLayout Spacing="0">
-        <SearchBar Placeholder="Search for groceries..."/>
+        <SearchBar Placeholder="Search for groceries..."
+                   TextChanged="SearchBarTextChanged"/>
         <ListView x:Name="groceriesList"
                   ItemTapped="GroceriesListItemTapped">
             <ListView.ItemTemplate>
