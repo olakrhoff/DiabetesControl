@@ -63,7 +63,7 @@ namespace DiabetesContolApp.Views
                 return;
 
             var selectedGrocery = (e as ItemTappedEventArgs).Item as NumberOfGroceryModel;
-            groceriesList.SelectedItem = null;
+            groceriesList.SelectedItem = null; //Remove the selection
             selectedGrocery.NumberOfGrocery++;
         }
 
