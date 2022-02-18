@@ -5,26 +5,89 @@ using SQLite;
 
 namespace DiabetesContolApp.Models
 {
-    public class GroceryModel
+    [Table("Grocery")]
+    public class GroceryModel : INotifyPropertyChanged
     {
-        private int _groceryID { get; set; }
-        public string Name { get; set; }
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [PrimaryKey, AutoIncrement]
+        public int GroceryID { get; set; }
+
+        private string _name;
+
+        [NotNull]
         public float CarbsPer100Grams { get; set; }
+        [NotNull]
         public string NameOfPortion { get; set; }
-        public ushort GramsPerPortion { get; set; }
-        private float _carbScalar { get; set; }
+        [NotNull]
+        public float GramsPerPortion { get; set; }
+
+        private float _carbScalar;
 
         public GroceryModel()
         {
-            //This indicates that the object doesn't exist in the database
-            this._groceryID = -1;
+            this._carbScalar = 1.0f; //This is the default of the scalar, when it is one it has no effect on the calculations
         }
 
-        public int GetID()
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            return this._groceryID;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        [NotNull, MaxLength(255)]
+        public string Name
+        {
+            get
+            {
+                return this._name;
+            }
 
+            set
+            {
+                if (this._name == value)
+                    return;
+                try
+                {
+                    if (value.Length > 255)
+                        throw new ArgumentOutOfRangeException("The name attribute of a grocery can not be longer than 255 chars");
+                }
+                catch (ArgumentOutOfRangeException aoore)
+                {
+                    //TODO: Do some logging maybe
+                    return;
+                }
+
+                this._name = value;
+                OnPropertyChanged();
+            }
+        }
+
+        [NotNull]
+        public float CarbScalar
+        {
+            get
+            {
+                return this._carbScalar;
+            }
+
+            set
+            {
+                if (this._carbScalar == value)
+                    return;
+                try
+                {
+                    if (value <= 0.0f)
+                        throw new ArgumentOutOfRangeException("The attribute CarbsScalar must be a positive float greater than zero");
+                }
+                catch (ArgumentOutOfRangeException aoore)
+                {
+                    //TODO: Do some logging maybe
+                    return;
+                }
+
+                this._carbScalar = value;
+                OnPropertyChanged();
+            }
+        }
     }
 }

@@ -13,7 +13,7 @@ namespace DiabetesContolApp.Views
     public partial class CalculatorPage : ContentPage
     {
         private SQLiteAsyncConnection connection;
-        public ObservableCollection<Interval> Intervals { get; set; }
+        public ObservableCollection<DayProfileModel> DayProfiles { get; set; }
 
         public CalculatorPage()
         {
@@ -24,40 +24,39 @@ namespace DiabetesContolApp.Views
 
         protected override async void OnAppearing()
         {
-            //When the DB needs to be rebuilt
-            //await connection.DropTableAsync<Interval>();
-            await connection.CreateTableAsync<Interval>();
-            var intervals = await connection.Table<Interval>().ToListAsync();
-            intervals.Sort(); //Sort the elements
-            Intervals = new ObservableCollection<Interval>(intervals);
-            pickerDayprofiles.ItemsSource = Intervals;
-            pickerDayprofiles.SelectedItem = getIntervalByTime();
-            if (pickerDayprofiles.SelectedItem == null && Intervals.Count > 0)
-            {
-                pickerDayprofiles.SelectedItem = Intervals[0];
-            }
+            await connection.CreateTableAsync<DayProfileModel>();
+            var dayProfiles = await connection.Table<DayProfileModel>().ToListAsync();
+            dayProfiles.Sort(); //Sort the elements
+            DayProfiles = new ObservableCollection<DayProfileModel>(dayProfiles);
+            pickerDayprofiles.ItemsSource = DayProfiles;
+            pickerDayprofiles.SelectedItem = GetDayProfileByTime();
+            if (pickerDayprofiles.SelectedItem == null && DayProfiles.Count > 0)
+                pickerDayprofiles.SelectedItem = DayProfiles[0];
 
             base.OnAppearing();
         }
 
-        private Interval getIntervalByTime()
+        private DayProfileModel GetDayProfileByTime()
         {
-            if (Intervals.Count == 0)
+            
+            if (DayProfiles.Count == 0)
                 return null;
 
             bool valid = false;
-            Interval prev = new Interval();
+            DayProfileModel prev = new DayProfileModel();
             int timeNow = DateTime.Now.Hour * 100 + DateTime.Now.Minute;
-            foreach (Interval interval in Intervals)
+            foreach (DayProfileModel dayProfile in DayProfiles)
             {
-                if (interval.TimeStart <= timeNow && interval.TimeStart >= prev.TimeStart)
+                if (dayProfile.StartTime <= timeNow && dayProfile.StartTime >= prev.StartTime)
                 {
-                    prev = interval;
+                    prev = dayProfile;
                     valid = true;
                 }
+                else
+                    break; //Since the list is sorted we can exit here
             }
 
-            return valid ? prev : null;
+            return valid ? prev : null;        
         }
 
         async void CalculateClicked(System.Object sender, System.EventArgs e)
@@ -87,9 +86,11 @@ namespace DiabetesContolApp.Views
             }
         }
 
-        void AddGroceriesClicked(System.Object sender, System.EventArgs e)
+        async void AddGroceriesClicked(System.Object sender, System.EventArgs e)
         {
-            //TODO: Implement
+            var page = new GrocerySelectionListPage();
+
+            await Navigation.PushAsync(page);
         }
 
         void LogInsulinClicked(System.Object sender, System.EventArgs e)

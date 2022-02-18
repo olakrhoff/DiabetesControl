@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="DiabetesContolApp.Views.DayProfileDetailPage">
+
+     <StackLayout Padding="0, 0, 0, 35">
+        <TableView>
+            <TableRoot>
+                <TableSection Title="Day profile settings">
+                    <EntryCell x:Name="name"
+                               Label="Name"
+                               Text="{Binding Name}"
+                               Placeholder="e.g. Lunch"/>
+                    <EntryCell x:Name="targetGlucoseValue"
+                               Label="Target glucose"
+                               Text="{Binding TargetGlucoseValue}"
+                               Placeholder="5,4 mmol/L"/>
+                    <ViewCell>
+                        <StackLayout Orientation="Horizontal"
+                                     VerticalOptions="Center">
+                            <Label Text="Start time"
+                                   VerticalOptions="Center"
+                                   Margin="20, 0"/>
+                            <TimePicker x:Name="timePickerStartTime"
+                                        HorizontalOptions="Center"
+                                        Format="HH:mm"/>
+                        </StackLayout>
+                    </ViewCell>
+                </TableSection>
+            </TableRoot>
+        </TableView>
+
+        <Button Text="Save"
+                BackgroundColor="CadetBlue"
+                BorderRadius="20"
+                TextColor="WhiteSmoke"
+                VerticalOptions="Center"
+                FontSize="Title"
+                Clicked="SaveClicked"
+                Margin="20"/>
+    </StackLayout>
+
+</ContentPage>

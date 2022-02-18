@@ -3,5 +3,28 @@
     xmlns="http://xamarin.com/schemas/2014/forms"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="DiabetesContolApp.Views.DayProfilePage">
-   
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="AddNew"
+                     IconImageSource="Images/Intervals/plus.png"
+                     Clicked="AddNewClicked"
+                     Order="Primary"/>
+    </ContentPage.ToolbarItems>
+
+    <ListView x:Name="dayProfilesList"
+              ItemTapped="DayProfilesListItemTapped">
+        <ListView.ItemTemplate>
+            <DataTemplate>
+                <TextCell Text="{Binding Name}">
+                    <TextCell.ContextActions>
+                        <MenuItem Text="Delete"
+                                  IsDestructive="True"
+                                  Clicked="OnDeleteClicked"
+                                  CommandParameter="{Binding .}"/>
+                    </TextCell.ContextActions>
+                </TextCell>
+            </DataTemplate>
+        </ListView.ItemTemplate>
+    </ListView>
+
 </ContentPage>

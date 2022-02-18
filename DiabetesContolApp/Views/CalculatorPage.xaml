@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 <ContentPage
-    Padding="30, 0, 30, 0"
+    Padding="30, 0, 30, 25"
     xmlns="http://xamarin.com/schemas/2014/forms"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="DiabetesContolApp.Views.CalculatorPage">
@@ -14,8 +14,7 @@
         </ResourceDictionary>
     </ContentPage.Resources>
     
-    <StackLayout HorizontalOptions="FillAndExpand"
-                 Spacing="30">
+    <StackLayout Spacing="30">
         <Entry x:Name="glucose"
                Placeholder="5,4 mmol/L"
                VerticalOptions="Center"
@@ -33,7 +32,8 @@
                    Keyboard="Numeric"/>
             <Button Text="+"
                     HorizontalOptions="End"
-                    Clicked="AddGroceriesClicked"/>
+                    Clicked="AddGroceriesClicked"
+                    FontSize="Title"/>
         </StackLayout>
         <Label Text="Groceries"
                HorizontalOptions="Center"
@@ -56,9 +56,7 @@
         </StackLayout>
         <StackLayout Orientation="Horizontal"
                      VerticalOptions="EndAndExpand"
-                     HorizontalOptions="Center"
-                     Margin="0, 0, 0, 25"
-                     Spacing="35">
+                     HorizontalOptions="CenterAndExpand">
             <Button Text="Calculate"
                     BackgroundColor="CadetBlue"
                     BorderRadius="20"
@@ -66,7 +64,8 @@
                     VerticalOptions="Center"
                     FontSize="Title"
                     Clicked="CalculateClicked"
-                    Padding="15, 5"/>
+                    Padding="15, 5"
+                    Margin="10"/>
             <Button Text="Log insulin"
                     BackgroundColor="CadetBlue"
                     BorderRadius="20"
@@ -74,7 +73,8 @@
                     VerticalOptions="Center"
                     FontSize="Title"
                     Clicked="LogInsulinClicked"
-                    Padding="15, 5"/>
+                    Padding="15, 5"
+                    Margin="10"/>
         </StackLayout>
     </StackLayout>
 </ContentPage>
