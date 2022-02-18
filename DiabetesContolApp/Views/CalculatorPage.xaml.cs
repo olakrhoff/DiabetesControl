@@ -7,13 +7,16 @@ using DiabetesContolApp.GlobalLogic;
 using SQLite;
 
 using Xamarin.Forms;
+using System.Linq;
 
 namespace DiabetesContolApp.Views
 {
+
     public partial class CalculatorPage : ContentPage
     {
-        private SQLiteAsyncConnection connection;
+        private readonly SQLiteAsyncConnection connection;
         public ObservableCollection<DayProfileModel> DayProfiles { get; set; }
+        public ObservableCollection<NumberOfGroceryModel> NumberOfGroceriesSummary { get; set; }
 
         public CalculatorPage()
         {
@@ -24,12 +27,15 @@ namespace DiabetesContolApp.Views
 
         protected override async void OnAppearing()
         {
-            await connection.CreateTableAsync<DayProfileModel>();
+            await connection.CreateTableAsync<DayProfileModel>(); //Creates table if not already created
+
             var dayProfiles = await connection.Table<DayProfileModel>().ToListAsync();
             dayProfiles.Sort(); //Sort the elements
+
             DayProfiles = new ObservableCollection<DayProfileModel>(dayProfiles);
             pickerDayprofiles.ItemsSource = DayProfiles;
             pickerDayprofiles.SelectedItem = GetDayProfileByTime();
+
             if (pickerDayprofiles.SelectedItem == null && DayProfiles.Count > 0)
                 pickerDayprofiles.SelectedItem = DayProfiles[0];
 
@@ -43,7 +49,7 @@ namespace DiabetesContolApp.Views
                 return null;
 
             bool valid = false;
-            DayProfileModel prev = new DayProfileModel();
+            DayProfileModel prev = new();
             int timeNow = DateTime.Now.Hour * 100 + DateTime.Now.Minute;
             foreach (DayProfileModel dayProfile in DayProfiles)
             {
@@ -88,7 +94,19 @@ namespace DiabetesContolApp.Views
 
         async void AddGroceriesClicked(System.Object sender, System.EventArgs e)
         {
-            var page = new GrocerySelectionListPage();
+            GrocerySelectionListPage page = NumberOfGroceriesSummary == null ? new() : new(NumberOfGroceriesSummary.ToList());
+
+            page.NumberOfGroceryListSaved += (source, args) =>
+            {
+                NumberOfGroceriesSummary = new(args);
+                groceriesAddedList.ItemsSource = NumberOfGroceriesSummary;
+            };
+
+            page.NumberOfGroceryDeleted += (source, args) =>
+            {
+                if (NumberOfGroceriesSummary != null)
+                    NumberOfGroceriesSummary.Remove(args);
+            };
 
             await Navigation.PushAsync(page);
         }

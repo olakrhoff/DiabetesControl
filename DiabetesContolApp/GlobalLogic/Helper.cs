@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Collections.ObjectModel;
 
 namespace DiabetesContolApp.GlobalLogic
 {
@@ -64,6 +65,14 @@ namespace DiabetesContolApp.GlobalLogic
             }
             
             return true;
+        }
+
+        static public ObservableCollection<T> SortObservableCollection<T>(ObservableCollection<T> observableCollection)
+        {
+            var list = observableCollection.ToList();
+            list.Sort();
+
+            return new(list);
         }
     }
 }
