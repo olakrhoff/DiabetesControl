@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace DiabetesContolApp.Models
 {
-    public class NumberOfGroceryModel : IEquatable<NumberOfGroceryModel>, INotifyPropertyChanged
+    public class NumberOfGroceryModel : IEquatable<NumberOfGroceryModel>, IComparable<NumberOfGroceryModel>, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -57,6 +57,11 @@ namespace DiabetesContolApp.Models
         public bool Equals(NumberOfGroceryModel other)
         {
             return this.Grocery.Equals(other.Grocery);
+        }
+
+        public int CompareTo(NumberOfGroceryModel other)
+        {
+            return this.Grocery.CompareTo(other.Grocery);
         }
     }
 }

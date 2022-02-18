@@ -23,7 +23,8 @@
                Keyboard="Numeric"/>
         <Picker x:Name="pickerDayprofiles"
                 ItemDisplayBinding="{Binding Name}"/>
-        <StackLayout Orientation="Horizontal">
+        <StackLayout Orientation="Horizontal"
+                     VerticalOptions="Center">
             <Entry x:Name="carbs"
                    Placeholder="Carbohydrates"
                    HorizontalOptions="FillAndExpand"
@@ -33,13 +34,34 @@
             <Button Text="+"
                     HorizontalOptions="End"
                     Clicked="AddGroceriesClicked"
-                    FontSize="Title"/>
+                    FontSize="Title"
+                    FontAttributes="Bold"
+                    BackgroundColor="CadetBlue"
+                    BorderRadius="20"
+                    VerticalOptions="Center"
+                    Margin="5, 0, 0, 0"
+                    WidthRequest="{Binding Source={x:Reference carbs}, Path=Height}"
+                    HeightRequest="{Binding Source={x:Reference carbs}, Path=Height}"
+                    TextColor="WhiteSmoke"/>
         </StackLayout>
-        <Label Text="Groceries"
-               HorizontalOptions="Center"
-               FontAttributes="Bold"></Label>
-        <ListView>
-            <!--TODO-->
+        <ListView x:Name="groceriesAddedList">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell IsEnabled="False">
+                        <StackLayout Orientation="Horizontal"
+                                     Spacing="30"
+                                     Padding="15, 0"
+                                     HorizontalOptions="Fill">
+                            <Label Text="{Binding NumberOfGrocery}"
+                                   VerticalOptions="Center"
+                                   HorizontalOptions="Start"/>
+                            <Label Text="{Binding Grocery.Name}"
+                                   VerticalOptions="Center"
+                                   HorizontalOptions="Center"/>
+                        </StackLayout>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
         </ListView>
         <StackLayout Orientation="Horizontal"
                      Spacing="0"

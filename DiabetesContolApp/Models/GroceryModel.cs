@@ -6,7 +6,7 @@ using SQLite;
 namespace DiabetesContolApp.Models
 {
     [Table("Grocery")]
-    public class GroceryModel : INotifyPropertyChanged
+    public class GroceryModel : INotifyPropertyChanged, IEquatable<GroceryModel>, IComparable<GroceryModel>
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -32,6 +32,16 @@ namespace DiabetesContolApp.Models
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public bool Equals(GroceryModel other)
+        {
+            return this.GroceryID.Equals(other.GroceryID);
+        }
+
+        public int CompareTo(GroceryModel other)
+        {
+            return this.Name.CompareTo(other.Name);
         }
 
         [NotNull, MaxLength(255)]

@@ -20,15 +20,16 @@ namespace DiabetesContolApp.Views
 
         public GroceryPage()
         {
-            InitializeComponent();
-
             connection = DependencyService.Get<ISQLiteDB>().GetConnection();
+
+            InitializeComponent();
         }
 
         protected override async void OnAppearing()
         {
             await connection.CreateTableAsync<GroceryModel>(); //Creates table if it does not already exist
             var groceries = await connection.Table<GroceryModel>().ToListAsync();
+            groceries.Sort();
             Groceries = new ObservableCollection<GroceryModel>(groceries);
             groceriesList.ItemsSource = Groceries;
 
