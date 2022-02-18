@@ -90,6 +90,11 @@ namespace DiabetesContolApp.Views
         {
             var page = new GrocerySelectionListPage();
 
+            page.NumberOfGroceryListSaved += async (source, args) =>
+            {
+                var groceries = args;
+            };
+
             await Navigation.PushAsync(page);
         }
 

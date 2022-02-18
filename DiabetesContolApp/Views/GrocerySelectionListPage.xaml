@@ -32,7 +32,7 @@
 
                         <StackLayout Orientation="Horizontal"
                                      Spacing="30"
-                                     Padding="10, 0"
+                                     Padding="15, 0"
                                      HorizontalOptions="Fill">
                             <Label Text="{Binding Source={x:Reference stepper}, Path=Value}"
                                    VerticalOptions="Center"

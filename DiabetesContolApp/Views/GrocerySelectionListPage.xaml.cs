@@ -17,6 +17,8 @@ namespace DiabetesContolApp.Views
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class GrocerySelectionListPage : ContentPage
     {
+        public event EventHandler<List<NumberOfGroceryModel>> NumberOfGroceryListSaved;
+
         public ObservableCollection<NumberOfGroceryModel> Groceries { get; set; }
         private SQLiteAsyncConnection connection;
 
@@ -32,22 +34,18 @@ namespace DiabetesContolApp.Views
 
         protected override async void OnAppearing()
         {
-            Groceries = new ObservableCollection<NumberOfGroceryModel>(await GetNumberOfGroceries());
+            if (Groceries == null)
+                Groceries = new ObservableCollection<NumberOfGroceryModel>(await GetNumberOfGroceries());
             groceriesList.ItemsSource = Groceries;
 
             base.OnAppearing();
         }
 
-        async private Task<List<NumberOfGroceryModel>> GetNumberOfGroceries(string searchText = null)
+        async private Task<List<NumberOfGroceryModel>> GetNumberOfGroceries()
         {
             await connection.CreateTableAsync<GroceryModel>(); //Creates table if it does not already exist
 
-            var numberOfGroceryList = NumberOfGroceryModel.GetNumberOfGroceries(await connection.Table<GroceryModel>().ToListAsync());
-
-            if (String.IsNullOrWhiteSpace(searchText))
-                return numberOfGroceryList;
-
-            return numberOfGroceryList.Where(numberOfGrocery => numberOfGrocery.Grocery.Name.ToLower().Contains(searchText.ToLower())).ToList<NumberOfGroceryModel>();
+            return NumberOfGroceryModel.GetNumberOfGroceries(await connection.Table<GroceryModel>().ToListAsync());
         }
 
         async void AddNewClicked(System.Object sender, System.EventArgs e)
@@ -62,6 +60,7 @@ namespace DiabetesContolApp.Views
 
             page.GroceryAdded += async (source, args) =>
             {
+                Groceries.Add(new NumberOfGroceryModel(args));
                 await connection.InsertAsync(args);
             };
 
@@ -84,12 +83,16 @@ namespace DiabetesContolApp.Views
             if (await DisplayAlert("Deleting", $"Are you sure you want to delete {grocery.Grocery.Name}?", "Delete", "Cancel"))
             {
                 Groceries.Remove(grocery);
-                await connection.DeleteAsync(grocery);
+                await connection.DeleteAsync(grocery.Grocery);
             }
         }
 
-        void SaveClicked(System.Object sender, System.EventArgs e)
+        async void SaveClicked(System.Object sender, System.EventArgs e)
         {
+            //TODO: Filter out all the ones who have zeros
+            NumberOfGroceryListSaved?.Invoke(this, Groceries.ToList<NumberOfGroceryModel>());
+
+            await Navigation.PopAsync();
         }
 
         async void EditClicked(System.Object sender, System.EventArgs e)
@@ -109,9 +112,14 @@ namespace DiabetesContolApp.Views
             await Navigation.PushAsync(page);
         }
 
-        async void SearchBarTextChanged(System.Object sender, Xamarin.Forms.TextChangedEventArgs e)
+        void SearchBarTextChanged(System.Object sender, Xamarin.Forms.TextChangedEventArgs e)
         {
-            groceriesList.ItemsSource = Groceries = new ObservableCollection<NumberOfGroceryModel>(await GetNumberOfGroceries(e.NewTextValue));
+            if (String.IsNullOrWhiteSpace(e.NewTextValue))
+            {
+                groceriesList.ItemsSource = Groceries;
+                return;
+            }
+            groceriesList.ItemsSource = Groceries.Where(numberOfGrocery => numberOfGrocery.Grocery.Name.ToLower().Contains(e.NewTextValue.ToLower())).ToList<NumberOfGroceryModel>();
         }
     }
 }
