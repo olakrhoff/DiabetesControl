@@ -15,7 +15,18 @@
                     <EntryCell x:Name="targetGlucoseValue"
                                Label="Target glucose"
                                Text="{Binding TargetGlucoseValue}"
-                               Placeholder="5,4 mmol/L"/>
+                               Placeholder="5,4 mmol/L"
+                               Keyboard="Numeric"/>
+                    <EntryCell x:Name="carbScalar"
+                               Label="Carb scalar"
+                               Text="{Binding CarbScalar}"
+                               Placeholder="1,2"
+                               Keyboard="Numeric"/>
+                    <EntryCell x:Name="glucoseScalar"
+                               Label="Glucose scalar"
+                               Text="{Binding GlucoseScalar}"
+                               Placeholder="0,9"
+                               Keyboard="Numeric"/>
                     <ViewCell>
                         <StackLayout Orientation="Horizontal"
                                      VerticalOptions="Center">

@@ -16,35 +16,25 @@
     
     <StackLayout Spacing="30">
         <Entry x:Name="glucose"
-               Placeholder="5,4 mmol/L"
+               Placeholder="Current glucose 5,4 mmol/L"
                VerticalOptions="Center"
                Margin="0, 50, 0, 0"
                Style="{StaticResource entries}"
                Keyboard="Numeric"/>
         <Picker x:Name="pickerDayprofiles"
-                ItemDisplayBinding="{Binding Name}"/>
-        <StackLayout Orientation="Horizontal"
-                     VerticalOptions="Center">
-            <Entry x:Name="carbs"
-                   Placeholder="Carbohydrates"
-                   HorizontalOptions="FillAndExpand"
-                   VerticalOptions="Center"
-                   Style="{StaticResource entries}"
-                   Keyboard="Numeric"/>
-            <Button Text="+"
-                    HorizontalOptions="End"
+                ItemDisplayBinding="{Binding Name}"
+                Style="{StaticResource entries}"/>
+        <Button Text="Add groceries"
                     Clicked="AddGroceriesClicked"
                     FontSize="Title"
-                    FontAttributes="Bold"
                     BackgroundColor="CadetBlue"
                     BorderRadius="20"
                     VerticalOptions="Center"
-                    Margin="5, 0, 0, 0"
-                    WidthRequest="{Binding Source={x:Reference carbs}, Path=Height}"
-                    HeightRequest="{Binding Source={x:Reference carbs}, Path=Height}"
+                    Padding="15, 5"
+                    HorizontalOptions="Center"
                     TextColor="WhiteSmoke"/>
-        </StackLayout>
-        <ListView x:Name="groceriesAddedList">
+        <ListView x:Name="groceriesAddedList"
+                  IsEnabled="False">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <ViewCell IsEnabled="False">
@@ -88,7 +78,9 @@
                     Clicked="CalculateClicked"
                     Padding="15, 5"
                     Margin="10"/>
-            <Button Text="Log insulin"
+            <Button x:Name="logInsulinButton"
+                    Text="Log insulin"
+                    IsEnabled="False"
                     BackgroundColor="CadetBlue"
                     BorderRadius="20"
                     TextColor="WhiteSmoke"

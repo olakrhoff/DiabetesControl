@@ -9,8 +9,9 @@ namespace DiabetesContolApp
     public partial class App : Application
     {
         //Keys
-        private const string BaseSensitivityKey = "BaseSensitivity";
-        private const string SenesitivityWithoutFoodKey = "SenesitivityWithoutFood";
+        private const string InsulinToCarbohydratesRatioKey = "InsulinToCarbohydratesRatio";
+        private const string InsulinToGlucoseRatioKey = "InsulinToGlucoseRatio";
+        private const string InsulinOnlyCorrectionScalarKey = "InsulinOnlyCorrectionScalar";
 
         public App()
         {
@@ -29,39 +30,73 @@ namespace DiabetesContolApp
 
         protected override void OnResume()
         {
+            //TODO: Update day profile picker
         }
 
-        public int BaseSensitivity
+        /*
+         * This variable gives the number of carbs per unit of insulin
+         * 
+         * If it is not stored in properties, it returns -1.0f
+         */
+        public float InsulinToCarbohydratesRatio
         {
             get
             {
-                if (Properties.ContainsKey(BaseSensitivityKey))
-                {
-                    return (int)Properties[BaseSensitivityKey];
-                }
-                return 0; //Returns -1 if there is no prpoertiy sat
+                if (Properties.ContainsKey(InsulinToCarbohydratesRatioKey))
+                    return (float)Properties[InsulinToCarbohydratesRatioKey];
+                return -1.0f; //Returns -1 if there is no propertiy sat
             }
 
             set
             {
-                Properties[BaseSensitivityKey] = value;
+                if (!Properties.ContainsKey(InsulinToCarbohydratesRatioKey))
+                    Properties.Add(InsulinToCarbohydratesRatioKey, -1.0f);
+                Properties[InsulinToCarbohydratesRatioKey] = value;
             }
         }
 
-        public float SenesitivityWithoutFood
+        /*
+         * This variable gives the number of glucose per unit of insulin
+         * 
+         * If it is not stored in properties, it returns -1.0f
+         */
+        public float InsulinToGlucoseRatio
         {
             get
             {
-                if (Properties.ContainsKey(SenesitivityWithoutFoodKey))
-                {
-                    return (float)Properties[SenesitivityWithoutFoodKey];
-                }
-                return 0f;
+                if (Properties.ContainsKey(InsulinToGlucoseRatioKey))
+                    return (float)Properties[InsulinToGlucoseRatioKey];
+                return -1.0f; //Returns -1 if there is no propertiy sat
             }
 
             set
             {
-                Properties[SenesitivityWithoutFoodKey] = value;
+                if (!Properties.ContainsKey(InsulinToGlucoseRatioKey))
+                    Properties.Add(InsulinToGlucoseRatioKey, -1.0f);
+                Properties[InsulinToGlucoseRatioKey] = value;
+            }
+        }
+
+        /*
+         * This variable gives the sensitiviy shift in correction insulin
+         * if only correction insulin is sat
+         * 
+         * If it is not stored in properties, it returns -1.0f
+         */
+        public float InsulinOnlyCorrectionScalar
+        {
+            get
+            {
+                if (Properties.ContainsKey(InsulinOnlyCorrectionScalarKey))
+                    return (float)Properties[InsulinOnlyCorrectionScalarKey];
+                return -1.0f; //Returns -1 if there is no propertiy sat
+            }
+
+            set
+            {
+                if (!Properties.ContainsKey(InsulinOnlyCorrectionScalarKey))
+                    Properties.Add(InsulinOnlyCorrectionScalarKey, -1.0f);
+                Properties[InsulinOnlyCorrectionScalarKey] = value;
             }
         }
 
