@@ -41,7 +41,9 @@ namespace DiabetesContolApp.Views
         {
             if (String.IsNullOrWhiteSpace(name.Text) ||
                 String.IsNullOrWhiteSpace(targetGlucoseValue.Text) ||
-                !Helper.ConvertToFloat(targetGlucoseValue.Text, out float targetGlucoseValueFloat))
+                !Helper.ConvertToFloat(targetGlucoseValue.Text, out float targetGlucoseValueFloat) ||
+                !Helper.ConvertToFloat(carbScalar.Text, out float carbScalarFloat) ||
+                    !Helper.ConvertToFloat(glucoseScalar.Text, out float glucoseScalarFloat))
             {
                 await DisplayAlert("Error", "All fields must be filled out", "OK");
                 return;
@@ -49,7 +51,14 @@ namespace DiabetesContolApp.Views
 
             DayProfile.Name = name.Text;
             DayProfile.TargetGlucoseValue = targetGlucoseValueFloat;
-            DayProfile.StartTime = (ushort)(timePickerStartTime.Time.Hours * 100 + timePickerStartTime.Time.Minutes); 
+            DayProfile.StartTime = (ushort)(timePickerStartTime.Time.Hours * 100 + timePickerStartTime.Time.Minutes);
+
+            //------------------------------
+
+            DayProfile.CarbScalar = carbScalarFloat;
+            DayProfile.GlucoseScalar = glucoseScalarFloat;
+
+            //------------------------------
 
             if (DayProfile.DayProfileID == -1) //The DayProfile is not in the database
                 DayProfileAdded?.Invoke(this, DayProfile);
