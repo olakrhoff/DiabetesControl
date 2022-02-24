@@ -18,12 +18,13 @@ namespace DiabetesContolApp.Views
         private readonly SQLiteAsyncConnection connection;
         public ObservableCollection<DayProfileModel> DayProfiles { get; set; }
         public ObservableCollection<NumberOfGroceryModel> NumberOfGroceriesSummary { get; set; }
+        private float? _insulinEstimate;
 
         public CalculatorPage()
         {
             InitializeComponent();
 
-            connection = DependencyService.Get<ISQLiteDB>().GetConnection();            
+            connection = DependencyService.Get<ISQLiteDB>().GetConnection();
         }
 
         protected override async void OnAppearing()
@@ -45,7 +46,7 @@ namespace DiabetesContolApp.Views
 
         private DayProfileModel GetDayProfileByTime()
         {
-            
+
             if (DayProfiles.Count == 0)
                 return null;
 
@@ -63,7 +64,7 @@ namespace DiabetesContolApp.Views
                     break; //Since the list is sorted we can exit here
             }
 
-            return valid ? prev : null;        
+            return valid ? prev : null;
         }
 
         async void AddGroceriesClicked(System.Object sender, System.EventArgs e)
@@ -91,7 +92,7 @@ namespace DiabetesContolApp.Views
                 return;
 
             App globalVariables = Application.Current as App;
-            
+
             if (Helper.ConvertToFloat(glucose.Text, out float glucoseFloat))
             {
                 //Data is valid, continue with calculations
@@ -107,11 +108,11 @@ namespace DiabetesContolApp.Views
 
                 float totalInsulin = insulinForFood + insulinForCorrection;
 
-                
+
                 insulinEstimate.Text = String.Format("{0:F1}", totalInsulin);
                 insulinEstimate.IsVisible = true;
-
                 logInsulinButton.IsEnabled = true;
+                _insulinEstimate = totalInsulin;
             }
             else
             {
@@ -133,13 +134,18 @@ namespace DiabetesContolApp.Views
 
         async void LogInsulinClicked(System.Object sender, System.EventArgs e)
         {
-            if (!await VaildateCalculatorData())
+            if (!await VaildateCalculatorData() ||
+                _insulinEstimate == null ||
+                !Helper.ConvertToFloat(insulinEstimate.Text, out float insulinFromUserFloat) ||
+                !Helper.ConvertToFloat(glucose.Text, out float glucoseAtMealFloat))
                 return;
 
-            //TODO: Implement
+            LogDatabase logDatabase = LogDatabase.GetInstance();
 
+            LogModel newLogEntry = new((pickerDayprofiles.SelectedItem as DayProfileModel).DayProfileID, DateTime.Now, (float)_insulinEstimate, insulinFromUserFloat, glucoseAtMealFloat, NumberOfGroceriesSummary.ToList<NumberOfGroceryModel>());
 
-
+            await logDatabase.InsertLogAsync(newLogEntry);
+            
             ClearCalculatorData();
         }
 
@@ -147,7 +153,7 @@ namespace DiabetesContolApp.Views
         {
             glucose.Text = insulinEstimate.Text = "";
             insulinEstimate.IsVisible = logInsulinButton.IsEnabled = false;
-            NumberOfGroceriesSummary.Clear();
+            NumberOfGroceriesSummary?.Clear();
         }
 
         async private Task<bool> VaildateCalculatorData()
@@ -192,6 +198,10 @@ namespace DiabetesContolApp.Views
                 ClearCalculatorData();
                 await DisplayAlert("Missing data", "A day profile must be created", "OK");
                 return false;
+            }
+            else if (insulinEstimate.IsVisible && !Helper.ConvertToFloat(insulinEstimate.Text, out float temp))
+            {
+                return false; //The number given for the amount of insulin is not correctly formatted.
             }
 
             return true; //If no errers occur
