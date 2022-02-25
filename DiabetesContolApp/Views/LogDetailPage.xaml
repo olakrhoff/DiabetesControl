@@ -27,6 +27,17 @@
                                         Format="HH:mm"/>
                         </StackLayout>
                     </ViewCell>
+                    <ViewCell>
+                        <StackLayout Orientation="Horizontal"
+                                     VerticalOptions="Center">
+                            <Label Text="Date of meal"
+                                   VerticalOptions="Center"
+                                   Margin="20, 0"/>
+                            <DatePicker x:Name="datePickerDateOfMeal"
+                                        HorizontalOptions="Center"
+                                        Format="dd/MM/yy"/>
+                        </StackLayout>
+                    </ViewCell>
                     <EntryCell x:Name="insulinFromUser"
                                Label="Insulin given"
                                Text="{Binding InsulinFromUser}"
@@ -35,7 +46,38 @@
             </TableRoot>
         </TableView>
 
+        <Button Text="Edit groceries"
+                    Clicked="EditGroceriesClicked"
+                    FontSize="Title"
+                    BackgroundColor="CadetBlue"
+                    BorderRadius="20"
+                    VerticalOptions="Center"
+                    Padding="15, 5"
+                    HorizontalOptions="Center"
+                    TextColor="WhiteSmoke"/>
+        <ListView x:Name="groceriesAddedList"
+                  IsEnabled="False">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell IsEnabled="False">
+                        <StackLayout Orientation="Horizontal"
+                                     Spacing="30"
+                                     Padding="20, 0"
+                                     HorizontalOptions="Fill">
+                            <Label Text="{Binding NumberOfGrocery}"
+                                   VerticalOptions="Center"
+                                   HorizontalOptions="Start"/>
+                            <Label Text="{Binding Grocery.Name}"
+                                   VerticalOptions="Center"
+                                   HorizontalOptions="Center"/>
+                        </StackLayout>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
         <Button Text="Save"
+                Clicked="SaveClicked"
                 BackgroundColor="CadetBlue"
                 BorderRadius="20"
                 TextColor="WhiteSmoke"

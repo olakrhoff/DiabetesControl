@@ -8,6 +8,8 @@ namespace DiabetesContolApp.Models
     [Table("GroceryLog")]
     public class GroceryLogModel
     {
+        [PrimaryKey, AutoIncrement]
+        public int GroceryLogID { get; set; }
         [ForeignKey(typeof(GroceryModel))]
         public int GroceryID { get; set; }
         [ForeignKey(typeof(LogModel))]
@@ -30,8 +32,9 @@ namespace DiabetesContolApp.Models
         {
             List<GroceryLogModel> groceryLogs = new();
 
-            foreach (NumberOfGroceryModel numberOfGrocery in numberOfGroceries)
-                groceryLogs.Add(new(numberOfGrocery.Grocery.GroceryID, logID, numberOfGrocery.NumberOfGrocery));
+            if (numberOfGroceries != null)
+                foreach (NumberOfGroceryModel numberOfGrocery in numberOfGroceries)
+                    groceryLogs.Add(new(numberOfGrocery.Grocery.GroceryID, logID, numberOfGrocery.NumberOfGrocery));
 
             return groceryLogs;
         }

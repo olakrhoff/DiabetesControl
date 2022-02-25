@@ -15,23 +15,22 @@ namespace DiabetesContolApp.Views
 
     public partial class CalculatorPage : ContentPage
     {
-        private readonly SQLiteAsyncConnection connection;
+        
         public ObservableCollection<DayProfileModel> DayProfiles { get; set; }
         public ObservableCollection<NumberOfGroceryModel> NumberOfGroceriesSummary { get; set; }
         private float? _insulinEstimate;
 
+        private DayProfileDatabase dayProfileDatabase = DayProfileDatabase.GetInstance();
+        private LogDatabase logDatabase = LogDatabase.GetInstance();
+
         public CalculatorPage()
         {
             InitializeComponent();
-
-            connection = DependencyService.Get<ISQLiteDB>().GetConnection();
         }
 
         protected override async void OnAppearing()
         {
-            await connection.CreateTableAsync<DayProfileModel>(); //Creates table if not already created
-
-            var dayProfiles = await connection.Table<DayProfileModel>().ToListAsync();
+            var dayProfiles = await dayProfileDatabase.GetDayProfilesAsync();
             dayProfiles.Sort(); //Sort the elements
 
             DayProfiles = new ObservableCollection<DayProfileModel>(dayProfiles);
@@ -139,8 +138,6 @@ namespace DiabetesContolApp.Views
                 !Helper.ConvertToFloat(insulinEstimate.Text, out float insulinFromUserFloat) ||
                 !Helper.ConvertToFloat(glucose.Text, out float glucoseAtMealFloat))
                 return;
-
-            LogDatabase logDatabase = LogDatabase.GetInstance();
 
             LogModel newLogEntry = new((pickerDayprofiles.SelectedItem as DayProfileModel).DayProfileID, DateTime.Now, (float)_insulinEstimate, insulinFromUserFloat, glucoseAtMealFloat, NumberOfGroceriesSummary.ToList<NumberOfGroceryModel>());
 

@@ -9,7 +9,7 @@ using SQLiteNetExtensions.Attributes;
 namespace DiabetesContolApp.Models
 {
     [Table("Log")]
-    public class LogModel : INotifyPropertyChanged
+    public class LogModel : INotifyPropertyChanged, IComparable<LogModel>, IEquatable<LogModel>
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -32,11 +32,12 @@ namespace DiabetesContolApp.Models
 
         public LogModel()
         {
-
+            LogID = -1;
         }
 
         public LogModel(int dayProfileID, DateTime dateTime, float insulinEstimate, float insulinFromUser, float glucoseAtMeal, List<NumberOfGroceryModel> numberOfGroceries, float? glucoseAfterMeal = null)
         {
+            LogID = -1;
             DayProfileID = dayProfileID;
             DateTimeValue = dateTime;
             InsulinEstimate = insulinEstimate;
@@ -51,6 +52,16 @@ namespace DiabetesContolApp.Models
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public int CompareTo(LogModel other)
+        {
+            return this.DateTimeValue.CompareTo(other.DateTimeValue);
+        }
+
+        public bool Equals(LogModel other)
+        {
+            return this.DateTimeValue.Equals(other.DateTimeValue);
         }
 
         [Ignore]

@@ -16,21 +16,18 @@ namespace DiabetesContolApp.Views
     public partial class GroceryPage : ContentPage
     {
         public ObservableCollection<GroceryModel> Groceries { get; set; }
-        private SQLiteAsyncConnection connection;
+        private GroceryDatabase groceryDatabase = GroceryDatabase.GetInstance();
 
         public GroceryPage()
         {
-            connection = DependencyService.Get<ISQLiteDB>().GetConnection();
-
             InitializeComponent();
         }
 
         protected override async void OnAppearing()
         {
-            await connection.CreateTableAsync<GroceryModel>(); //Creates table if it does not already exist
-            var groceries = await connection.Table<GroceryModel>().ToListAsync();
+            var groceries = await groceryDatabase.GetGroceriesAsync();
             groceries.Sort();
-            Groceries = new ObservableCollection<GroceryModel>(groceries);
+            Groceries = new(groceries);
             groceriesList.ItemsSource = Groceries;
 
             base.OnAppearing();
@@ -48,7 +45,7 @@ namespace DiabetesContolApp.Views
 
             page.GroceryAdded += async (source, args) =>
             {
-                await connection.InsertAsync(args);
+                await groceryDatabase.InsertGroceryAsync(args);
             };
 
             await Navigation.PushAsync(page);
@@ -66,7 +63,7 @@ namespace DiabetesContolApp.Views
 
             page.GrocerySaved += async (source, args) =>
             { 
-                await connection.UpdateAsync(args);
+                await groceryDatabase.UpdateGroceryAsync(args);
             };
 
             await Navigation.PushAsync(page);
@@ -78,7 +75,7 @@ namespace DiabetesContolApp.Views
             if (await DisplayAlert("Deleting", $"Are you sure you want to delete {grocery.Name}?", "Delete", "Cancel"))
             {
                 Groceries.Remove(grocery);
-                await connection.DeleteAsync(grocery);
+                await groceryDatabase.DeleteGroceryAsync(grocery);
             }
         }
     }

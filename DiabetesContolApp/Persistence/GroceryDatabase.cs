@@ -29,14 +29,36 @@ namespace DiabetesContolApp.Persistence
             return instance == null ? new GroceryDatabase() : instance;
         }
 
-        async internal void InsertGroceryAsync(GroceryModel newGrocery)
+        async internal Task<int> InsertGroceryAsync(GroceryModel newGrocery)
         {
-            await connection.InsertAsync(newGrocery);
+            return await connection.InsertAsync(newGrocery);
         }
 
         async internal Task<GroceryModel> GetGroceryAsync(int groceryID)
         {
             return await connection.GetAsync<GroceryModel>(groceryID);
+        }
+
+        async internal Task<List<GroceryModel>> GetGroceriesAsync()
+        {
+            return await connection.Table<GroceryModel>().ToListAsync();
+        }
+
+        async internal Task<int> UpdateGroceryAsync(GroceryModel grocery)
+        {
+            return await connection.UpdateAsync(grocery);
+        }
+
+        async internal Task<int> DeleteGroceryAsync(GroceryModel grocery)
+        {
+
+            List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().ToListAsync();
+
+            foreach (GroceryLogModel groceryLog in groceryLogs)
+                if (groceryLog.GroceryID == grocery.GroceryID)
+                    await connection.DeleteAsync(groceryLog); //Deletes all the entries in GroceryLog who are connected to the Grocery
+
+            return await connection.DeleteAsync(grocery);
         }
     }
 }

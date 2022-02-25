@@ -64,6 +64,15 @@ namespace DiabetesContolApp.Persistence
             return log;
         }
 
+        async internal Task<int> UpdateLogAsync(LogModel log)
+        {
+            //TODO: Remove GroceryLog entreis if they are no longer present, and add the new ones, if any
+
+
+
+            return await connection.UpdateAsync(log);
+        }
+
         async internal Task<List<LogModel>> GetLogsAsync(DateTime dateTime)
         {
             var logs = await connection.Table<LogModel>().ToListAsync();
@@ -80,6 +89,17 @@ namespace DiabetesContolApp.Persistence
                 logs[i] = await GetLogAsync(logs[i].LogID);
 
             return logs;
+        }
+
+        async internal Task<int> DeleteLogAsync(LogModel log)
+        {
+            List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().ToListAsync();
+
+            foreach (GroceryLogModel groceryLog in groceryLogs)
+                if (groceryLog.LogID == log.LogID)
+                    await connection.DeleteAsync(groceryLog); //Deletes all the entries in GroceryLog who are connected to the Grocery
+
+            return await connection.DeleteAsync(log);
         }
     }
 }
