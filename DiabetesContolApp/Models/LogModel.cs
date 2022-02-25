@@ -19,11 +19,7 @@ namespace DiabetesContolApp.Models
         [ForeignKey(typeof(DayProfileModel))]
         public int DayProfileID { get; set; }
         [NotNull]
-        private long _dateTime { get; set; }
-        [NotNull]
-        private float _insulinEstimate { get; set; }
-        [NotNull]
-        private float _insulinFromUser { get; set; }
+        public long DateTimeLong { get; set; }
         [NotNull]
         public float GlucoseAtMeal { get; set; }
         
@@ -42,7 +38,7 @@ namespace DiabetesContolApp.Models
         public LogModel(int dayProfileID, DateTime dateTime, float insulinEstimate, float insulinFromUser, float glucoseAtMeal, List<NumberOfGroceryModel> numberOfGroceries, float? glucoseAfterMeal = null)
         {
             DayProfileID = dayProfileID;
-            DateTime = dateTime;
+            DateTimeValue = dateTime;
             InsulinEstimate = insulinEstimate;
             InsulinFromUser = insulinFromUser;
             GlucoseAtMeal = glucoseAtMeal;    
@@ -58,18 +54,18 @@ namespace DiabetesContolApp.Models
         }
 
         [Ignore]
-        public DateTime DateTime
+        public DateTime DateTimeValue
         {
             get
             {
-                return DateTime.FromBinary(_dateTime);
+                return DateTime.FromBinary(DateTimeLong);
             }
 
             set
             {
-                if (value.ToBinary() != this._dateTime)
+                if (value.ToBinary() != this.DateTimeLong)
                 {
-                    this._dateTime = value.ToBinary();
+                    this.DateTimeLong = value.ToBinary();
                     OnPropertyChanged();
                 }
                 //If it is equal to the previous value there is no need to update it
@@ -77,6 +73,17 @@ namespace DiabetesContolApp.Models
         }
 
         [Ignore]
+        public string TimeString
+        {
+            get
+            {
+                return DateTimeValue.ToString("HH:mm");
+            }
+        }
+
+        private float _insulinEstimate = -1.0f;
+
+        [NotNull]
         public float InsulinEstimate
         {
             get
@@ -95,7 +102,9 @@ namespace DiabetesContolApp.Models
             }
         }
 
-        [Ignore]
+        private float _insulinFromUser = -1.0f;
+
+        [NotNull]
         public float InsulinFromUser
         {
             get

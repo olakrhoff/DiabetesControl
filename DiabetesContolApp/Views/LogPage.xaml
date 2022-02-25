@@ -3,5 +3,29 @@
     xmlns="http://xamarin.com/schemas/2014/forms"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="DiabetesContolApp.Views.LogPage">
-    
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="AddNew"
+                     IconImageSource="Images/Intervals/plus.png"
+                     Clicked="AddNewClicked"
+                     Order="Primary"/>
+    </ContentPage.ToolbarItems>
+
+    <ListView x:Name="logList"
+              ItemTapped="LogListItemTapped">
+        <ListView.ItemTemplate>
+            <DataTemplate>
+                <TextCell Text="{Binding GlucoseAtMeal}"
+                          Detail="{Binding TimeString}">
+                    <TextCell.ContextActions>
+                        <MenuItem Text="Delete"
+                                  IsDestructive="True"
+                                  Clicked="OnDeleteClicked"
+                                  CommandParameter="{Binding .}"/>
+                    </TextCell.ContextActions>
+                </TextCell>
+            </DataTemplate>
+        </ListView.ItemTemplate>
+    </ListView>
+
 </ContentPage>

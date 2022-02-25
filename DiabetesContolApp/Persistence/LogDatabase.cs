@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
+
 using DiabetesContolApp.Models;
 
 using SQLite;
@@ -18,6 +20,13 @@ namespace DiabetesContolApp.Persistence
         {
             connection = DependencyService.Get<ISQLiteDB>().GetConnection();
 
+            if (false)
+            {
+                connection.DropTableAsync<LogModel>().Wait();
+                connection.DropTableAsync<GroceryModel>().Wait();
+                connection.DropTableAsync<DayProfileModel>().Wait();
+                connection.DropTableAsync<GroceryLogModel>().Wait();
+            }
             connection.CreateTableAsync<LogModel>().Wait();
             connection.CreateTableAsync<GroceryModel>().Wait();
             connection.CreateTableAsync<DayProfileModel>().Wait();
@@ -38,7 +47,7 @@ namespace DiabetesContolApp.Persistence
             return id;
         }
 
-        async internal Task<LogModel> GetLogAsyc(int logID)
+        async internal Task<LogModel> GetLogAsync(int logID)
         {
             LogModel log = await connection.GetAsync<LogModel>(logID);
 
@@ -53,6 +62,24 @@ namespace DiabetesContolApp.Persistence
 
 
             return log;
+        }
+
+        async internal Task<List<LogModel>> GetLogsAsync(DateTime dateTime)
+        {
+            var logs = await connection.Table<LogModel>().ToListAsync();
+
+            List<LogModel> temp = new();
+
+            foreach (LogModel log in logs)
+                if (log.DateTimeValue.Date.Equals(dateTime.Date))
+                    temp.Add(log);
+
+            logs = temp;
+
+            for (int i = 0; i < logs.Count; ++i)
+                logs[i] = await GetLogAsync(logs[i].LogID);
+
+            return logs;
         }
     }
 }
