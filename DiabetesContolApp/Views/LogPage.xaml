@@ -1,8 +1,18 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 <ContentPage
     xmlns="http://xamarin.com/schemas/2014/forms"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:src="clr-namespace:DiabetesContolApp.GlobalLogic"
     x:Class="DiabetesContolApp.Views.LogPage">
+
+    <ContentPage.Resources>
+        <src:DateConverter x:Key="dateConverter"/>
+        <ResourceDictionary>
+            <Style x:Key="dateBar" TargetType="Label">
+                <Setter Property="FontSize" Value="Title"/>
+                <Setter Property="FontFamily" Value="TimesNewRoman"/>
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="AddNew"
@@ -10,22 +20,38 @@
                      Clicked="AddNewClicked"
                      Order="Primary"/>
     </ContentPage.ToolbarItems>
-
-    <ListView x:Name="logList"
-              ItemTapped="LogListItemTapped">
-        <ListView.ItemTemplate>
-            <DataTemplate>
-                <TextCell Text="{Binding GlucoseAtMeal}"
-                          Detail="{Binding TimeString}">
-                    <TextCell.ContextActions>
-                        <MenuItem Text="Delete"
-                                  IsDestructive="True"
-                                  Clicked="OnDeleteClicked"
-                                  CommandParameter="{Binding .}"/>
-                    </TextCell.ContextActions>
-                </TextCell>
-            </DataTemplate>
-        </ListView.ItemTemplate>
-    </ListView>
-
+    <StackLayout>
+        <StackLayout Orientation="Horizontal"
+                     Padding="5, 0">
+            <Button Text="&lt;"
+                    HorizontalOptions="Start"
+                    Style="{StaticResource dateBar}"/>
+            <Label x:Name="labelDate"
+                   Text="{Binding Path=., Converter={StaticResource dateConverter}}"
+                   HorizontalOptions="CenterAndExpand"
+                   VerticalOptions="Center"
+                   Style="{StaticResource dateBar}"/>
+            <Button Text="&gt;"
+                    HorizontalOptions="End"
+                    Style="{StaticResource dateBar}"/>
+        </StackLayout>
+        <BoxView HeightRequest="1"
+                 BackgroundColor="#dcdcdc"/>
+        <ListView x:Name="logList"
+                  ItemTapped="LogListItemTapped">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <TextCell Text="{Binding GlucoseAtMeal}"
+                              Detail="{Binding TimeString}">
+                        <TextCell.ContextActions>
+                            <MenuItem Text="Delete"
+                                      IsDestructive="True"
+                                      Clicked="OnDeleteClicked"
+                                      CommandParameter="{Binding .}"/>
+                        </TextCell.ContextActions>
+                    </TextCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </StackLayout>
 </ContentPage>

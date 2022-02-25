@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.Persistence;
+using DiabetesContolApp.GlobalLogic;
 
 using Xamarin.Forms;
 
@@ -14,6 +15,14 @@ namespace DiabetesContolApp.Views
         public ObservableCollection<LogModel> Logs { get; set; }
         LogDatabase logDatabase = LogDatabase.GetInstance();
         DateTime localDate = DateTime.Now;
+
+        private string dateString
+        {
+            get
+            {
+                return localDate.ToString("dd/MM");
+            }
+        }
 
         public LogPage()
         {
@@ -27,6 +36,8 @@ namespace DiabetesContolApp.Views
             Logs = new(logs);
 
             logList.ItemsSource = Logs;
+
+            labelDate.BindingContext = localDate;
 
             base.OnAppearing();
         }
