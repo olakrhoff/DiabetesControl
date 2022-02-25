@@ -4,6 +4,15 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="DiabetesContolApp.Views.GrocerySelectionListPage">
 
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Style x:Key="labels" TargetType="Label">
+                <Setter Property="FontSize" Value="Title"/>
+                <Setter Property="FontFamily" Value="TimesNewRoman"/>
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="AddNew"
                      IconImageSource="Images/Intervals/plus.png"
@@ -36,10 +45,12 @@
                                      HorizontalOptions="Fill">
                             <Label Text="{Binding Source={x:Reference stepper}, Path=Value}"
                                    VerticalOptions="Center"
-                                   HorizontalOptions="Start"/>
+                                   HorizontalOptions="Start"
+                                   Style="{StaticResource labels}"/>
                             <Label Text="{Binding Grocery.Name}"
                                    VerticalOptions="Center"
-                                   HorizontalOptions="Center"/>
+                                   HorizontalOptions="Center"
+                                   Style="{StaticResource labels}"/>
                             <Stepper x:Name="stepper"
                                      Value="{Binding NumberOfGrocery}"
                                      HorizontalOptions="EndAndExpand"
