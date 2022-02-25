@@ -9,5 +9,6 @@
     <local:CalculatorPage Title="Calculator" IconImageSource="Images/Intervals/heart@3x.png"/>
     <local:GroceryPage Title="Groceries" IconImageSource="Images/Intervals/user@3x.png"/>
     <local:DayProfilePage Title="Day profiles" IconImageSource="Images/Intervals/clockOline@3x.png"/>
+    <local:SettingsAndStatisticsPage Title="Statistics" IconImageSource="Images/Intervals/clockOline@3x.png"/>
     
 </TabbedPage>
