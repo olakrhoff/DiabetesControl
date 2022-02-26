@@ -12,6 +12,10 @@
                                Label="Name"
                                Text="{Binding Name}"
                                Placeholder="Name of grocery"/>
+                    <EntryCell x:Name="brandName"
+                               Label="Brand name"
+                               Text="{Binding BrandName}"
+                               Placeholder="e.g. Sunniva"/>
                     <EntryCell x:Name="carbsPer100g"
                                Label="Carbs per 100g"
                                Text="{Binding CarbsPer100Grams}"

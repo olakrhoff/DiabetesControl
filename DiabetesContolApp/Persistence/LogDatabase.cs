@@ -20,11 +20,15 @@ namespace DiabetesContolApp.Persistence
         {
             connection = DependencyService.Get<ISQLiteDB>().GetConnection();
 
-            if (false)
+
+            //TODO: Remove when not needed anymore, the if-statment
+
+            //This if is only used to drop tables under testing and development
+            //It should not do anything under normal use
+            if (false) 
             {
                 connection.DropTableAsync<DayProfileModel>().Wait();
                 connection.DropTableAsync<GroceryModel>().Wait();
-
                 connection.DropTableAsync<LogModel>().Wait();
                 connection.DropTableAsync<GroceryLogModel>().Wait();
             }

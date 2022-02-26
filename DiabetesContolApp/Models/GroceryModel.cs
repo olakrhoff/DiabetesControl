@@ -16,6 +16,7 @@ namespace DiabetesContolApp.Models
         public int GroceryID { get; set; }
 
         private string _name;
+        private string _brandName;
 
         [NotNull]
         public float CarbsPer100Grams { get; set; }
@@ -28,6 +29,7 @@ namespace DiabetesContolApp.Models
 
         public GroceryModel()
         {
+            GroceryID = -1; //This will indicate that the Grocery is not yet added to the database
             this._carbScalar = 1.0f; //This is the default of the scalar, when it is one it has no effect on the calculations
         }
 
@@ -65,11 +67,39 @@ namespace DiabetesContolApp.Models
                 }
                 catch (ArgumentOutOfRangeException aoore)
                 {
-                    //TODO: Do some logging maybe
+                    //If an error occurs, we simply do not set the value
                     return;
                 }
 
                 this._name = value;
+                OnPropertyChanged();
+            }
+        }
+
+        [MaxLength(255)]
+        public string BrandName
+        {
+            get
+            {
+                return this._brandName;
+            }
+
+            set
+            {
+                if (this._brandName == value)
+                    return;
+                try
+                {
+                    if (value.Length > 255)
+                        throw new ArgumentOutOfRangeException("The name attribute of a grocery can not be longer than 255 chars");
+                }
+                catch (ArgumentOutOfRangeException aoore)
+                {
+                    //If an error occurs, we simply do not set the value
+                    return;
+                }
+
+                this._brandName = value;
                 OnPropertyChanged();
             }
         }
@@ -93,7 +123,7 @@ namespace DiabetesContolApp.Models
                 }
                 catch (ArgumentOutOfRangeException aoore)
                 {
-                    //TODO: Do some logging maybe
+                    //If an error occurs, we simply do not set the value
                     return;
                 }
 

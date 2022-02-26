@@ -24,7 +24,8 @@
         <SearchBar Placeholder="Search for groceries..."
                    TextChanged="SearchBarTextChanged"/>
         <ListView x:Name="groceriesList"
-                  ItemTapped="GroceriesListItemTapped">
+                  ItemTapped="GroceriesListItemTapped"
+                  HasUnevenRows="True">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <ViewCell>
@@ -47,10 +48,20 @@
                                    VerticalOptions="Center"
                                    HorizontalOptions="Start"
                                    Style="{StaticResource labels}"/>
-                            <Label Text="{Binding Grocery.Name}"
-                                   VerticalOptions="Center"
-                                   HorizontalOptions="Center"
-                                   Style="{StaticResource labels}"/>
+                            <StackLayout Spacing="0"
+                                         Padding="0"
+                                         Margin="0">
+                                <Label Text="{Binding Grocery.Name}"
+                                       VerticalOptions="Center"
+                                       HorizontalOptions="Center"
+                                       Style="{StaticResource labels}"/>
+                                <Label Text="{Binding Grocery.BrandName}"
+                                       VerticalOptions="Center"
+                                       HorizontalOptions="Start"
+                                       FontSize="Medium"
+                                       FontFamily="TimeNewRoman"
+                                       TextColor="Gray"/>
+                            </StackLayout>
                             <Stepper x:Name="stepper"
                                      Value="{Binding NumberOfGrocery}"
                                      HorizontalOptions="EndAndExpand"

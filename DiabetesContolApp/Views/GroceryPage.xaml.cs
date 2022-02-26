@@ -35,11 +35,7 @@ namespace DiabetesContolApp.Views
 
         async void AddNewClicked(System.Object sender, System.EventArgs e)
         {
-            var grocery = new GroceryModel
-            {
-                GroceryID = -1,
-                CarbScalar = 1.0f
-            };
+            GroceryModel grocery = new();
 
             var page = new GroceryDetailPage(grocery);
 
