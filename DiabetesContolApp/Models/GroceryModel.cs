@@ -26,9 +26,6 @@ namespace DiabetesContolApp.Models
 
         private float _carbScalar;
 
-        [ManyToMany(typeof(GroceryLogModel))]
-        public List<LogModel> Logs { get; set; }
-
         public GroceryModel()
         {
             this._carbScalar = 1.0f; //This is the default of the scalar, when it is one it has no effect on the calculations

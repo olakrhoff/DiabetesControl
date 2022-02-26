@@ -11,11 +11,13 @@
                     <EntryCell x:Name="glucoseAtMeal"
                                Label="Glucose at meal"
                                Text="{Binding GlucoseAtMeal}"
-                               Placeholder="5,4 mmol/L"/>
+                               Placeholder="5,4 mmol/L"
+                               Keyboard="Numeric"/>
                     <EntryCell x:Name="glucoseAfterMeal"
                                Label="Glucose after meal"
                                Text="{Binding GlucoseAfterMeal}"
-                               Placeholder="6,7 mmol/L"/>
+                               Placeholder="6,7 mmol/L"
+                               Keyboard="Numeric"/>
                     <ViewCell>
                         <StackLayout Orientation="Horizontal"
                                      VerticalOptions="Center">
@@ -41,7 +43,8 @@
                     <EntryCell x:Name="insulinFromUser"
                                Label="Insulin given"
                                Text="{Binding InsulinFromUser}"
-                               Placeholder="5,5 Units"/>
+                               Placeholder="5,5 Units"
+                               Keyboard="Numeric"/>
                 </TableSection>
             </TableRoot>
         </TableView>

@@ -17,7 +17,7 @@ namespace DiabetesContolApp.Views
             InitializeComponent();
 
             //Setting the starting page to the calculator
-            CurrentPage = Children[1];
+            CurrentPage = Children[2];
         }
     }
 }

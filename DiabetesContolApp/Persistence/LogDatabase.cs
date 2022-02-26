@@ -22,9 +22,10 @@ namespace DiabetesContolApp.Persistence
 
             if (false)
             {
-                connection.DropTableAsync<LogModel>().Wait();
-                connection.DropTableAsync<GroceryModel>().Wait();
                 connection.DropTableAsync<DayProfileModel>().Wait();
+                connection.DropTableAsync<GroceryModel>().Wait();
+
+                connection.DropTableAsync<LogModel>().Wait();
                 connection.DropTableAsync<GroceryLogModel>().Wait();
             }
             connection.CreateTableAsync<LogModel>().Wait();
