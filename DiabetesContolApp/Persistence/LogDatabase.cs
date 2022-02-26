@@ -97,6 +97,14 @@ namespace DiabetesContolApp.Persistence
             return logs;
         }
 
+        /*
+         * This method deletes a log based on the object itself,
+         * it also deletes all the groceryLog entries it is
+         * connected to first
+         * 
+         * Params: LogModel (log), the log to be deleted
+         * Return: int, number of rows deleted
+         */
         async internal Task<int> DeleteLogAsync(LogModel log)
         {
             List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().ToListAsync();
@@ -106,6 +114,25 @@ namespace DiabetesContolApp.Persistence
                     await connection.DeleteAsync(groceryLog); //Deletes all the entries in GroceryLog who are connected to the Grocery
 
             return await connection.DeleteAsync(log);
+        }
+
+        /*
+         * This method deletes a log based on its ID,
+         * it also deletes all the groceryLog entries it is
+         * connected to first
+         * 
+         * Parmas: int (logID), the ID of the log to be deleted
+         * Return: int, number of rows deleted
+         */
+        async internal Task<int> DeleteLogAsync(int logID)
+        {
+            List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().ToListAsync();
+
+            foreach (GroceryLogModel groceryLog in groceryLogs)
+                if (groceryLog.LogID == logID)
+                    await connection.DeleteAsync(groceryLog); //Deletes all the entries in GroceryLog who are connected to the Grocery
+
+            return await connection.DeleteAsync<LogModel>(logID);
         }
     }
 }

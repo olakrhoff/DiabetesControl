@@ -49,14 +49,27 @@ namespace DiabetesContolApp.Persistence
             return await connection.UpdateAsync(grocery);
         }
 
+        /*
+         * This method deletes a grocery by the object itself.
+         * First it deletes all GroceryLog entries that it is connected to,
+         * aswell as all the Log entries that have it as a grocery.
+         * This is to ensure the integrety of the data.
+         * 
+         * Paramas: GroceryModel (grocey), the grocery that is to be deleted
+         * Return: int, the number of rows deleted
+         */
         async internal Task<int> DeleteGroceryAsync(GroceryModel grocery)
         {
+            LogDatabase logDatabase = LogDatabase.GetInstance();
 
             List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().ToListAsync();
 
             foreach (GroceryLogModel groceryLog in groceryLogs)
                 if (groceryLog.GroceryID == grocery.GroceryID)
+                {
                     await connection.DeleteAsync(groceryLog); //Deletes all the entries in GroceryLog who are connected to the Grocery
+                    await logDatabase.DeleteLogAsync(groceryLog.LogID); //Delete the log awell
+                }
 
             return await connection.DeleteAsync(grocery);
         }
