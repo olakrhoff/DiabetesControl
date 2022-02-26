@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="DiabetesContolApp.Views.LogDetailPage">
+    
+    <StackLayout>
+        <TableView>
+            <TableRoot>
+                <TableSection Title="Log settings">
+                    <EntryCell x:Name="glucoseAtMeal"
+                               Label="Glucose at meal"
+                               Text="{Binding GlucoseAtMeal}"
+                               Placeholder="5,4 mmol/L"/>
+                    <EntryCell x:Name="glucoseAfterMeal"
+                               Label="Glucose after meal"
+                               Text="{Binding GlucoseAfterMeal}"
+                               Placeholder="6,7 mmol/L"/>
+                    <ViewCell>
+                        <StackLayout Orientation="Horizontal"
+                                     VerticalOptions="Center">
+                            <Label Text="Time of meal"
+                                   VerticalOptions="Center"
+                                   Margin="20, 0"/>
+                            <TimePicker x:Name="timePickerTimeOfMeal"
+                                        HorizontalOptions="Center"
+                                        Format="HH:mm"/>
+                        </StackLayout>
+                    </ViewCell>
+                    <ViewCell>
+                        <StackLayout Orientation="Horizontal"
+                                     VerticalOptions="Center">
+                            <Label Text="Date of meal"
+                                   VerticalOptions="Center"
+                                   Margin="20, 0"/>
+                            <DatePicker x:Name="datePickerDateOfMeal"
+                                        HorizontalOptions="Center"
+                                        Format="dd/MM/yy"/>
+                        </StackLayout>
+                    </ViewCell>
+                    <EntryCell x:Name="insulinFromUser"
+                               Label="Insulin given"
+                               Text="{Binding InsulinFromUser}"
+                               Placeholder="5,5 Units"/>
+                </TableSection>
+            </TableRoot>
+        </TableView>
+
+        <Button Text="Edit groceries"
+                    Clicked="EditGroceriesClicked"
+                    FontSize="Title"
+                    BackgroundColor="CadetBlue"
+                    BorderRadius="20"
+                    VerticalOptions="Center"
+                    Padding="15, 5"
+                    HorizontalOptions="Center"
+                    TextColor="WhiteSmoke"/>
+        <ListView x:Name="groceriesAddedList"
+                  IsEnabled="False">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell IsEnabled="False">
+                        <StackLayout Orientation="Horizontal"
+                                     Spacing="30"
+                                     Padding="20, 0"
+                                     HorizontalOptions="Fill">
+                            <Label Text="{Binding NumberOfGrocery}"
+                                   VerticalOptions="Center"
+                                   HorizontalOptions="Start"/>
+                            <Label Text="{Binding Grocery.Name}"
+                                   VerticalOptions="Center"
+                                   HorizontalOptions="Center"/>
+                        </StackLayout>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <Button Text="Save"
+                Clicked="SaveClicked"
+                BackgroundColor="CadetBlue"
+                BorderRadius="20"
+                TextColor="WhiteSmoke"
+                VerticalOptions="Center"
+                FontSize="Title"
+                Margin="20, 20, 20, 35"/>
+    </StackLayout>
+</ContentPage>

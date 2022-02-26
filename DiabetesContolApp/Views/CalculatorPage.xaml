@@ -57,10 +57,13 @@
                      Spacing="0"
                      HorizontalOptions="Center">
             <Entry x:Name="insulinEstimate"
-                    IsVisible="False"
-                    FontSize="50"
-                    Keyboard="Numeric"
-                    VerticalOptions="Center"/>
+                   IsVisible="False"
+                   FontSize="50"
+                   Keyboard="Numeric"
+                   VerticalOptions="Center"
+                   HorizontalOptions="StartAndExpand"
+                   HorizontalTextAlignment="End"
+                   WidthRequest="120"/>
             <Label Text="Units"
                    FontSize="50"
                    VerticalOptions="Center"

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using SQLite;
+using SQLiteNetExtensions.Attributes;
 
 namespace DiabetesContolApp.Models
 {
@@ -23,6 +25,9 @@ namespace DiabetesContolApp.Models
         public float GramsPerPortion { get; set; }
 
         private float _carbScalar;
+
+        [ManyToMany(typeof(GroceryLogModel))]
+        public List<LogModel> Logs { get; set; }
 
         public GroceryModel()
         {

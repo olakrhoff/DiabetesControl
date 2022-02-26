@@ -1,7 +1,71 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 <ContentPage
     xmlns="http://xamarin.com/schemas/2014/forms"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:src="clr-namespace:DiabetesContolApp.GlobalLogic"
     x:Class="DiabetesContolApp.Views.LogPage">
-    
+
+    <ContentPage.Resources>
+        <src:DateConverter x:Key="dateConverter"/>
+        <ResourceDictionary>
+            <Style x:Key="labels" TargetType="Label">
+                <Setter Property="FontSize" Value="Title"/>
+                <Setter Property="FontFamily" Value="TimesNewRoman"/>
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="AddNew"
+                     IconImageSource="Images/Intervals/plus.png"
+                     Clicked="AddNewClicked"
+                     Order="Primary"/>
+    </ContentPage.ToolbarItems>
+    <StackLayout>
+        <StackLayout Orientation="Horizontal"
+                     VerticalOptions="Center"
+                     Padding="5, 0">
+            <Button Text="&lt;"
+                    HorizontalOptions="Start"
+                    Style="{StaticResource labels}"
+                    Clicked="PreviousDateClicked"/>
+            <Label x:Name="labelDate"
+                   HorizontalOptions="CenterAndExpand"
+                   VerticalOptions="Center"
+                   Style="{StaticResource labels}"/>
+            <Button x:Name="nextDateButton"
+                    Text="&gt;"
+                    HorizontalOptions="End"
+                    Style="{StaticResource labels}"
+                    Clicked="NextDateClicked"
+                    IsEnabled="False"/>
+        </StackLayout>
+        <BoxView HeightRequest="1"
+                 BackgroundColor="#dcdcdc"/>
+        <ListView x:Name="logList"
+                  ItemTapped="LogListItemTapped">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <ViewCell.ContextActions>
+                            <MenuItem Text="Delete"
+                                      IsDestructive="True"
+                                      Clicked="OnDeleteClicked"
+                                      CommandParameter="{Binding .}"/>
+                        </ViewCell.ContextActions>
+
+                        <StackLayout Orientation="Horizontal"
+                                     VerticalOptions="Center"
+                                     Padding="20, 0">
+                            <Label Text="{Binding GlucoseAtMeal}"
+                                   HorizontalOptions="Start"
+                                   Style="{StaticResource labels}"/>
+                            <Label Text="{Binding TimeString}"
+                                   HorizontalOptions="EndAndExpand"
+                                   Style="{StaticResource labels}"/>
+                        </StackLayout>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </StackLayout>
 </ContentPage>
