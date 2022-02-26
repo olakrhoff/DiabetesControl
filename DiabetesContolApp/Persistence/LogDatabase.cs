@@ -66,8 +66,13 @@ namespace DiabetesContolApp.Persistence
 
         async internal Task<int> UpdateLogAsync(LogModel log)
         {
-            //TODO: Remove GroceryLog entreis if they are no longer present, and add the new ones, if any
+            List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().Where(e => e.LogID == log.LogID).ToListAsync();
 
+            foreach (GroceryLogModel groceryLog in groceryLogs)
+                await connection.DeleteAsync(groceryLog); //Delete the prevoius GroceryLog entris for the log
+
+            //Insert the updated grocery list for the log
+            await connection.InsertAllAsync(GroceryLogModel.GetGroceryLogs(log.NumberOfGroceryModels, log.LogID));
 
 
             return await connection.UpdateAsync(log);

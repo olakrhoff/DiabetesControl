@@ -35,6 +35,7 @@ namespace DiabetesContolApp.Views
             else
             {
                 timePickerTimeOfMeal.Time = log.DateTimeValue.TimeOfDay;
+                datePickerDateOfMeal.Date = log.DateTimeValue.Date;
                 NumberOfGrocerySummary = new(log.NumberOfGroceryModels);
             }
 
@@ -82,7 +83,7 @@ namespace DiabetesContolApp.Views
             Log.DateTimeValue = new DateTime(datePickerDateOfMeal.Date.Year, datePickerDateOfMeal.Date.Month, datePickerDateOfMeal.Date.Day, timePickerTimeOfMeal.Time.Hours, timePickerTimeOfMeal.Time.Minutes, 0);
             Log.InsulinFromUser = insulinFromUserFloat;
 
-            //TODO: Add groceries
+            Log.NumberOfGroceryModels = NumberOfGrocerySummary.ToList();
 
             if (Log.LogID == -1)
                 LogAdded?.Invoke(this, Log);
