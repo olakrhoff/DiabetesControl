@@ -139,7 +139,7 @@ namespace DiabetesContolApp.Views
                 !Helper.ConvertToFloat(glucose.Text, out float glucoseAtMealFloat))
                 return;
 
-            LogModel newLogEntry = new((pickerDayprofiles.SelectedItem as DayProfileModel).DayProfileID, DateTime.Now, (float)_insulinEstimate, insulinFromUserFloat, glucoseAtMealFloat, NumberOfGroceriesSummary.ToList<NumberOfGroceryModel>());
+            LogModel newLogEntry = new((pickerDayprofiles.SelectedItem as DayProfileModel).DayProfileID, DateTime.Now, (float)_insulinEstimate, insulinFromUserFloat, glucoseAtMealFloat, NumberOfGroceriesSummary?.ToList<NumberOfGroceryModel>());
 
             await logDatabase.InsertLogAsync(newLogEntry);
             
