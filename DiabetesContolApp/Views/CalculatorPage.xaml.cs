@@ -196,12 +196,28 @@ namespace DiabetesContolApp.Views
                 await DisplayAlert("Missing data", "A day profile must be created", "OK");
                 return false;
             }
-            else if (insulinEstimate.IsVisible && !Helper.ConvertToFloat(insulinEstimate.Text, out float temp))
-            {
-                return false; //The number given for the amount of insulin is not correctly formatted.
-            }
 
             return true; //If no errers occur
+        }
+
+        /*
+         * This method is used to move the entry over the keyboard
+         * that appears, so that the user can see what they type in
+         */
+        void InsulinEstimateEntryFocused(System.Object sender, Xamarin.Forms.FocusEventArgs e)
+        {
+            Content.LayoutTo(new Rectangle(30, -200, Content.Bounds.Width, Content.Bounds.Height));
+        }
+
+        /*
+         * This method is used to move the entry down after the keyboard
+         * dissapears
+         * 
+         * See: void InsulinEstimateEntryFocused(System.Object sender, Xamarin.Forms.FocusEventArgs e)
+         */
+        void InsulinEstimateEntryUnfocused(System.Object sender, Xamarin.Forms.FocusEventArgs e)
+        {
+            Content.LayoutTo(new Rectangle(30, 0, Content.Bounds.Width, Content.Bounds.Height));
         }
     }
 }

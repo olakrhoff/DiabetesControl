@@ -63,7 +63,9 @@
                    VerticalOptions="Center"
                    HorizontalOptions="StartAndExpand"
                    HorizontalTextAlignment="End"
-                   WidthRequest="120"/>
+                   WidthRequest="120"
+                   Focused="InsulinEstimateEntryFocused"
+                   Unfocused="InsulinEstimateEntryUnfocused"/>
             <Label Text="Units"
                    FontSize="50"
                    VerticalOptions="Center"
