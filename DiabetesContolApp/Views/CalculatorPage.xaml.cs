@@ -206,7 +206,7 @@ namespace DiabetesContolApp.Views
          */
         void InsulinEstimateEntryFocused(System.Object sender, Xamarin.Forms.FocusEventArgs e)
         {
-            Content.LayoutTo(new Rectangle(30, -200, Content.Bounds.Width, Content.Bounds.Height));
+            Content.LayoutTo(new Rectangle(Content.Bounds.Left, -200, Content.Bounds.Width, Content.Bounds.Height));
         }
 
         /*
@@ -217,7 +217,7 @@ namespace DiabetesContolApp.Views
          */
         void InsulinEstimateEntryUnfocused(System.Object sender, Xamarin.Forms.FocusEventArgs e)
         {
-            Content.LayoutTo(new Rectangle(30, 0, Content.Bounds.Width, Content.Bounds.Height));
+            Content.LayoutTo(new Rectangle(Content.Bounds.Left, 0, Content.Bounds.Width, Content.Bounds.Height));
         }
     }
 }
