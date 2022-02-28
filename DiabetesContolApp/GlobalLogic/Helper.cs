@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.ObjectModel;
+using DiabetesContolApp.Models;
+using System.Collections.Generic;
+using Xamarin.Forms;
 
 namespace DiabetesContolApp.GlobalLogic
 {
@@ -67,12 +70,69 @@ namespace DiabetesContolApp.GlobalLogic
             return true;
         }
 
+        /*
+         * ObservableCollection does not support the Sort-method.
+         * This is a quick fix for that, to make other code more readable
+         * 
+         * The object T MUST implemnet the IComparable interface.
+         * 
+         * Parmas: ObservableCollection<T> (observableCollection): The ObservableCollection to be sorted
+         * 
+         * Return: ObservableCollection<T>, returns the collection sorted.
+         */
         static public ObservableCollection<T> SortObservableCollection<T>(ObservableCollection<T> observableCollection)
         {
             var list = observableCollection.ToList();
             list.Sort();
 
             return new(list);
+        }
+
+        /*
+         * This method calculates the amout of insulin the user needs
+         * based on what the glucose, food and time of day
+         * 
+         * Params: float (glucose): the glucose of the user,
+         *         List<NumberOfGroceryModel> (numberOfGroceryList): The list of what groceries are to be eaten
+         *         and the respective number of portions.
+         *         DayprofileModel (dayProfile): The dayprofile holds the info of scalars based on the time of day
+         *         both for glucose and carbs.
+         *         
+         * Return: float, the total amount of insulin to be given by the user.
+         */
+        public static float CalculateInsulin(float glucose, List<NumberOfGroceryModel> numberOfGroceryList, DayProfileModel dayProfile)
+        {
+            App globalVariables = Application.Current as App;
+
+            float insulinForFood = GetCarbsFromFood(numberOfGroceryList) * dayProfile.CarbScalar / globalVariables.InsulinToCarbohydratesRatio;
+
+            float insulinForCorrection = (glucose - dayProfile.TargetGlucoseValue) * dayProfile.GlucoseScalar / globalVariables.InsulinToGlucoseRatio;
+
+            //If it is a pure correction dose, no food (carbs)
+            if (insulinForFood == 0)
+                insulinForCorrection *= globalVariables.InsulinOnlyCorrectionScalar;
+
+            return insulinForFood + insulinForCorrection; //Total insulin
+        }
+
+        /*
+         * This method gets all the total amout of carbs (times the respective scalars)
+         * and returns it.
+         * 
+         * Parmas: List<NumberOfGroceryModel>, the list of Groceries and the respective
+         * number of portions.
+         * 
+         * Return: float, the total number of carbs in the list, with scaling
+         */
+        private static float GetCarbsFromFood(List<NumberOfGroceryModel> numberOfGroceryList)
+        {
+            float totalCarbs = 0.0f;
+
+            if (numberOfGroceryList != null)
+                foreach (NumberOfGroceryModel numberOfGrocery in numberOfGroceryList)
+                    totalCarbs += numberOfGrocery.NumberOfGrocery * numberOfGrocery.Grocery.GramsPerPortion * (numberOfGrocery.Grocery.CarbsPer100Grams / 100) * numberOfGrocery.Grocery.CarbScalar;
+
+            return totalCarbs;
         }
     }
 }

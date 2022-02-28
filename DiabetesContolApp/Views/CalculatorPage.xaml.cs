@@ -94,10 +94,14 @@ namespace DiabetesContolApp.Views
 
             if (Helper.ConvertToFloat(glucose.Text, out float glucoseFloat))
             {
+                
                 //Data is valid, continue with calculations
                 DayProfileModel dayProfile = pickerDayprofiles.SelectedItem as DayProfileModel;
+                float totalInsulin = Helper.CalculateInsulin(glucoseFloat, NumberOfGroceriesSummary?.ToList(), dayProfile);
 
-                float insulinForFood = GetCarbsFromFood() * dayProfile.CarbScalar / globalVariables.InsulinToCarbohydratesRatio;
+                /*
+                //TODO: Remove block when not needed anymore
+                float insulinForFood = GetCarbsFromFood(NumberOfGroceriesSummary.ToList()) * dayProfile.CarbScalar / globalVariables.InsulinToCarbohydratesRatio;
 
                 float insulinForCorrection = (glucoseFloat - dayProfile.TargetGlucoseValue) * dayProfile.GlucoseScalar / globalVariables.InsulinToGlucoseRatio;
 
@@ -106,7 +110,7 @@ namespace DiabetesContolApp.Views
                     insulinForCorrection *= globalVariables.InsulinOnlyCorrectionScalar;
 
                 float totalInsulin = insulinForFood + insulinForCorrection;
-
+                */
 
                 insulinEstimate.Text = String.Format("{0:F1}", totalInsulin);
                 insulinEstimate.IsVisible = true;
@@ -118,17 +122,6 @@ namespace DiabetesContolApp.Views
                 ClearCalculatorData();
                 await DisplayAlert("Invalid data", "Glucose and carbohydrates must be numbers", "OK");
             }
-        }
-
-        private float GetCarbsFromFood()
-        {
-            float totalCarbs = 0.0f;
-
-            if (NumberOfGroceriesSummary != null)
-                foreach (NumberOfGroceryModel numberOfGrocery in NumberOfGroceriesSummary)
-                    totalCarbs += numberOfGrocery.NumberOfGrocery * numberOfGrocery.Grocery.GramsPerPortion * (numberOfGrocery.Grocery.CarbsPer100Grams / 100) * numberOfGrocery.Grocery.CarbScalar;
-
-            return totalCarbs;
         }
 
         async void LogInsulinClicked(System.Object sender, System.EventArgs e)
@@ -153,6 +146,16 @@ namespace DiabetesContolApp.Views
             NumberOfGroceriesSummary?.Clear();
         }
 
+        /*
+         * This method validates that all the neccesary fileds
+         * on the calculator page is valid, so the calculations
+         * can be done.
+         * 
+         * Parmas: None
+         * 
+         * Return: Task<bool>, Task for async, returns true if every field
+         * is valid, else false.
+         */
         async private Task<bool> VaildateCalculatorData()
         {
             App globalVariables = Application.Current as App;

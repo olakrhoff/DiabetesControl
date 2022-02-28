@@ -73,6 +73,8 @@ namespace DiabetesContolApp.Views
 
             page.LogAdded += async (source, args) =>
             {
+
+
                 await logDatabase.InsertLogAsync(args);
             };
 
