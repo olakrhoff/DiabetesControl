@@ -18,6 +18,9 @@ namespace DiabetesContolApp.Views
         public event EventHandler<LogModel> LogAdded;
 
         private ObservableCollection<NumberOfGroceryModel> NumberOfGrocerySummary;
+        public ObservableCollection<DayProfileModel> DayProfiles { get; set; }
+
+        DayProfileDatabase dayProfileDatabase = DayProfileDatabase.GetInstance();
 
         public LogDetailPage(LogModel log = null)
         {
@@ -26,6 +29,7 @@ namespace DiabetesContolApp.Views
             InitializeComponent();
 
             BindingContext = Log;
+
             if (log == null) //A new log entry
             {
                 NumberOfGrocerySummary = new();
@@ -40,6 +44,30 @@ namespace DiabetesContolApp.Views
             }
 
             groceriesAddedList.ItemsSource = NumberOfGrocerySummary;
+        }
+
+        async protected override void OnAppearing()
+        {
+            var dayProfiles = await dayProfileDatabase.GetDayProfilesAsync();
+            dayProfiles.Sort(); //Sort the elements
+
+            DayProfiles = new ObservableCollection<DayProfileModel>(dayProfiles);
+            dayProfilePicker.ItemsSource = DayProfiles;
+
+            int index = -1;
+            if (Log.DayProfileID != -1)
+                for (int i = 0; i < DayProfiles.Count; ++i)
+                    if (DayProfiles[i].DayProfileID == Log.DayProfileID)
+                    {
+                        index = i;
+                        break;
+                    }
+            if (index != -1)
+                dayProfilePicker.SelectedItem = DayProfiles[index];
+            else if (DayProfiles.Count > 0)
+                dayProfilePicker.SelectedItem = DayProfiles[0];
+
+            base.OnAppearing();
         }
 
         async void EditGroceriesClicked(System.Object sender, System.EventArgs e)
@@ -82,8 +110,14 @@ namespace DiabetesContolApp.Views
             Log.GlucoseAtMeal = glucoseAtMealFloat;
             Log.DateTimeValue = new DateTime(datePickerDateOfMeal.Date.Year, datePickerDateOfMeal.Date.Month, datePickerDateOfMeal.Date.Day, timePickerTimeOfMeal.Time.Hours, timePickerTimeOfMeal.Time.Minutes, 0);
             Log.InsulinFromUser = insulinFromUserFloat;
+            Log.DayProfileID = (dayProfilePicker.SelectedItem as DayProfileModel).DayProfileID;
 
             Log.NumberOfGroceryModels = NumberOfGrocerySummary.ToList();
+
+            //Calcualte the estimated insulin
+            float insulinEsitmate = Helper.CalculateInsulin(Log.GlucoseAtMeal, Log.NumberOfGroceryModels, await dayProfileDatabase.GetDayProfileAsync(Log.DayProfileID));
+
+            Log.InsulinEstimate = insulinEsitmate;
 
             if (Log.LogID == -1)
                 LogAdded?.Invoke(this, Log);

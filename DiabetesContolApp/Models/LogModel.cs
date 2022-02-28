@@ -33,6 +33,7 @@ namespace DiabetesContolApp.Models
         public LogModel()
         {
             LogID = -1;
+            DayProfileID = -1;
         }
 
         public LogModel(int dayProfileID, DateTime dateTime, float insulinEstimate, float insulinFromUser, float glucoseAtMeal, List<NumberOfGroceryModel> numberOfGroceries, float? glucoseAfterMeal = null)

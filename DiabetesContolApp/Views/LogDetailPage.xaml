@@ -19,6 +19,17 @@
                                Placeholder="6,7 mmol/L"
                                Keyboard="Numeric"/>
                     <ViewCell>
+                            <StackLayout Orientation="Horizontal"
+                                     VerticalOptions="Center">
+                            <Label Text="Day profile"
+                                   VerticalOptions="Center"
+                                   Margin="20, 0"/>
+                            <Picker x:Name="dayProfilePicker"
+                                    ItemDisplayBinding="{Binding Name}"
+                                    HorizontalOptions="Center"/>
+                        </StackLayout>
+                    </ViewCell>
+                    <ViewCell>
                         <StackLayout Orientation="Horizontal"
                                      VerticalOptions="Center">
                             <Label Text="Time of meal"
