@@ -10,20 +10,13 @@ using Xamarin.Forms;
 
 namespace DiabetesContolApp.Persistence
 {
-    public class DayProfileDatabase
+    public class DayProfileDatabase : ModelDatabaseAbstract
     {
-        private readonly SQLiteAsyncConnection connection;
 
         private static DayProfileDatabase instance = null;
 
         public DayProfileDatabase()
         {
-            connection = DependencyService.Get<ISQLiteDB>().GetConnection();
-
-            connection.CreateTableAsync<LogModel>().Wait();
-            connection.CreateTableAsync<GroceryModel>().Wait();
-            connection.CreateTableAsync<DayProfileModel>().Wait();
-            connection.CreateTableAsync<GroceryLogModel>().Wait();
         }
 
         public static DayProfileDatabase GetInstance()
