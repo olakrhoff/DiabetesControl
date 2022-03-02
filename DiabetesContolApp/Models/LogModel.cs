@@ -22,12 +22,14 @@ namespace DiabetesContolApp.Models
         public long DateTimeLong { get; set; }
         [NotNull]
         public float GlucoseAtMeal { get; set; }
-        
+
         public float? GlucoseAfterMeal { get; set; }
         [ManyToMany(typeof(GroceryLogModel))]
         public List<GroceryModel> GroceryModels { get; set; }
         [Ignore]
         public List<NumberOfGroceryModel> NumberOfGroceryModels { get; set; }
+        [ForeignKey(typeof(ReminderModel))]
+        public int ReminderID { get; set; }
 
 
         public LogModel()
@@ -43,7 +45,7 @@ namespace DiabetesContolApp.Models
             DateTimeValue = dateTime;
             InsulinEstimate = insulinEstimate;
             InsulinFromUser = insulinFromUser;
-            GlucoseAtMeal = glucoseAtMeal;    
+            GlucoseAtMeal = glucoseAtMeal;
             GlucoseAfterMeal = glucoseAfterMeal;
             NumberOfGroceryModels = numberOfGroceries != null ? numberOfGroceries : new();
         }
