@@ -10,32 +10,12 @@ using Xamarin.Forms;
 
 namespace DiabetesContolApp.Persistence
 {
-    public sealed class LogDatabase
+    public sealed class LogDatabase : ModelDatabaseAbstract
     {
-        private readonly SQLiteAsyncConnection connection;
-
         private static LogDatabase instance = null;
 
         public LogDatabase()
         {
-            connection = DependencyService.Get<ISQLiteDB>().GetConnection();
-
-
-            //TODO: Remove when not needed anymore, the if-statment
-
-            //This if is only used to drop tables under testing and development
-            //It should not do anything under normal use
-            if (false) 
-            {
-                connection.DropTableAsync<DayProfileModel>().Wait();
-                connection.DropTableAsync<GroceryModel>().Wait();
-                connection.DropTableAsync<LogModel>().Wait();
-                connection.DropTableAsync<GroceryLogModel>().Wait();
-            }
-            connection.CreateTableAsync<LogModel>().Wait();
-            connection.CreateTableAsync<GroceryModel>().Wait();
-            connection.CreateTableAsync<DayProfileModel>().Wait();
-            connection.CreateTableAsync<GroceryLogModel>().Wait();
         }
 
         public static LogDatabase GetInstance()
@@ -43,13 +23,25 @@ namespace DiabetesContolApp.Persistence
             return instance == null ? new LogDatabase() : instance;
         }
 
+
+        /*
+         * This method inserts a log into the database, after it
+         * connects it to a reminder.
+         * 
+         * Then it addes all the groceryLog values into the bridge table
+         * 
+         * Paramas: LogModel, the log to insert
+         * 
+         * Raturn: the number of rows added.
+         */
         async internal Task<int> InsertLogAsync(LogModel newLogEntry)
         {
-            var id = await connection.InsertAsync(newLogEntry);
+            var rowsAdded = await connection.InsertAsync(newLogEntry);
+
 
             await connection.InsertAllAsync(GroceryLogModel.GetGroceryLogs(newLogEntry.NumberOfGroceryModels, newLogEntry.LogID));
 
-            return id;
+            return rowsAdded;
         }
 
         async internal Task<LogModel> GetLogAsync(int logID)
