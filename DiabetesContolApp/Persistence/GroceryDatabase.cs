@@ -8,20 +8,12 @@ using Xamarin.Forms;
 
 namespace DiabetesContolApp.Persistence
 {
-    public class GroceryDatabase
+    public class GroceryDatabase : ModelDatabaseAbstract
     {
-        private readonly SQLiteAsyncConnection connection;
-
         private static GroceryDatabase instance = null;
 
         public GroceryDatabase()
         {
-            connection = DependencyService.Get<ISQLiteDB>().GetConnection();
-
-            connection.CreateTableAsync<LogModel>().Wait();
-            connection.CreateTableAsync<GroceryModel>().Wait();
-            connection.CreateTableAsync<DayProfileModel>().Wait();
-            connection.CreateTableAsync<GroceryLogModel>().Wait();
         }
 
         public static GroceryDatabase GetInstance()

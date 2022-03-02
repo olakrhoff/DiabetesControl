@@ -12,7 +12,6 @@ namespace DiabetesContolApp.Persistence
 {
     public class DayProfileDatabase : ModelDatabaseAbstract
     {
-
         private static DayProfileDatabase instance = null;
 
         public DayProfileDatabase()
