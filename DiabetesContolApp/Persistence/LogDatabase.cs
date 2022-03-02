@@ -32,12 +32,15 @@ namespace DiabetesContolApp.Persistence
          * 
          * Paramas: LogModel, the log to insert
          * 
-         * Raturn: the number of rows added.
+         * Return: the number of rows added.
          */
         async internal Task<int> InsertLogAsync(LogModel newLogEntry)
         {
-            var rowsAdded = await connection.InsertAsync(newLogEntry);
+            ReminderDatabase reminderDatabase = ReminderDatabase.GetInstance();
 
+            int index = await reminderDatabase.InsertReminderAsync(new ReminderModel());
+
+            var rowsAdded = await connection.InsertAsync(newLogEntry);
 
             await connection.InsertAllAsync(GroceryLogModel.GetGroceryLogs(newLogEntry.NumberOfGroceryModels, newLogEntry.LogID));
 

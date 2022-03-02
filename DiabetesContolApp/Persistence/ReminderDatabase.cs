@@ -11,8 +11,6 @@ namespace DiabetesContolApp.Persistence
 
         private static ReminderDatabase instance = null;
 
-        private LogDatabase logDatabase = LogDatabase.GetInstance();
-
         public ReminderDatabase()
         {
         }
