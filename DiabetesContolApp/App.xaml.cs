@@ -3,6 +3,9 @@ using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
 using DiabetesContolApp.Views;
+using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Models;
+using System.Collections.Generic;
 
 namespace DiabetesContolApp
 {
@@ -26,6 +29,7 @@ namespace DiabetesContolApp
         protected override void OnStart()
         {
             StartTime = DateTime.Now;
+            CheckReminders();
         }
 
         protected override void OnSleep()
@@ -40,6 +44,7 @@ namespace DiabetesContolApp
         protected override void OnResume()
         {
             StartTime = DateTime.Now;
+            CheckReminders();
         }
 
         /*
@@ -142,5 +147,12 @@ namespace DiabetesContolApp
             }
         }
 
+
+        private void CheckReminders()
+        {
+            ReminderDatabase reminderDatabase = ReminderDatabase.GetInstance();
+
+            reminderDatabase.HandleReminders();
+        }
     }
 }
