@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Linq;
 
 using DiabetesContolApp.Models;
+using DiabetesContolApp.GlobalLogic;
 
 using SQLite;
 using Xamarin.Forms;
@@ -30,6 +31,9 @@ namespace DiabetesContolApp.Persistence
          * 
          * Then it addes all the groceryLog values into the bridge table
          * 
+         * Lastly the method checks if this is the first log entry of the day,
+         * if so, it updated the average TDD (total daily dose (of rapid insulin))
+         * 
          * Paramas: LogModel, the log to insert
          * 
          * Return: the number of rows added.
@@ -44,7 +48,59 @@ namespace DiabetesContolApp.Persistence
 
             await connection.InsertAllAsync(GroceryLogModel.GetGroceryLogs(newLogEntry.NumberOfGroceryModels, newLogEntry.LogID));
 
+            await UpdateAverageTDD();
+
+
             return rowsAdded;
+        }
+
+
+        /*
+         * This method updates the average TDD (total daily dose (of rapid insulin))
+         * The average is of at least three days and at most seven. It will at max
+         * look 14 days (two weeks) back in time, older values than these are regarded
+         * as too old for use in the TDD.
+         * 
+         * TODO: When TimeProfiles, like "weekday" and "weekend" is added, this
+         * method should get the average of the current TimeProfile, to be more 
+         * accurate in the representation.
+         * 
+         * Params: None
+         * 
+         * Return: void
+         */
+        async private Task<bool> UpdateAverageTDD()
+        {
+            List<LogModel> logs = new();
+            int daysWithLogs = 0, maxIterations = 14;
+            for (int i = 0; i < maxIterations; ++i)
+            {
+                var temp = await this.GetLogsAsync(DateTime.Now.AddDays(-i));
+                if (temp != null && temp.Count > 0)
+                {
+                    daysWithLogs++;
+                    logs.AddRange(temp);
+                }
+                if (daysWithLogs >= 7)
+                    break; //We have the seven most recent days
+            }
+
+            if (daysWithLogs < 3)
+                return false; //There were not enough data to updated the TDD
+
+            float newAverageTDD = logs.Sum(log => log.InsulinFromUser);
+
+            //After the average TDD is calcualted we need to update
+            //the propertis for carb and glucose sensitivity
+            //with the 500- and 100-rule
+            App globalVariables = Application.Current as App;
+
+            globalVariables.InsulinToCarbohydratesRatio = Helper.Calculate500Rule(newAverageTDD);
+            globalVariables.InsulinToGlucoseRatio = Helper.Calculate100Rule(newAverageTDD);
+
+            await globalVariables.SavePropertiesAsync();
+
+            return true;
         }
 
         async internal Task<LogModel> GetLogAsync(int logID)
@@ -97,22 +153,24 @@ namespace DiabetesContolApp.Persistence
         }
 
         /*
-         * This method deletes a log based on the object itself,
-         * it also deletes all the groceryLog entries it is
-         * connected to first
+         * This method deletes a log, it calls the delete
+         * by logID method.
          * 
          * Params: LogModel (log), the log to be deleted
          * Return: int, number of rows deleted
          */
         async internal Task<int> DeleteLogAsync(LogModel log)
         {
+            return await DeleteLogAsync(log.LogID);
+
+            /*
             List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().ToListAsync();
 
             foreach (GroceryLogModel groceryLog in groceryLogs)
                 if (groceryLog.LogID == log.LogID)
                     await connection.DeleteAsync(groceryLog); //Deletes all the entries in GroceryLog who are connected to the Grocery
 
-            return await connection.DeleteAsync(log);
+            return await connection.DeleteAsync(log);*/
         }
 
         /*
