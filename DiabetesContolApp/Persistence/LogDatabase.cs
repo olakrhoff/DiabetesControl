@@ -88,7 +88,7 @@ namespace DiabetesContolApp.Persistence
             if (daysWithLogs < 3)
                 return false; //There were not enough data to updated the TDD
 
-            float newAverageTDD = logs.Sum(log => log.InsulinFromUser);
+            float newAverageTDD = logs.Sum(log => log.InsulinFromUser) / daysWithLogs;
 
             //After the average TDD is calcualted we need to update
             //the propertis for carb and glucose sensitivity
