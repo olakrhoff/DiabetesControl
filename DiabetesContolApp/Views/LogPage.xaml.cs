@@ -70,8 +70,8 @@ namespace DiabetesContolApp.Views
         async void AddNewClicked(System.Object sender, System.EventArgs e)
         {
             LogModel log = new();
-            log.DateTimeValue.Date = localDate.Date;
-            LogDetailPage page = new();
+            log.DateTimeValue = localDate;
+            LogDetailPage page = new(log);
 
             page.LogAdded += async (source, args) =>
             {

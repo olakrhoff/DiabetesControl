@@ -22,7 +22,7 @@ namespace DiabetesContolApp.Views
 
         DayProfileDatabase dayProfileDatabase = DayProfileDatabase.GetInstance();
 
-        public LogDetailPage(LogModel log = null)
+        public LogDetailPage(LogModel log)
         {
             Log = log == null ? new() : log;
 
