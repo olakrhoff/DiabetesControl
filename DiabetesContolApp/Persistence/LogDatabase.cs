@@ -69,7 +69,7 @@ namespace DiabetesContolApp.Persistence
          * 
          * Params: None
          * 
-         * Return: void
+         * Return: Task<bool>, Task for async, true if updated, else false
          */
         async private Task<bool> UpdateAverageTDD()
         {
