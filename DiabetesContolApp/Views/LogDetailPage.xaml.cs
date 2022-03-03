@@ -91,8 +91,6 @@ namespace DiabetesContolApp.Views
 
         async void SaveClicked(System.Object sender, System.EventArgs e)
         {
-            //TODO: Validate entries
-
             if (String.IsNullOrWhiteSpace(glucoseAtMeal.Text) ||
                 String.IsNullOrWhiteSpace(insulinFromUser.Text) ||
                 !Helper.ConvertToFloat(glucoseAtMeal.Text, out float glucoseAtMealFloat) ||

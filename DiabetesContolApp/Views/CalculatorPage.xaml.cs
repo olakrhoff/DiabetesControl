@@ -99,19 +99,6 @@ namespace DiabetesContolApp.Views
                 DayProfileModel dayProfile = pickerDayprofiles.SelectedItem as DayProfileModel;
                 float totalInsulin = Helper.CalculateInsulin(glucoseFloat, NumberOfGroceriesSummary?.ToList(), dayProfile);
 
-                /*
-                //TODO: Remove block when not needed anymore
-                float insulinForFood = GetCarbsFromFood(NumberOfGroceriesSummary.ToList()) * dayProfile.CarbScalar / globalVariables.InsulinToCarbohydratesRatio;
-
-                float insulinForCorrection = (glucoseFloat - dayProfile.TargetGlucoseValue) * dayProfile.GlucoseScalar / globalVariables.InsulinToGlucoseRatio;
-
-                //If it is a pure correction dose, no food (carbs)
-                if (insulinForFood == 0)
-                    insulinForCorrection *= globalVariables.InsulinOnlyCorrectionScalar;
-
-                float totalInsulin = insulinForFood + insulinForCorrection;
-                */
-
                 insulinEstimate.Text = String.Format("{0:F1}", totalInsulin);
                 insulinEstimate.IsVisible = true;
                 logInsulinButton.IsEnabled = true;

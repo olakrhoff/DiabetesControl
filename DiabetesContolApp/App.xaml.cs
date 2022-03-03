@@ -40,9 +40,6 @@ namespace DiabetesContolApp
         protected override void OnResume()
         {
             StartTime = DateTime.Now;
-
-
-            //TODO: Update day profile picker
         }
 
         /*
