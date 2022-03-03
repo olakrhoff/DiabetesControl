@@ -59,7 +59,9 @@ namespace DiabetesContolApp.Persistence
          * This method updates the average TDD (total daily dose (of rapid insulin))
          * The average is of at least three days and at most seven. It will at max
          * look 14 days (two weeks) back in time, older values than these are regarded
-         * as too old for use in the TDD.
+         * as too old for use in the TDD. We start looking at yesterday and backward,
+         * we do not want to use todays logs, since these are not finished and will
+         * pull the TDD down.
          * 
          * TODO: When TimeProfiles, like "weekday" and "weekend" is added, this
          * method should get the average of the current TimeProfile, to be more 
@@ -73,7 +75,7 @@ namespace DiabetesContolApp.Persistence
         {
             List<LogModel> logs = new();
             int daysWithLogs = 0, maxIterations = 14;
-            for (int i = 0; i < maxIterations; ++i)
+            for (int i = 1; i <= maxIterations; ++i) //We start looking at yesterday
             {
                 var temp = await this.GetLogsAsync(DateTime.Now.AddDays(-i));
                 if (temp != null && temp.Count > 0)
