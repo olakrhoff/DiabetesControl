@@ -27,12 +27,13 @@ namespace DiabetesContolApp.Persistence
 
         /*
          * This method inserts a log into the database, after it
-         * connects it to a reminder.
+         * connects it to a reminder. If the log overlaps with
+         * another log, they will share a reminder.
          * 
          * Then it addes all the groceryLog values into the bridge table
          * 
-         * Lastly the method checks if this is the first log entry of the day,
-         * if so, it updated the average TDD (total daily dose (of rapid insulin))
+         *
+         * Lastly it updates the average TDD (total daily dose (of rapid insulin))
          * 
          * Paramas: LogModel, the log to insert
          * 
@@ -42,7 +43,32 @@ namespace DiabetesContolApp.Persistence
         {
             ReminderDatabase reminderDatabase = ReminderDatabase.GetInstance();
 
-            int index = await reminderDatabase.InsertReminderAsync(new ReminderModel());
+            if (newLogEntry.GlucoseAfterMeal == null)
+            {
+                var logs = await GetLogsAsync(DateTime.Now); //Get logs for today
+                if (logs == null || logs.Count == 0) //In the case of it just turning midnight
+                    logs.AddRange(await GetLogsAsync(DateTime.Now.AddDays(-1))); //Get logs from yesterday
+
+                logs.Sort(); //Get them in chronological order
+
+                LogModel newestLog = logs[logs.Count - 1];
+
+                if (newestLog.DateTimeValue.AddHours(ReminderModel.TIME_TO_WAIT) > newLogEntry.DateTimeValue) //If the meals are overlapping
+                {
+                    newLogEntry.ReminderID = newestLog.ReminderID;
+                    ReminderModel reminder = await reminderDatabase.GetReminderAsync(newLogEntry.ReminderID);
+                    reminder.UpdateDateTime();
+                    await reminderDatabase.UpdateReminderAsync(reminder);
+                }
+                else
+                {
+                    //Need to create a new reminder
+                    await reminderDatabase.InsertReminderAsync(new ReminderModel());
+                    var reminders = await reminderDatabase.GetRemindersAsync();
+                    ReminderModel newestReminder = reminders.Max();
+                    newLogEntry.ReminderID = newestReminder.ReminderID;
+                }
+            }
 
             var rowsAdded = await connection.InsertAsync(newLogEntry);
 

@@ -15,12 +15,12 @@ using Xamarin.Forms.Xaml;
 namespace DiabetesContolApp.Models
 {
     [Table("Reminder")]
-    public class ReminderModel : INotifyPropertyChanged
+    public class ReminderModel : INotifyPropertyChanged, IComparable<ReminderModel>, IEquatable<ReminderModel>
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
         //The number of hours the reminder is sat to wait
-        const int TIME_TO_WAIT = 3;
+        public static int TIME_TO_WAIT = 3;
 
         [PrimaryKey, AutoIncrement]
         public int ReminderID { get; set; }
@@ -35,9 +35,9 @@ namespace DiabetesContolApp.Models
         public ReminderModel()
         {
             ReminderID = -1;
-            //DateTimeLong = DateTime.Now.AddHours(TIME_TO_WAIT).ToBinary();
-            DateTimeLong = DateTime.Now.AddSeconds(TIME_TO_WAIT).ToBinary();
+            DateTimeLong = DateTime.Now.AddHours(TIME_TO_WAIT).ToBinary();
             IsHandled = false;
+            Logs = new();
         }
 
         async public Task<bool> Handle()
@@ -45,8 +45,6 @@ namespace DiabetesContolApp.Models
             if (DateTimeValue > DateTime.Now)
                 return false; //The reminder is not ready to be handled
 
-
-            //TODO: Ask for glucose after meal
 
             string userInput = await Application.Current.MainPage.DisplayPromptAsync("Glucose after meal", $"What was your glucose at {DateTimeValue.ToString("t")}", keyboard: Keyboard.Numeric);
 
@@ -69,6 +67,20 @@ namespace DiabetesContolApp.Models
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        public void UpdateDateTime()
+        {
+            DateTime.Now.AddHours(TIME_TO_WAIT);
+        }
+
+        public int CompareTo(ReminderModel other)
+        {
+            return DateTimeValue.CompareTo(other.DateTimeValue);
+        }
+
+        public bool Equals(ReminderModel other)
+        {
+            return DateTimeValue.Equals(other.DateTimeValue);
+        }
 
         [Ignore]
         public DateTime DateTimeValue

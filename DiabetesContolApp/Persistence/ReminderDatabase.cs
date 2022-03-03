@@ -61,6 +61,19 @@ namespace DiabetesContolApp.Persistence
             return await connection.UpdateAsync(reminder);
         }
 
+        /// <summary>
+        /// This method gets the corresponding Reminder from the database
+        /// based on its ID.
+        /// </summary>
+        /// <param name="reminderID">The ID of the reminder</param>
+        /// <returns name="Task<ReminderModel>">Task for async, ReminderModel,
+        /// the corresponding reminder.
+        /// </returns>
+        async public Task<ReminderModel> GetReminderAsync(int reminderID)
+        {
+            return await connection.GetAsync<ReminderModel>(reminderID);
+        }
+
         /*
          * This method gets all the reminder in the database.
          * 
