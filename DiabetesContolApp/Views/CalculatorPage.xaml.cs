@@ -154,14 +154,14 @@ namespace DiabetesContolApp.Views
                 propertiesChanged = true;
                 string result = await DisplayPromptAsync("We don't have your insulin-carbs-ratio", "How many units of insulin did you set yesterday?", keyboard: Keyboard.Numeric);
                 if (Helper.ConvertToFloat(result, out float resultFloat))
-                    globalVariables.InsulinToCarbohydratesRatio = 500 / resultFloat;
+                    globalVariables.InsulinToCarbohydratesRatio = Helper.Calculate500Rule(resultFloat);
             }
             if (globalVariables.InsulinToGlucoseRatio == -1.0f)
             {
                 propertiesChanged = true;
                 string result = await DisplayPromptAsync("We don't have your insulin-glucose-ratio", "How many units of insulin did you set yesterday?", keyboard: Keyboard.Numeric);
                 if (Helper.ConvertToFloat(result, out float resultFloat))
-                    globalVariables.InsulinToGlucoseRatio = 100 / resultFloat;
+                    globalVariables.InsulinToGlucoseRatio = Helper.Calculate100Rule(resultFloat);
             }
             if (globalVariables.InsulinOnlyCorrectionScalar == -1.0f)
             {

@@ -30,11 +30,12 @@ namespace DiabetesContolApp.Views
 
             BindingContext = Log;
 
-            if (log == null) //A new log entry
+            if (log.LogID == -1) //A new log entry
             {
                 NumberOfGrocerySummary = new();
                 glucoseAtMeal.Text = insulinFromUser.Text = "";
                 timePickerTimeOfMeal.Time = DateTime.Now.TimeOfDay;
+                datePickerDateOfMeal.Date = Log.DateTimeValue.Date;
             }
             else
             {
