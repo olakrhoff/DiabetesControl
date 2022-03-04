@@ -42,6 +42,7 @@ namespace DiabetesContolApp.Models
         public LogModel(int dayProfileID, DateTime dateTime, float insulinEstimate, float insulinFromUser, float glucoseAtMeal, List<NumberOfGroceryModel> numberOfGroceries, float? glucoseAfterMeal = null)
         {
             LogID = -1;
+            ReminderID = -1;
             DayProfileID = dayProfileID;
             DateTimeValue = dateTime;
             InsulinEstimate = insulinEstimate;

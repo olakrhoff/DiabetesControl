@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Linq;
+
 using DiabetesContolApp.Models;
+
 using SQLite;
 using Xamarin.Forms;
 
@@ -66,12 +70,50 @@ namespace DiabetesContolApp.Persistence
         /// based on its ID.
         /// </summary>
         /// <param name="reminderID">The ID of the reminder</param>
-        /// <returns name="Task<ReminderModel>">Task for async, ReminderModel,
-        /// the corresponding reminder.
+        /// <returns>
+        /// Task&lt;ReminderModel&gt;
+        /// Task for async, ReminderModel,
+        /// the corresponding reminder. If not found it returns null
         /// </returns>
         async public Task<ReminderModel> GetReminderAsync(int reminderID)
         {
-            return await connection.GetAsync<ReminderModel>(reminderID);
+            ReminderModel reminder = null;
+
+            try
+            {
+                reminder = await connection.GetAsync<ReminderModel>(reminderID);
+            }
+            catch (InvalidOperationException ioe)
+            {
+                Debug.WriteLine(ioe.Message);
+                return null;
+            }
+
+            reminder.Logs = await GetLogsForReminderAsync(reminder.ReminderID);
+
+            return reminder;
+        }
+
+        /// <summary>
+        /// This method gets the logs that are connected to the
+        /// reminder with the spesific ID.
+        /// </summary>
+        /// <param name="reminderID">
+        /// The ID the reminder has.
+        /// </param>
+        /// <returns>
+        /// Task&lt;List&lt;LogModel&gt;&gt;
+        ///
+        /// Task is for async.
+        ///
+        /// List&lt;LogModel&gt; is the list of Logs that are
+        /// connected to the reminder of the specified ID.
+        /// </returns>
+        async private Task<List<LogModel>> GetLogsForReminderAsync(int reminderID)
+        {
+            LogDatabase logDatabase = LogDatabase.GetInstance();
+
+            return (await logDatabase.GetLogsAsync()).Where(log => log.ReminderID == reminderID).ToList();
         }
 
         /*

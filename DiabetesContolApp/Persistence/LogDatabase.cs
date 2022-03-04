@@ -8,6 +8,7 @@ using DiabetesContolApp.GlobalLogic;
 
 using SQLite;
 using Xamarin.Forms;
+using System.Diagnostics;
 
 namespace DiabetesContolApp.Persistence
 {
@@ -43,29 +44,41 @@ namespace DiabetesContolApp.Persistence
         {
             ReminderDatabase reminderDatabase = ReminderDatabase.GetInstance();
 
-            if (newLogEntry.GlucoseAfterMeal == null)
+            //If an overlap was registered in the calculator
+            if (newLogEntry.ReminderID != -1)
             {
-                var logs = await GetLogsAsync(DateTime.Now); //Get logs for today
-                if (logs == null || logs.Count == 0) //In the case of it just turning midnight
-                    logs.AddRange(await GetLogsAsync(DateTime.Now.AddDays(-1))); //Get logs from yesterday
+                ReminderModel reminder = await reminderDatabase.GetReminderAsync(newLogEntry.ReminderID);
 
-                logs.Sort(); //Get them in chronological order
-
-                LogModel newestLog = logs[logs.Count - 1];
-
-                if (newestLog.DateTimeValue.AddHours(ReminderModel.TIME_TO_WAIT) > newLogEntry.DateTimeValue) //If the meals are overlapping
+                try
                 {
-                    newLogEntry.ReminderID = newestLog.ReminderID;
-                    ReminderModel reminder = await reminderDatabase.GetReminderAsync(newLogEntry.ReminderID);
                     reminder.UpdateDateTime();
                     await reminderDatabase.UpdateReminderAsync(reminder);
                 }
-                else
+                catch (NullReferenceException nre)
+                {
+                    Debug.WriteLine(nre.Message);
+                    newLogEntry.ReminderID = -1; //If there was no remidner with this ID, default the value
+                }
+            }
+            else if (newLogEntry.GlucoseAfterMeal == null)
+            {
+                LogModel newestLog = await GetNewestLogAsync();
+                if (newestLog != null)
+                {
+                    if (newestLog.DateTimeValue.AddHours(ReminderModel.TIME_TO_WAIT) > newLogEntry.DateTimeValue) //If the meals are overlapping
+                    {
+                        newLogEntry.ReminderID = newestLog.ReminderID;
+                        ReminderModel reminder = await reminderDatabase.GetReminderAsync(newLogEntry.ReminderID);
+                        reminder.UpdateDateTime();
+                        await reminderDatabase.UpdateReminderAsync(reminder);
+                    }
+                }
+                if (newLogEntry.ReminderID == -1)
                 {
                     //Need to create a new reminder
                     await reminderDatabase.InsertReminderAsync(new ReminderModel());
                     var reminders = await reminderDatabase.GetRemindersAsync();
-                    ReminderModel newestReminder = reminders.Max();
+                    ReminderModel newestReminder = reminders.Max(); //Gets the reminder with the higest DateTime value, hens the newest
                     newLogEntry.ReminderID = newestReminder.ReminderID;
                 }
             }
@@ -78,6 +91,29 @@ namespace DiabetesContolApp.Persistence
 
 
             return rowsAdded;
+        }
+
+        /// <summary>
+        /// This method get the newest Log based on the time it
+        /// has in its variable DateTime.
+        /// </summary>
+        /// <returns>
+        /// Task&lt;LogModel&gt;
+        /// 
+        /// Task is for async
+        /// LogModel is the newest model,
+        /// if no Log is found, it returns null.
+        /// </returns>
+        async public Task<LogModel> GetNewestLogAsync()
+        {
+            var logs = await connection.Table<LogModel>().ToListAsync();
+
+            if (logs.Count == 0)
+                return null;
+
+            logs.Sort();
+
+            return logs[logs.Count - 1];
         }
 
 
@@ -131,7 +167,7 @@ namespace DiabetesContolApp.Persistence
             return true;
         }
 
-        async internal Task<LogModel> GetLogAsync(int logID)
+        async public Task<LogModel> GetLogAsync(int logID)
         {
             LogModel log = await connection.GetAsync<LogModel>(logID);
 
@@ -148,7 +184,7 @@ namespace DiabetesContolApp.Persistence
             return log;
         }
 
-        async internal Task<int> UpdateLogAsync(LogModel log)
+        async public Task<int> UpdateLogAsync(LogModel log)
         {
             List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().Where(e => e.LogID == log.LogID).ToListAsync();
 
@@ -162,14 +198,21 @@ namespace DiabetesContolApp.Persistence
             return await connection.UpdateAsync(log);
         }
 
-        async internal Task<List<LogModel>> GetLogsAsync(DateTime dateTime)
+        async public Task<List<LogModel>> GetLogsAsync(DateTime? dateTime = null)
         {
             var logs = await connection.Table<LogModel>().ToListAsync();
+
+            if (dateTime == null)
+                return logs;
+
+            //This is safe since we will not get past the
+            //if-statment above if dateTime is null
+            DateTime dateTimeNotNull = (DateTime)dateTime;
 
             List<LogModel> temp = new();
 
             foreach (LogModel log in logs)
-                if (log.DateTimeValue.Date.Equals(dateTime.Date))
+                if (log.DateTimeValue.Date.Equals(dateTimeNotNull.Date))
                     temp.Add(log);
 
             logs = temp;
@@ -187,7 +230,7 @@ namespace DiabetesContolApp.Persistence
          * Params: LogModel (log), the log to be deleted
          * Return: int, number of rows deleted
          */
-        async internal Task<int> DeleteLogAsync(LogModel log)
+        async public Task<int> DeleteLogAsync(LogModel log)
         {
             return await DeleteLogAsync(log.LogID);
 
@@ -209,7 +252,7 @@ namespace DiabetesContolApp.Persistence
          * Parmas: int (logID), the ID of the log to be deleted
          * Return: int, number of rows deleted
          */
-        async internal Task<int> DeleteLogAsync(int logID)
+        async public Task<int> DeleteLogAsync(int logID)
         {
             List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().ToListAsync();
 
