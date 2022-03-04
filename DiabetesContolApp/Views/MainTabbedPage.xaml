@@ -5,9 +5,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="DiabetesContolApp.Views.MainTabbedPage">
 
-    <local:LogPage Title="Log" IconImageSource="Images/Intervals/user@3x.png"/>
-    <local:CalculatorPage Title="Calculator" IconImageSource="Images/Intervals/heart@3x.png"/>
-    <local:GroceryPage Title="Groceries" IconImageSource="Images/Intervals/user@3x.png"/>
-    <local:DayProfilePage Title="Day profiles" IconImageSource="Images/Intervals/clockOline@3x.png"/>
+    <local:SettingsAndStatisticsPage Title="Statistics" IconImageSource="Images/gearOline@3x.png"/>
+    <local:LogPage Title="Log" IconImageSource="Images/listOline@3x.png"/>
+    <local:CalculatorPage Title="Calculator" IconImageSource="Images/calculatorOline@3x.png"/>
+    <local:GroceryPage Title="Groceries" IconImageSource="Images/breadOline@3x.png"/>
+    <local:DayProfilePage Title="Day profiles" IconImageSource="Images/clock2Oline@3x.png"/>
     
 </TabbedPage>

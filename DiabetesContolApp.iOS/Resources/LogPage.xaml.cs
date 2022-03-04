@@ -34,7 +34,7 @@ namespace DiabetesContolApp.Views
             logList.ItemsSource = Logs;
         }
 
-        protected override void OnAppearing()
+        async protected override void OnAppearing()
         {
             GetLogsForDate();
 
@@ -69,9 +69,7 @@ namespace DiabetesContolApp.Views
 
         async void AddNewClicked(System.Object sender, System.EventArgs e)
         {
-            LogModel log = new();
-            log.DateTimeValue = localDate;
-            LogDetailPage page = new(log);
+            LogDetailPage page = new();
 
             page.LogAdded += async (source, args) =>
             {

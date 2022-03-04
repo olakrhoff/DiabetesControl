@@ -28,6 +28,7 @@ namespace DiabetesContolApp.Views
         async void SaveClicked(System.Object sender, System.EventArgs e)
         {
             if (String.IsNullOrWhiteSpace(name.Text) ||
+                String.IsNullOrEmpty(brandName.Text) ||
                 String.IsNullOrWhiteSpace(carbsPer100g.Text) ||
                 String.IsNullOrWhiteSpace(nameOfPortion.Text) ||
                 String.IsNullOrWhiteSpace(gramsPerPortion.Text) ||
@@ -39,6 +40,7 @@ namespace DiabetesContolApp.Views
             }
 
             Grocery.Name = name.Text;
+            Grocery.BrandName = brandName.Text;
             Grocery.CarbsPer100Grams = carbsPer100gFloat;
             Grocery.NameOfPortion = nameOfPortion.Text;
             Grocery.GramsPerPortion = gramsPerPortionFloat;

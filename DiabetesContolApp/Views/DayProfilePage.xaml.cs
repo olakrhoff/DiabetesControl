@@ -16,19 +16,17 @@ namespace DiabetesContolApp.Views
     public partial class DayProfilePage : ContentPage
     {
         public ObservableCollection<DayProfileModel> DayProfiles { get; set; }
-        private SQLiteAsyncConnection connection;
+
+        private DayProfileDatabase dayProfileDatabase = DayProfileDatabase.GetInstance();
 
         public DayProfilePage()
         {
-            InitializeComponent();
-
-            connection = DependencyService.Get<ISQLiteDB>().GetConnection();
+            InitializeComponent(); 
         }
 
         protected override async void OnAppearing()
         {
-            await connection.CreateTableAsync<DayProfileModel>();
-            var dayProfiles = await connection.Table<DayProfileModel>().ToListAsync();
+            var dayProfiles = await dayProfileDatabase.GetDayProfilesAsync();
             dayProfiles.Sort();
             DayProfiles = new ObservableCollection<DayProfileModel>(dayProfiles);
             dayProfilesList.ItemsSource = DayProfiles;
@@ -50,7 +48,7 @@ namespace DiabetesContolApp.Views
 
             page.DayProfileAdded += async (source, args) =>
             {
-                await connection.InsertAsync(args);
+                await dayProfileDatabase.InsertDayProfileAsync(args);
             };
 
             await Navigation.PushAsync(page);
@@ -68,7 +66,7 @@ namespace DiabetesContolApp.Views
 
             page.DayProfileSaved += async (source, args) =>
             {
-                await connection.UpdateAsync(args);
+                await dayProfileDatabase.UpdateDayProfileAsync(args);
             };
 
             await Navigation.PushAsync(page);
@@ -80,7 +78,7 @@ namespace DiabetesContolApp.Views
             if (await DisplayAlert("Deleting", $"Are you sure you want to delete {dayProfile.Name}?", "Delete", "Cancel"))
             {
                 DayProfiles.Remove(dayProfile);
-                await connection.DeleteAsync(dayProfile);
+                await dayProfileDatabase.DeleteDayProfileAsync(dayProfile);
             }
         }
     }

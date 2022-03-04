@@ -3,6 +3,9 @@ using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
 using DiabetesContolApp.Views;
+using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Models;
+using System.Collections.Generic;
 
 namespace DiabetesContolApp
 {
@@ -12,6 +15,9 @@ namespace DiabetesContolApp
         private const string InsulinToCarbohydratesRatioKey = "InsulinToCarbohydratesRatio";
         private const string InsulinToGlucoseRatioKey = "InsulinToGlucoseRatio";
         private const string InsulinOnlyCorrectionScalarKey = "InsulinOnlyCorrectionScalar";
+        private const string TimeUsedKey = "TimeUsed";
+
+        private DateTime StartTime = DateTime.Now;
 
         public App()
         {
@@ -22,15 +28,23 @@ namespace DiabetesContolApp
 
         protected override void OnStart()
         {
+            StartTime = DateTime.Now;
+            CheckReminders();
         }
 
         protected override void OnSleep()
         {
+            SavePropertiesAsync();
+
+            ulong timeInApp = (ulong)(DateTime.Now - StartTime).TotalSeconds;
+
+            TimeUsed += timeInApp;
         }
 
         protected override void OnResume()
         {
-            //TODO: Update day profile picker
+            StartTime = DateTime.Now;
+            CheckReminders();
         }
 
         /*
@@ -100,5 +114,45 @@ namespace DiabetesContolApp
             }
         }
 
+        /*
+         * This variables gives the time the user has been inside
+         * the app, given in seconds.
+         */
+        public ulong TimeUsed
+        {
+            get
+            {
+                if (Properties.ContainsKey(TimeUsedKey))
+                    return (ulong)Properties[TimeUsedKey];
+                return 0L;
+            }
+
+            set
+            {
+                if (!Properties.ContainsKey(TimeUsedKey))
+                    Properties.Add(TimeUsedKey, 0L);
+                Properties[TimeUsedKey] = value;
+            }
+        }
+
+        /*
+         * This variables gives the time the user has been inside
+         * the app, given in minutes, based on the TimeUsed variable.
+         */
+        public ulong TimeUsedInMinutes
+        {
+            get
+            {
+                return TimeUsed / 60;
+            }
+        }
+
+
+        private void CheckReminders()
+        {
+            ReminderDatabase reminderDatabase = ReminderDatabase.GetInstance();
+
+            reminderDatabase.HandleReminders();
+        }
     }
 }

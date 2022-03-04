@@ -63,7 +63,7 @@ namespace DiabetesContolApp.Models
                 }
                 catch (ArgumentOutOfRangeException aoore)
                 {
-                    //TODO: Do some logging maybe
+                    //If an error occurs, we simply do not set the value
                     return;
                 }
 
@@ -91,7 +91,7 @@ namespace DiabetesContolApp.Models
                 }
                 catch (ArgumentOutOfRangeException aoore)
                 {
-                    //TODO: Do some logging maybe
+                    //If an error occurs, we simply do not set the value
                     return;
                 }
 
@@ -119,7 +119,7 @@ namespace DiabetesContolApp.Models
                 }
                 catch (ArgumentOutOfRangeException aoore)
                 {
-                    //TODO: Do some logging maybe
+                    //If an error occurs, we simply do not set the value
                     return;
                 }
 
@@ -147,7 +147,7 @@ namespace DiabetesContolApp.Models
                 }
                 catch (ArgumentOutOfRangeException aoore)
                 {
-                    //TODO: Do some logging maybe
+                    //If an error occurs, we simply do not set the value
                     return;
                 }
 

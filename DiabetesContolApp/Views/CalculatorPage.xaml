@@ -13,14 +13,22 @@
             </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
-    
+
     <StackLayout Spacing="30">
-        <Entry x:Name="glucose"
-               Placeholder="Current glucose 5,4 mmol/L"
-               VerticalOptions="Center"
-               Margin="0, 50, 0, 0"
-               Style="{StaticResource entries}"
-               Keyboard="Numeric"/>
+        <StackLayout>
+            <Entry x:Name="glucose"
+                   Placeholder="Current glucose 5,4 mmol/L"
+                   VerticalOptions="Center"
+                   Margin="0, 50, 0, 0"
+                   Style="{StaticResource entries}"
+                   Keyboard="Numeric"
+                   Focused="GlucoseLabelFocused"/>
+            <Label x:Name="overlappingMealLabel"
+                   Text="Meal is overlapping with previous one"
+                   TextColor="Orange"
+                   FontSize="Small"
+                   IsVisible="False"/>
+        </StackLayout>
         <Picker x:Name="pickerDayprofiles"
                 ItemDisplayBinding="{Binding Name}"
                 Style="{StaticResource entries}"/>
@@ -57,10 +65,15 @@
                      Spacing="0"
                      HorizontalOptions="Center">
             <Entry x:Name="insulinEstimate"
-                    IsVisible="False"
-                    FontSize="50"
-                    Keyboard="Numeric"
-                    VerticalOptions="Center"/>
+                   IsVisible="False"
+                   FontSize="50"
+                   Keyboard="Numeric"
+                   VerticalOptions="Center"
+                   HorizontalOptions="StartAndExpand"
+                   HorizontalTextAlignment="End"
+                   WidthRequest="120"
+                   Focused="InsulinEstimateEntryFocused"
+                   Unfocused="InsulinEstimateEntryUnfocused"/>
             <Label Text="Units"
                    FontSize="50"
                    VerticalOptions="Center"

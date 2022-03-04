@@ -6,7 +6,7 @@
 
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="AddNew"
-                     IconImageSource="Images/Intervals/plus.png"
+                     IconImageSource="Images/plusOline@3x.png"
                      Clicked="AddNewClicked"
                      Order="Primary"/>
     </ContentPage.ToolbarItems>
@@ -15,7 +15,8 @@
               ItemTapped="GroceriesListItemTapped">
         <ListView.ItemTemplate>
             <DataTemplate>
-                <TextCell Text="{Binding Name}">
+                <TextCell Text="{Binding Name}"
+                          Detail="{Binding BrandName}">
                     <TextCell.ContextActions>
                         <MenuItem Text="Delete"
                                   IsDestructive="True"

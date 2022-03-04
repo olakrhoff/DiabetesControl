@@ -15,22 +15,24 @@ namespace DiabetesContolApp.Views
 
     public partial class CalculatorPage : ContentPage
     {
-        private readonly SQLiteAsyncConnection connection;
+
         public ObservableCollection<DayProfileModel> DayProfiles { get; set; }
         public ObservableCollection<NumberOfGroceryModel> NumberOfGroceriesSummary { get; set; }
+        private float? _insulinEstimate;
+        private int _reminderModelID = -1;
+
+        private DayProfileDatabase dayProfileDatabase = DayProfileDatabase.GetInstance();
+        private LogDatabase logDatabase = LogDatabase.GetInstance();
+        private ReminderDatabase reminderDatabase = ReminderDatabase.GetInstance();
 
         public CalculatorPage()
         {
             InitializeComponent();
-
-            connection = DependencyService.Get<ISQLiteDB>().GetConnection();            
         }
 
         protected override async void OnAppearing()
         {
-            await connection.CreateTableAsync<DayProfileModel>(); //Creates table if not already created
-
-            var dayProfiles = await connection.Table<DayProfileModel>().ToListAsync();
+            var dayProfiles = await dayProfileDatabase.GetDayProfilesAsync();
             dayProfiles.Sort(); //Sort the elements
 
             DayProfiles = new ObservableCollection<DayProfileModel>(dayProfiles);
@@ -43,9 +45,30 @@ namespace DiabetesContolApp.Views
             base.OnAppearing();
         }
 
+        /// <summary>
+        /// This method disables the glucose field and shows a label
+        /// if there is an overlapping log entry. If not, it sets it back.
+        /// </summary>
+        /// <param name="isOverlapping">
+        /// True if there is an overlap, else false
+        /// </param>
+        /// <param name="previousLog">
+        /// The previous log entry that overlapps with the potensial new one,
+        /// needed to get the TargetGlucoseValue from the respective DayProfile.
+        /// </param>
+        /// <returns>void</returns>
+        async private void SetOverlappingMeals(bool isOverlapping, LogModel previousLog, int reminderID = -1)
+        {
+            overlappingMealLabel.IsVisible = isOverlapping; //Visible if overlapping
+            glucose.IsEnabled = !isOverlapping; //Enabled if not overlapping
+            if (isOverlapping)
+                glucose.Text = (await dayProfileDatabase.GetDayProfileAsync(previousLog.DayProfileID)).TargetGlucoseValue.ToString();
+            _reminderModelID = reminderID;
+        }
+
         private DayProfileModel GetDayProfileByTime()
         {
-            
+
             if (DayProfiles.Count == 0)
                 return null;
 
@@ -63,7 +86,7 @@ namespace DiabetesContolApp.Views
                     break; //Since the list is sorted we can exit here
             }
 
-            return valid ? prev : null;        
+            return valid ? prev : null;
         }
 
         async void AddGroceriesClicked(System.Object sender, System.EventArgs e)
@@ -90,28 +113,17 @@ namespace DiabetesContolApp.Views
             if (!await VaildateCalculatorData())
                 return;
 
-            App globalVariables = Application.Current as App;
-            
             if (Helper.ConvertToFloat(glucose.Text, out float glucoseFloat))
             {
+
                 //Data is valid, continue with calculations
                 DayProfileModel dayProfile = pickerDayprofiles.SelectedItem as DayProfileModel;
+                float totalInsulin = Helper.CalculateInsulin(glucoseFloat, NumberOfGroceriesSummary?.ToList(), dayProfile);
 
-                float insulinForFood = GetCarbsFromFood() * dayProfile.CarbScalar / globalVariables.InsulinToCarbohydratesRatio;
-
-                float insulinForCorrection = (glucoseFloat - dayProfile.TargetGlucoseValue) * dayProfile.GlucoseScalar / globalVariables.InsulinToGlucoseRatio;
-
-                //If it is a pure correction dose, no food (carbs)
-                if (insulinForFood == 0)
-                    insulinForCorrection *= globalVariables.InsulinOnlyCorrectionScalar;
-
-                float totalInsulin = insulinForFood + insulinForCorrection;
-
-                
                 insulinEstimate.Text = String.Format("{0:F1}", totalInsulin);
                 insulinEstimate.IsVisible = true;
-
                 logInsulinButton.IsEnabled = true;
+                _insulinEstimate = totalInsulin;
             }
             else
             {
@@ -120,36 +132,45 @@ namespace DiabetesContolApp.Views
             }
         }
 
-        private float GetCarbsFromFood()
-        {
-            float totalCarbs = 0.0f;
-
-            if (NumberOfGroceriesSummary != null)
-                foreach (NumberOfGroceryModel numberOfGrocery in NumberOfGroceriesSummary)
-                    totalCarbs += numberOfGrocery.NumberOfGrocery * numberOfGrocery.Grocery.GramsPerPortion * (numberOfGrocery.Grocery.CarbsPer100Grams / 100) * numberOfGrocery.Grocery.CarbScalar;
-
-            return totalCarbs;
-        }
-
         async void LogInsulinClicked(System.Object sender, System.EventArgs e)
         {
-            if (!await VaildateCalculatorData())
+            if (!await VaildateCalculatorData() ||
+                _insulinEstimate == null ||
+                !Helper.ConvertToFloat(insulinEstimate.Text, out float insulinFromUserFloat) ||
+                !Helper.ConvertToFloat(glucose.Text, out float glucoseAtMealFloat))
                 return;
 
-            //TODO: Implement
+            LogModel newLogEntry = new((pickerDayprofiles.SelectedItem as DayProfileModel).DayProfileID,
+                DateTime.Now,
+                (float)_insulinEstimate,
+                insulinFromUserFloat,
+                glucoseAtMealFloat,
+                NumberOfGroceriesSummary?.ToList());
+            newLogEntry.ReminderID = _reminderModelID;
 
-
+            await logDatabase.InsertLogAsync(newLogEntry);
 
             ClearCalculatorData();
+            SetOverlappingMeals(false, null); //Enable the glucose entry
         }
 
         private void ClearCalculatorData()
         {
             glucose.Text = insulinEstimate.Text = "";
             insulinEstimate.IsVisible = logInsulinButton.IsEnabled = false;
-            NumberOfGroceriesSummary.Clear();
+            NumberOfGroceriesSummary?.Clear();
         }
 
+        /*
+         * This method validates that all the neccesary fileds
+         * on the calculator page is valid, so the calculations
+         * can be done.
+         * 
+         * Parmas: None
+         * 
+         * Return: Task<bool>, Task for async, returns true if every field
+         * is valid, else false.
+         */
         async private Task<bool> VaildateCalculatorData()
         {
             App globalVariables = Application.Current as App;
@@ -161,14 +182,14 @@ namespace DiabetesContolApp.Views
                 propertiesChanged = true;
                 string result = await DisplayPromptAsync("We don't have your insulin-carbs-ratio", "How many units of insulin did you set yesterday?", keyboard: Keyboard.Numeric);
                 if (Helper.ConvertToFloat(result, out float resultFloat))
-                    globalVariables.InsulinToCarbohydratesRatio = 500 / resultFloat;
+                    globalVariables.InsulinToCarbohydratesRatio = Helper.Calculate500Rule(resultFloat);
             }
             if (globalVariables.InsulinToGlucoseRatio == -1.0f)
             {
                 propertiesChanged = true;
                 string result = await DisplayPromptAsync("We don't have your insulin-glucose-ratio", "How many units of insulin did you set yesterday?", keyboard: Keyboard.Numeric);
                 if (Helper.ConvertToFloat(result, out float resultFloat))
-                    globalVariables.InsulinToGlucoseRatio = 100 / resultFloat;
+                    globalVariables.InsulinToGlucoseRatio = Helper.Calculate100Rule(resultFloat);
             }
             if (globalVariables.InsulinOnlyCorrectionScalar == -1.0f)
             {
@@ -195,6 +216,41 @@ namespace DiabetesContolApp.Views
             }
 
             return true; //If no errers occur
+        }
+
+        /*
+         * This method is used to move the entry over the keyboard
+         * that appears, so that the user can see what they type in
+         */
+        void InsulinEstimateEntryFocused(System.Object sender, Xamarin.Forms.FocusEventArgs e)
+        {
+            Content.LayoutTo(new Rectangle(Content.Bounds.Left, -200, Content.Bounds.Width, Content.Bounds.Height));
+        }
+
+        /*
+         * This method is used to move the entry down after the keyboard
+         * dissapears
+         * 
+         * See: void InsulinEstimateEntryFocused(System.Object sender, Xamarin.Forms.FocusEventArgs e)
+         */
+        void InsulinEstimateEntryUnfocused(System.Object sender, Xamarin.Forms.FocusEventArgs e)
+        {
+            Content.LayoutTo(new Rectangle(Content.Bounds.Left, 0, Content.Bounds.Width, Content.Bounds.Height));
+        }
+
+        async void GlucoseLabelFocused(System.Object sender, Xamarin.Forms.FocusEventArgs e)
+        {
+            LogModel log = await logDatabase.GetNewestLogAsync();
+            ReminderModel reminder = null;
+            if (log != null)
+                reminder = await reminderDatabase.GetReminderAsync(log.ReminderID);
+
+            //The previous log overlaps in time with the
+            //new log, if it is to be added now
+            if (reminder != null)
+                SetOverlappingMeals(reminder.DateTimeValue > DateTime.Now, log, reminder.ReminderID);
+            else
+                SetOverlappingMeals(false, log);
         }
     }
 }

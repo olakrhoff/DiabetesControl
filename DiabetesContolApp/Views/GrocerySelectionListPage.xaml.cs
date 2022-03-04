@@ -23,12 +23,11 @@ namespace DiabetesContolApp.Views
 
         public ObservableCollection<NumberOfGroceryModel> Groceries { get; set; }
         private List<NumberOfGroceryModel> GroceriesAdded { get; set; }
-        private readonly SQLiteAsyncConnection connection;
+        private GroceryDatabase groceryDatabase = GroceryDatabase.GetInstance();
 
         public GrocerySelectionListPage(List<NumberOfGroceryModel> groceries = null)
         {
             GroceriesAdded = groceries;
-            connection = DependencyService.Get<ISQLiteDB>().GetConnection();
 
             InitializeComponent();
         }
@@ -53,8 +52,7 @@ namespace DiabetesContolApp.Views
 
         async private Task<List<NumberOfGroceryModel>> GetNumberOfGroceries()
         {
-            await connection.CreateTableAsync<GroceryModel>(); //Creates table if it does not already exist
-            var groceries = await connection.Table<GroceryModel>().ToListAsync();
+            var groceries = await groceryDatabase.GetGroceriesAsync();
             groceries.Sort();
 
             return NumberOfGroceryModel.GetNumberOfGroceries(groceries);
@@ -74,7 +72,7 @@ namespace DiabetesContolApp.Views
             {
                 Groceries.Add(new NumberOfGroceryModel(args));
                 Groceries = Helper.SortObservableCollection(Groceries);
-                await connection.InsertAsync(args);
+                await groceryDatabase.InsertGroceryAsync(args);
             };
 
             await Navigation.PushAsync(page);
@@ -97,7 +95,7 @@ namespace DiabetesContolApp.Views
             {
                 Groceries.Remove(grocery);
                 NumberOfGroceryDeleted?.Invoke(this, grocery);
-                await connection.DeleteAsync(grocery.Grocery);
+                await groceryDatabase.DeleteGroceryAsync(grocery.Grocery);
             }
         }
 
@@ -119,7 +117,7 @@ namespace DiabetesContolApp.Views
 
             page.GrocerySaved += async (source, args) =>
             {
-                await connection.UpdateAsync(args);
+                await groceryDatabase.UpdateGroceryAsync(args);
             };
 
             await Navigation.PushAsync(page);
