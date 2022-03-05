@@ -78,7 +78,7 @@ namespace DiabetesContolApp.Persistence
                     //Need to create a new reminder
                     await reminderDatabase.InsertReminderAsync(new ReminderModel());
                     var reminders = await reminderDatabase.GetRemindersAsync();
-                    ReminderModel newestReminder = reminders.Max(); //Gets the reminder with the higest DateTime value, hens the newest
+                    ReminderModel newestReminder = reminders.Max(); //Gets the reminder ID
                     newLogEntry.ReminderID = newestReminder.ReminderID;
                 }
             }
