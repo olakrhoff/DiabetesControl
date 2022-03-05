@@ -63,7 +63,8 @@ namespace DiabetesContolApp.Views
             glucose.IsEnabled = !isOverlapping; //Enabled if not overlapping
             if (isOverlapping)
                 glucose.Text = (await dayProfileDatabase.GetDayProfileAsync(previousLog.DayProfileID)).TargetGlucoseValue.ToString();
-            _reminderModelID = reminderID;
+
+            _reminderModelID = isOverlapping ? reminderID : -1;
         }
 
         private DayProfileModel GetDayProfileByTime()

@@ -73,7 +73,7 @@ namespace DiabetesContolApp.Persistence
                         await reminderDatabase.UpdateReminderAsync(reminder);
                     }
                 }
-                if (newLogEntry.ReminderID == -1)
+                if (newLogEntry.ReminderID == -1) //If the log still hasn't gotten a reminder connected to it, it need a new one
                 {
                     //Need to create a new reminder
                     await reminderDatabase.InsertReminderAsync(new ReminderModel());
