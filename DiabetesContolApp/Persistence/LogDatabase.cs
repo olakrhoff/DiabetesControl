@@ -65,12 +65,12 @@ namespace DiabetesContolApp.Persistence
                 LogModel newestLog = await GetNewestLogAsync();
                 if (newestLog != null)
                 {
-                    if (newestLog.DateTimeValue.AddHours(ReminderModel.TIME_TO_WAIT) > newLogEntry.DateTimeValue) //If the meals are overlapping
+                    ReminderModel newestReminder = await reminderDatabase.GetReminderAsync(newestLog.ReminderID);
+                    if (!newestReminder.ReadyToHandle()) //If the meals are overlapping
                     {
                         newLogEntry.ReminderID = newestLog.ReminderID;
-                        ReminderModel reminder = await reminderDatabase.GetReminderAsync(newLogEntry.ReminderID);
-                        reminder.UpdateDateTime();
-                        await reminderDatabase.UpdateReminderAsync(reminder);
+                        newestReminder.UpdateDateTime();
+                        await reminderDatabase.UpdateReminderAsync(newestReminder);
                     }
                 }
                 if (newLogEntry.ReminderID == -1) //If the log still hasn't gotten a reminder connected to it, it need a new one
@@ -91,6 +91,19 @@ namespace DiabetesContolApp.Persistence
 
 
             return rowsAdded;
+        }
+
+        /// <summary>
+        /// Gets all logs connected to a reminder by the
+        /// ReminderID.
+        /// </summary>
+        /// <param name="reminderID"></param>
+        /// <returns>
+        /// List of LogModels connected to the remidnerID.
+        /// </returns>
+        async public Task<List<LogModel>> GetLogsWithReminderAsync(int reminderID)
+        {
+            return (await GetLogsAsync()).Where(log => log.ReminderID == reminderID).ToList();
         }
 
         /// <summary>
@@ -167,21 +180,43 @@ namespace DiabetesContolApp.Persistence
             return true;
         }
 
+        /// <summary>
+        /// Gets the log with the corresponding ID,
+        /// if it doesn't exist it returns null
+        /// </summary>
+        /// <param name="logID"></param>
+        /// <returns>
+        /// The LogModel if it exists, else null
+        /// </returns>
         async public Task<LogModel> GetLogAsync(int logID)
         {
-            LogModel log = await connection.GetAsync<LogModel>(logID);
+            try
+            {
+                LogModel log = await connection.GetAsync<LogModel>(logID);
 
-            List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().Where(e => e.LogID == logID).ToListAsync();
+                List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().Where(e => e.LogID == logID).ToListAsync();
 
-            log.NumberOfGroceryModels = GroceryLogModel.GetNumberOfGroceries(groceryLogs);
+                log.NumberOfGroceryModels = GroceryLogModel.GetNumberOfGroceries(groceryLogs);
 
-            GroceryDatabase groceryDatabase = GroceryDatabase.GetInstance();
+                GroceryDatabase groceryDatabase = GroceryDatabase.GetInstance();
 
-            foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceryModels)
-                numberOfGrocery.Grocery = await groceryDatabase.GetGroceryAsync(numberOfGrocery.Grocery.GroceryID);
+                foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceryModels)
+                    numberOfGrocery.Grocery = await groceryDatabase.GetGroceryAsync(numberOfGrocery.Grocery.GroceryID);
 
+                return log;
+            }
+            catch (InvalidOperationException ioe)
+            {
+                Debug.WriteLine(ioe.Message);
+                return null;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                Debug.WriteLine(e.Message);
+                return null;
+            }
 
-            return log;
         }
 
         async public Task<int> UpdateLogAsync(LogModel log)
@@ -241,6 +276,9 @@ namespace DiabetesContolApp.Persistence
                     await connection.DeleteAsync(groceryLog); //Deletes all the entries in GroceryLog who are connected to the Grocery
 
             LogModel currentLog = await GetLogAsync(logID); //Get the log in question
+
+            if (currentLog == null)
+                return 0; //The object is already deleted or never existed, zero rows deleted 
 
             if (currentLog.ReminderID != -1)
             {
