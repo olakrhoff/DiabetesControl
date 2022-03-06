@@ -128,5 +128,22 @@ namespace DiabetesContolApp.Persistence
         {
             return await connection.Table<ReminderModel>()?.ToListAsync();
         }
+
+
+        /// <summary>
+        /// This method deletes the reminder itself based on it's ID.
+        /// </summary>
+        /// <param name="reminderID"></param>
+        /// <returns>
+        /// Task&lt;int&gt;
+        ///
+        /// Task for async.
+        ///
+        /// int for the number of rows delete, in the reminder table.
+        /// </returns>
+        async public Task<int> DeleteReminderAsync(int reminderID)
+        {
+            return await connection.DeleteAsync<ReminderModel>(reminderID);
+        }
     }
 }

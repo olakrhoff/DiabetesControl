@@ -223,14 +223,15 @@ namespace DiabetesContolApp.Persistence
             return logs;
         }
 
-        /*
-         * This method deletes a log based on its ID,
-         * it also deletes all the groceryLog entries it is
-         * connected to first
-         * 
-         * Parmas: int (logID), the ID of the log to be deleted
-         * Return: int, number of rows deleted
-         */
+        /// <summary>
+        /// This method deletes a log based on its ID,
+        /// it also deletes all the groceryLog entries it is
+        /// connected to first.Then it removes it's connection
+        /// to it's reminder and deletes the reminder, and lastly
+        /// delete itself.
+        /// </summary>
+        /// <param name="logID">int (logID), the ID of the log to be deleted</param>
+        /// <returns>int (logID), the ID of the log to be deleted</returns>
         async public Task<int> DeleteLogAsync(int logID)
         {
             List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().ToListAsync();
@@ -238,6 +239,23 @@ namespace DiabetesContolApp.Persistence
             foreach (GroceryLogModel groceryLog in groceryLogs)
                 if (groceryLog.LogID == logID)
                     await connection.DeleteAsync(groceryLog); //Deletes all the entries in GroceryLog who are connected to the Grocery
+
+            LogModel currentLog = await GetLogAsync(logID); //Get the log in question
+
+            if (currentLog.ReminderID != -1)
+            {
+                (await GetLogsAsync()).ForEach(async log =>
+                {
+                    if (log.ReminderID == currentLog.ReminderID && log.LogID != currentLog.LogID)
+                    {
+                        log.ReminderID = -1;
+                        await UpdateLogAsync(log);
+                        await DeleteLogAsync(log.LogID);
+                    }
+                });
+
+                await ReminderDatabase.GetInstance().DeleteReminderAsync(currentLog.ReminderID);
+            }
 
             return await connection.DeleteAsync<LogModel>(logID);
         }
