@@ -58,7 +58,7 @@ namespace DiabetesContolApp.Persistence
 
             foreach (LogModel log in logs)
                 if (log.DayProfileID == dayProfile.DayProfileID)
-                    await logDatabase.DeleteLogAsync(log);
+                    await logDatabase.DeleteLogAsync(log.LogID);
 
             return await connection.DeleteAsync(dayProfile);
         }

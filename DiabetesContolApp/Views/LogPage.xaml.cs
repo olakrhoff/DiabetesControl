@@ -85,7 +85,7 @@ namespace DiabetesContolApp.Views
         {
             var log = (sender as MenuItem).CommandParameter as LogModel;
 
-            await logDatabase.DeleteLogAsync(log);
+            await logDatabase.DeleteLogAsync(log.LogID);
             Logs.Remove(log);
         }
 

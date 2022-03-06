@@ -224,27 +224,6 @@ namespace DiabetesContolApp.Persistence
         }
 
         /*
-         * This method deletes a log, it calls the delete
-         * by logID method.
-         * 
-         * Params: LogModel (log), the log to be deleted
-         * Return: int, number of rows deleted
-         */
-        async public Task<int> DeleteLogAsync(LogModel log)
-        {
-            return await DeleteLogAsync(log.LogID);
-
-            /*
-            List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().ToListAsync();
-
-            foreach (GroceryLogModel groceryLog in groceryLogs)
-                if (groceryLog.LogID == log.LogID)
-                    await connection.DeleteAsync(groceryLog); //Deletes all the entries in GroceryLog who are connected to the Grocery
-
-            return await connection.DeleteAsync(log);*/
-        }
-
-        /*
          * This method deletes a log based on its ID,
          * it also deletes all the groceryLog entries it is
          * connected to first
