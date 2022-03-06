@@ -56,6 +56,10 @@ namespace DiabetesContolApp.Views
         /// The previous log entry that overlapps with the potensial new one,
         /// needed to get the TargetGlucoseValue from the respective DayProfile.
         /// </param>
+        /// <param name="reminderID">
+        /// Reference ID to the reminder involved in the overlap. If not given it is
+        /// sat to -1 by default.
+        /// </param>
         /// <returns>void</returns>
         async private void SetOverlappingMeals(bool isOverlapping, LogModel previousLog, int reminderID = -1)
         {
@@ -63,7 +67,8 @@ namespace DiabetesContolApp.Views
             glucose.IsEnabled = !isOverlapping; //Enabled if not overlapping
             if (isOverlapping)
                 glucose.Text = (await dayProfileDatabase.GetDayProfileAsync(previousLog.DayProfileID)).TargetGlucoseValue.ToString();
-            _reminderModelID = reminderID;
+
+            _reminderModelID = isOverlapping ? reminderID : -1;
         }
 
         private DayProfileModel GetDayProfileByTime()
@@ -248,7 +253,7 @@ namespace DiabetesContolApp.Views
             //The previous log overlaps in time with the
             //new log, if it is to be added now
             if (reminder != null)
-                SetOverlappingMeals(reminder.DateTimeValue > DateTime.Now, log, reminder.ReminderID);
+                SetOverlappingMeals(reminder.ReadyToHandle(), log, reminder.ReminderID);
             else
                 SetOverlappingMeals(false, log);
         }

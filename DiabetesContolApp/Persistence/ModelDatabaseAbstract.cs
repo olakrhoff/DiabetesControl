@@ -13,7 +13,6 @@ namespace DiabetesContolApp.Persistence
         {
             connection = DependencyService.Get<ISQLiteDB>().GetConnection();
 
-
             connection.CreateTableAsync<DayProfileModel>().Wait();
             connection.CreateTableAsync<GroceryModel>().Wait();
             //connection.DropTableAsync<ReminderModel>().Wait();

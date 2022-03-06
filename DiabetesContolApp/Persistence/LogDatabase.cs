@@ -65,20 +65,20 @@ namespace DiabetesContolApp.Persistence
                 LogModel newestLog = await GetNewestLogAsync();
                 if (newestLog != null)
                 {
-                    if (newestLog.DateTimeValue.AddHours(ReminderModel.TIME_TO_WAIT) > newLogEntry.DateTimeValue) //If the meals are overlapping
+                    ReminderModel newestReminder = await reminderDatabase.GetReminderAsync(newestLog.ReminderID);
+                    if (!newestReminder.ReadyToHandle()) //If the meals are overlapping
                     {
                         newLogEntry.ReminderID = newestLog.ReminderID;
-                        ReminderModel reminder = await reminderDatabase.GetReminderAsync(newLogEntry.ReminderID);
-                        reminder.UpdateDateTime();
-                        await reminderDatabase.UpdateReminderAsync(reminder);
+                        newestReminder.UpdateDateTime();
+                        await reminderDatabase.UpdateReminderAsync(newestReminder);
                     }
                 }
-                if (newLogEntry.ReminderID == -1)
+                if (newLogEntry.ReminderID == -1) //If the log still hasn't gotten a reminder connected to it, it need a new one
                 {
                     //Need to create a new reminder
                     await reminderDatabase.InsertReminderAsync(new ReminderModel());
                     var reminders = await reminderDatabase.GetRemindersAsync();
-                    ReminderModel newestReminder = reminders.Max(); //Gets the reminder with the higest DateTime value, hens the newest
+                    ReminderModel newestReminder = reminders.Max(); //Gets the reminder ID
                     newLogEntry.ReminderID = newestReminder.ReminderID;
                 }
             }
@@ -91,6 +91,19 @@ namespace DiabetesContolApp.Persistence
 
 
             return rowsAdded;
+        }
+
+        /// <summary>
+        /// Gets all logs connected to a reminder by the
+        /// ReminderID.
+        /// </summary>
+        /// <param name="reminderID"></param>
+        /// <returns>
+        /// List of LogModels connected to the remidnerID.
+        /// </returns>
+        async public Task<List<LogModel>> GetLogsWithReminderAsync(int reminderID)
+        {
+            return (await GetLogsAsync()).Where(log => log.ReminderID == reminderID).ToList();
         }
 
         /// <summary>
@@ -167,21 +180,43 @@ namespace DiabetesContolApp.Persistence
             return true;
         }
 
+        /// <summary>
+        /// Gets the log with the corresponding ID,
+        /// if it doesn't exist it returns null
+        /// </summary>
+        /// <param name="logID"></param>
+        /// <returns>
+        /// The LogModel if it exists, else null
+        /// </returns>
         async public Task<LogModel> GetLogAsync(int logID)
         {
-            LogModel log = await connection.GetAsync<LogModel>(logID);
+            try
+            {
+                LogModel log = await connection.GetAsync<LogModel>(logID);
 
-            List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().Where(e => e.LogID == logID).ToListAsync();
+                List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().Where(e => e.LogID == logID).ToListAsync();
 
-            log.NumberOfGroceryModels = GroceryLogModel.GetNumberOfGroceries(groceryLogs);
+                log.NumberOfGroceryModels = GroceryLogModel.GetNumberOfGroceries(groceryLogs);
 
-            GroceryDatabase groceryDatabase = GroceryDatabase.GetInstance();
+                GroceryDatabase groceryDatabase = GroceryDatabase.GetInstance();
 
-            foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceryModels)
-                numberOfGrocery.Grocery = await groceryDatabase.GetGroceryAsync(numberOfGrocery.Grocery.GroceryID);
+                foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceryModels)
+                    numberOfGrocery.Grocery = await groceryDatabase.GetGroceryAsync(numberOfGrocery.Grocery.GroceryID);
 
+                return log;
+            }
+            catch (InvalidOperationException ioe)
+            {
+                Debug.WriteLine(ioe.Message);
+                return null;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                Debug.WriteLine(e.Message);
+                return null;
+            }
 
-            return log;
         }
 
         async public Task<int> UpdateLogAsync(LogModel log)
@@ -223,35 +258,15 @@ namespace DiabetesContolApp.Persistence
             return logs;
         }
 
-        /*
-         * This method deletes a log, it calls the delete
-         * by logID method.
-         * 
-         * Params: LogModel (log), the log to be deleted
-         * Return: int, number of rows deleted
-         */
-        async public Task<int> DeleteLogAsync(LogModel log)
-        {
-            return await DeleteLogAsync(log.LogID);
-
-            /*
-            List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().ToListAsync();
-
-            foreach (GroceryLogModel groceryLog in groceryLogs)
-                if (groceryLog.LogID == log.LogID)
-                    await connection.DeleteAsync(groceryLog); //Deletes all the entries in GroceryLog who are connected to the Grocery
-
-            return await connection.DeleteAsync(log);*/
-        }
-
-        /*
-         * This method deletes a log based on its ID,
-         * it also deletes all the groceryLog entries it is
-         * connected to first
-         * 
-         * Parmas: int (logID), the ID of the log to be deleted
-         * Return: int, number of rows deleted
-         */
+        /// <summary>
+        /// This method deletes a log based on its ID,
+        /// it also deletes all the groceryLog entries it is
+        /// connected to first.Then it removes it's connection
+        /// to it's reminder and deletes the reminder, and lastly
+        /// delete itself.
+        /// </summary>
+        /// <param name="logID">int (logID), the ID of the log to be deleted</param>
+        /// <returns>int (logID), the ID of the log to be deleted</returns>
         async public Task<int> DeleteLogAsync(int logID)
         {
             List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().ToListAsync();
@@ -259,6 +274,27 @@ namespace DiabetesContolApp.Persistence
             foreach (GroceryLogModel groceryLog in groceryLogs)
                 if (groceryLog.LogID == logID)
                     await connection.DeleteAsync(groceryLog); //Deletes all the entries in GroceryLog who are connected to the Grocery
+
+            LogModel currentLog = await GetLogAsync(logID); //Get the log in question
+
+            if (currentLog == null)
+                return 0; //The object is already deleted or never existed, zero rows deleted 
+
+            if (currentLog.ReminderID != -1)
+            {
+                (await GetLogsAsync()).ForEach(async log =>
+                {
+                    if (log.ReminderID == currentLog.ReminderID && log.LogID != currentLog.LogID)
+                    {
+                        //Set remidnerID to invalid FK and update to avoid recursion
+                        log.ReminderID = -1;
+                        await UpdateLogAsync(log);
+                        await DeleteLogAsync(log.LogID);
+                    }
+                });
+
+                await ReminderDatabase.GetInstance().DeleteReminderAsync(currentLog.ReminderID);
+            }
 
             return await connection.DeleteAsync<LogModel>(logID);
         }

@@ -11,17 +11,27 @@
                     <EntryCell x:Name="timeUsage"
                                Label="Time usage"
                                Text="{Binding TimeUsedInMinutes}"/>
+                    <EntryCell x:Name="carbsToInsulin"
+                               Label="Carbs to insulin ratio"
+                               Text="{Binding InsulinToCarbohydratesRatio}"/>
+                    <EntryCell x:Name="glucoseToInsulin"
+                               Label="Glucose to insulin ratio"
+                               Text="{Binding InsulinToGlucoseRatio}"/>
+                    <EntryCell x:Name="correctionOnlyScalar"
+                               Label="Correction only scalar"
+                               Text="{Binding InsulinOnlyCorrectionScalar}"/>
                 </TableSection>
             </TableRoot>
         </TableView>
 
-        <Button Text="Save"
+        <Button Text="Reset Time"
                 BackgroundColor="CadetBlue"
                 BorderRadius="20"
                 TextColor="WhiteSmoke"
                 VerticalOptions="Center"
                 FontSize="Title"
-                Margin="20, 20, 20, 35"/>
+                Margin="20, 20, 20, 35"
+                Clicked="ResetTimeClicked"/>
     </StackLayout>
 
 </ContentPage>
