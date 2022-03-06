@@ -248,6 +248,7 @@ namespace DiabetesContolApp.Persistence
                 {
                     if (log.ReminderID == currentLog.ReminderID && log.LogID != currentLog.LogID)
                     {
+                        //Set remidnerID to invalid FK and update to avoid recursion
                         log.ReminderID = -1;
                         await UpdateLogAsync(log);
                         await DeleteLogAsync(log.LogID);
