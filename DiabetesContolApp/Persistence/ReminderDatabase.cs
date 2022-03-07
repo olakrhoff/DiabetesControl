@@ -42,9 +42,9 @@ namespace DiabetesContolApp.Persistence
          */
         async public void HandleReminders()
         {
-            List<ReminderModel> unhandledReminders = await GetRemindersAsync();
+            List<ReminderModel> reminders = await GetRemindersAsync();
 
-            unhandledReminders.ForEach(async e =>
+            reminders.ForEach(async e =>
             {
                 if (!e.IsHandled && await e.Handle())
                     await UpdateReminderAsync(e);

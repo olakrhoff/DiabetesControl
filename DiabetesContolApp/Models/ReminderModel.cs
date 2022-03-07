@@ -104,7 +104,7 @@ namespace DiabetesContolApp.Models
 
         public bool ReadyToHandle()
         {
-            return DateTime.Now < DateTimeValue;
+            return DateTime.Now > DateTimeValue;
         }
 
         public int CompareTo(ReminderModel other)

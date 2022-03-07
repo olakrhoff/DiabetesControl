@@ -26,54 +26,47 @@ namespace DiabetesContolApp.Persistence
         }
 
 
-        /*
-         * This method inserts a log into the database, after it
-         * connects it to a reminder. If the log overlaps with
-         * another log, they will share a reminder.
-         * 
-         * Then it addes all the groceryLog values into the bridge table
-         * 
-         *
-         * Lastly it updates the average TDD (total daily dose (of rapid insulin))
-         * 
-         * Paramas: LogModel, the log to insert
-         * 
-         * Return: the number of rows added.
-         */
-        async internal Task<int> InsertLogAsync(LogModel newLogEntry)
+        /// <summary>
+        /// This method inserts a log into the database, after it
+        /// connects it to a reminder. If the log overlaps with
+        /// another log, they will share a reminder.
+        ///
+        /// Then it addes all the groceryLog values into the bridge table
+        /// </summary>
+        /// <param name="newLogEntry">LogModel, the log to insert</param>
+        /// <returns>The number of rows added.</returns>
+        async public Task<int> InsertLogAsync(LogModel newLogEntry)
         {
             ReminderDatabase reminderDatabase = ReminderDatabase.GetInstance();
 
             //If an overlap was registered in the calculator
             if (newLogEntry.ReminderID != -1)
             {
+                //Get the reminder with the given ID
                 ReminderModel reminder = await reminderDatabase.GetReminderAsync(newLogEntry.ReminderID);
 
-                try
+                if (reminder != null) //If the reminder was found
                 {
                     reminder.UpdateDateTime();
                     await reminderDatabase.UpdateReminderAsync(reminder);
                 }
-                catch (NullReferenceException nre)
-                {
-                    Debug.WriteLine(nre.Message);
-                    newLogEntry.ReminderID = -1; //If there was no remidner with this ID, default the value
-                }
+                else
+                    newLogEntry.ReminderID = -1; //If there was no reminder with this ID, default the value
             }
-            else if (newLogEntry.GlucoseAfterMeal == null)
+            else
             {
-                LogModel newestLog = await GetNewestLogAsync();
+                LogModel newestLog = await GetNewestLogAsync(newLogEntry.DateTimeValue);
                 if (newestLog != null)
                 {
                     ReminderModel newestReminder = await reminderDatabase.GetReminderAsync(newestLog.ReminderID);
-                    if (!newestReminder.ReadyToHandle()) //If the meals are overlapping
+                    if (newestReminder != null && !newestReminder.ReadyToHandle()) //If the meals are overlapping
                     {
                         newLogEntry.ReminderID = newestLog.ReminderID;
                         newestReminder.UpdateDateTime();
                         await reminderDatabase.UpdateReminderAsync(newestReminder);
                     }
                 }
-                if (newLogEntry.ReminderID == -1) //If the log still hasn't gotten a reminder connected to it, it need a new one
+                if (newLogEntry.ReminderID == -1) //There is no log before the the new one
                 {
                     //Need to create a new reminder
                     await reminderDatabase.InsertReminderAsync(new ReminderModel());
@@ -88,7 +81,6 @@ namespace DiabetesContolApp.Persistence
             await connection.InsertAllAsync(GroceryLogModel.GetGroceryLogs(newLogEntry.NumberOfGroceryModels, newLogEntry.LogID));
 
             await UpdateAverageTDD();
-
 
             return rowsAdded;
         }
@@ -108,8 +100,10 @@ namespace DiabetesContolApp.Persistence
 
         /// <summary>
         /// This method get the newest Log based on the time it
-        /// has in its variable DateTime.
+        /// has in its variable DateTime. If dateTime is passed in
+        /// it returns the Log that is newest before that time.
         /// </summary>
+        /// <param name="dateTime"></param>
         /// <returns>
         /// Task&lt;LogModel&gt;
         /// 
@@ -117,7 +111,7 @@ namespace DiabetesContolApp.Persistence
         /// LogModel is the newest model,
         /// if no Log is found, it returns null.
         /// </returns>
-        async public Task<LogModel> GetNewestLogAsync()
+        async public Task<LogModel> GetNewestLogAsync(DateTime? dateTime = null)
         {
             var logs = await connection.Table<LogModel>().ToListAsync();
 
@@ -126,7 +120,15 @@ namespace DiabetesContolApp.Persistence
 
             logs.Sort();
 
-            return logs[logs.Count - 1];
+            if (dateTime == null)
+                return logs[logs.Count - 1]; //We want the newest before now
+
+            //Find the log that was just before the given time
+            for (int i = logs.Count - 1; i >= 0; --i)
+                if (logs[i].DateTimeValue < dateTime)
+                    return logs[i];
+
+            return null; //If no log before the given time exists return null
         }
 
 
@@ -219,12 +221,30 @@ namespace DiabetesContolApp.Persistence
 
         }
 
+        /// <summary>
+        /// Updates the given log by it's ID
+        /// </summary>
+        /// <param name="log"></param>
+        /// <returns>int, the number od rows updated</returns>
         async public Task<int> UpdateLogAsync(LogModel log)
         {
+            //Start by deleting all references in the coss table
             List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().Where(e => e.LogID == log.LogID).ToListAsync();
+
 
             foreach (GroceryLogModel groceryLog in groceryLogs)
                 await connection.DeleteAsync(groceryLog); //Delete the prevoius GroceryLog entris for the log
+
+            try
+            {
+                var test = await connection.GetAsync<LogModel>(log.LogID);
+            }
+            catch (InvalidOperationException ioe)
+            {
+                Debug.WriteLine(ioe.Message);
+                return 0; //If the log wasn't in the database
+            }
+
 
             //Insert the updated grocery list for the log
             await connection.InsertAllAsync(GroceryLogModel.GetGroceryLogs(log.NumberOfGroceryModels, log.LogID));
