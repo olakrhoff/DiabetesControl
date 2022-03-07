@@ -134,7 +134,7 @@ namespace DiabetesContolApp.Persistence
 
         /*
          * This method updates the average TDD (total daily dose (of rapid insulin))
-         * The average is of at least three days and at most seven. It will at max
+         * The average is of at least seven days and at most 14. It will at max
          * look 14 days (two weeks) back in time, older values than these are regarded
          * as too old for use in the TDD. We start looking at yesterday and backward,
          * we do not want to use todays logs, since these are not finished and will
@@ -160,11 +160,9 @@ namespace DiabetesContolApp.Persistence
                     daysWithLogs++;
                     logs.AddRange(temp);
                 }
-                if (daysWithLogs >= 7)
-                    break; //We have the seven most recent days
             }
 
-            if (daysWithLogs < 3)
+            if (daysWithLogs < 7)
                 return false; //There were not enough data to updated the TDD
 
             float newAverageTDD = logs.Sum(log => log.InsulinFromUser) / daysWithLogs;
