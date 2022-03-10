@@ -33,7 +33,7 @@ namespace DiabetesContolApp.Views
             }
             else
             {
-                timePickerStartTime.Time = new TimeSpan(DayProfile.StartTime / 100, DayProfile.StartTime % 100, 0);
+                timePickerStartTime.Time = DayProfile.StartTime.TimeOfDay;
             }
         }
 
@@ -51,7 +51,7 @@ namespace DiabetesContolApp.Views
 
             DayProfile.Name = name.Text;
             DayProfile.TargetGlucoseValue = targetGlucoseValueFloat;
-            DayProfile.StartTime = (ushort)(timePickerStartTime.Time.Hours * 100 + timePickerStartTime.Time.Minutes);
+            DayProfile.StartTime = new DateTime(0, 0, 0, timePickerStartTime.Time.Hours, timePickerStartTime.Time.Minutes, 0);
 
             //------------------------------
 

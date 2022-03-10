@@ -145,5 +145,15 @@ namespace DiabetesContolApp.Persistence
         {
             return await connection.DeleteAsync<ReminderModel>(reminderID);
         }
+
+        public override string HeaderForCSVFile()
+        {
+            throw new NotImplementedException();
+        }
+
+        async public override Task<List<IModel>> GetAllAsync()
+        {
+            return new(await connection.Table<ReminderModel>().ToListAsync());
+        }
     }
 }

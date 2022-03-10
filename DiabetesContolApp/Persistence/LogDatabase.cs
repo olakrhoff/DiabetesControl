@@ -316,5 +316,15 @@ namespace DiabetesContolApp.Persistence
 
             return await connection.DeleteAsync<LogModel>(logID);
         }
+
+        public override string HeaderForCSVFile()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<List<IModel>> GetAllAsync()
+        {
+            return new(await connection.Table<LogModel>().ToListAsync());
+        }
     }
 }

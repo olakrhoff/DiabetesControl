@@ -8,7 +8,7 @@ using SQLiteNetExtensions.Attributes;
 namespace DiabetesContolApp.Models
 {
     [Table("Grocery")]
-    public class GroceryModel : INotifyPropertyChanged, IEquatable<GroceryModel>, IComparable<GroceryModel>
+    public class GroceryModel : INotifyPropertyChanged, IEquatable<GroceryModel>, IComparable<GroceryModel>, IModel
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -130,6 +130,11 @@ namespace DiabetesContolApp.Models
                 this._carbScalar = value;
                 OnPropertyChanged();
             }
+        }
+
+        public string ToStringCSV()
+        {
+            return GroceryID + ", " + Name + ", " + BrandName + ", " + CarbsPer100Grams + ", " + NameOfPortion + ", " + GramsPerPortion + ", " + CarbScalar + "\n";
         }
     }
 }

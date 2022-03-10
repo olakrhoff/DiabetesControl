@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using DiabetesContolApp.Models;
 using SQLite;
 using Xamarin.Forms;
@@ -22,5 +24,8 @@ namespace DiabetesContolApp.Persistence
             //connection.DropTableAsync<GroceryLogModel>().Wait();
             connection.CreateTableAsync<GroceryLogModel>().Wait();
         }
+
+        public abstract string HeaderForCSVFile();
+        public abstract Task<List<IModel>> GetAllAsync();
     }
 }

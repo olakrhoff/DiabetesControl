@@ -1,9 +1,15 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.ObjectModel;
-using DiabetesContolApp.Models;
 using System.Collections.Generic;
+
+using DiabetesContolApp.Models;
+using DiabetesContolApp.Persistence;
+
 using Xamarin.Forms;
+using System.Threading.Tasks;
+using Xamarin.Essentials;
+using System.IO;
 
 namespace DiabetesContolApp.GlobalLogic
 {
@@ -49,7 +55,7 @@ namespace DiabetesContolApp.GlobalLogic
                 if (System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalSeparator != seperators[choosenSeperator].ToString())
                     string_val = string_val.Replace(seperators[choosenSeperator], System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalSeparator[0]);
             }
-           
+
 
             //Try to convert the string to float
             try
@@ -66,8 +72,38 @@ namespace DiabetesContolApp.GlobalLogic
                 //This should not happen, but for safety it is still here
                 return false;
             }
-            
+
             return true;
+        }
+
+        async public static Task<List<ShareFile>> DatabaseToString()
+        {
+            //Write groceries to file
+            string data = "groceryData.csv";
+            string filePath = Path.Combine(FileSystem.CacheDirectory, data);
+            WriteDatabaseToCSVFile(filePath, GroceryDatabase.GetInstance());
+
+            //Write day profiles to file
+            data = "dayProfileData.csv";
+            filePath = Path.Combine(FileSystem.CacheDirectory, data);
+            WriteDatabaseToCSVFile(filePath, DayProfileDatabase.GetInstance());
+
+
+
+
+            return new List<ShareFile> { new ShareFile(filePath) };
+        }
+
+        async private static void WriteDatabaseToCSVFile(string filePath, ModelDatabaseAbstract databaseConnection)
+        {
+            string output = "";
+
+            List<IModel> models = await databaseConnection.GetAllAsync();
+
+            output += databaseConnection.HeaderForCSVFile();
+            models.ForEach(model => output += model.ToStringCSV());
+
+            File.WriteAllText(filePath, output);
         }
 
         /*

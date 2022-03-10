@@ -21,7 +21,7 @@ namespace DiabetesContolApp.Views
 
         public DayProfilePage()
         {
-            InitializeComponent(); 
+            InitializeComponent();
         }
 
         protected override async void OnAppearing()
@@ -41,15 +41,15 @@ namespace DiabetesContolApp.Views
                 DayProfileID = -1,
                 CarbScalar = 1.0f,
                 GlucoseScalar = 1.0f,
-                StartTime = 0
+                StartTime = DateTime.Now
             };
 
             var page = new DayProfileDetailPage(dayProfile);
 
             page.DayProfileAdded += async (source, args) =>
-            {
-                await dayProfileDatabase.InsertDayProfileAsync(args);
-            };
+                {
+                    await dayProfileDatabase.InsertDayProfileAsync(args);
+                };
 
             await Navigation.PushAsync(page);
         }

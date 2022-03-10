@@ -16,7 +16,7 @@ using Xamarin.Forms.Xaml;
 namespace DiabetesContolApp.Models
 {
     [Table("Reminder")]
-    public class ReminderModel : INotifyPropertyChanged, IComparable<ReminderModel>, IEquatable<ReminderModel>
+    public class ReminderModel : INotifyPropertyChanged, IComparable<ReminderModel>, IEquatable<ReminderModel>, IModel
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -122,7 +122,7 @@ namespace DiabetesContolApp.Models
         {
             get
             {
-                return DateTime.FromBinary(DateTimeLong);
+                return DateTime.FromBinary(this.DateTimeLong);
             }
 
             set
@@ -134,6 +134,11 @@ namespace DiabetesContolApp.Models
                 }
                 //If it is equal to the previous value there is no need to update it
             }
+        }
+
+        public string ToStringCSV()
+        {
+            throw new NotImplementedException();
         }
     }
 }

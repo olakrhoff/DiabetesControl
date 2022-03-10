@@ -9,7 +9,7 @@ using SQLiteNetExtensions.Attributes;
 namespace DiabetesContolApp.Models
 {
     [Table("Log")]
-    public class LogModel : INotifyPropertyChanged, IComparable<LogModel>, IEquatable<LogModel>
+    public class LogModel : INotifyPropertyChanged, IComparable<LogModel>, IEquatable<LogModel>, IModel
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -138,5 +138,11 @@ namespace DiabetesContolApp.Models
                 //If value is not greater than 0 or is the same, we don't want to set it
             }
         }
+
+        public string ToStringCSV()
+        {
+            return "";
+        }
+
     }
 }

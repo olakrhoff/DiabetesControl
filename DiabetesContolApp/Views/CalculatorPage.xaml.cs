@@ -79,10 +79,9 @@ namespace DiabetesContolApp.Views
 
             bool valid = false;
             DayProfileModel prev = new();
-            int timeNow = DateTime.Now.Hour * 100 + DateTime.Now.Minute;
             foreach (DayProfileModel dayProfile in DayProfiles)
             {
-                if (dayProfile.StartTime <= timeNow && dayProfile.StartTime >= prev.StartTime)
+                if (dayProfile.StartTime.TimeOfDay <= DateTime.Now.TimeOfDay && dayProfile.StartTime.TimeOfDay >= prev.StartTime.TimeOfDay)
                 {
                     prev = dayProfile;
                     valid = true;

@@ -6,7 +6,7 @@ using SQLite;
 namespace DiabetesContolApp.Models
 {
     [Table("DayProfile")]
-    public class DayProfileModel : IComparable<DayProfileModel>, IEquatable<DayProfileModel>
+    public class DayProfileModel : IComparable<DayProfileModel>, IEquatable<DayProfileModel>, IModel
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -14,7 +14,7 @@ namespace DiabetesContolApp.Models
         public int DayProfileID { get; set; }
 
         private string _name;
-        private ushort _startTime;
+        private long _startTime;
         private float _carbScalar;
         private float _glucoseScalar;
 
@@ -73,30 +73,21 @@ namespace DiabetesContolApp.Models
         }
 
         [NotNull]
-        public ushort StartTime
+        public DateTime StartTime
         {
             get
             {
-                return this._startTime;
+                return DateTime.FromBinary(this._startTime);
             }
 
             set
             {
-                if (this._startTime == value)
-                    return;
-                try
+                if (value.ToBinary() != this._startTime)
                 {
-                    if (value > 2400 || value < 0)
-                        throw new ArgumentOutOfRangeException("The attribute StartTime must be a positive integer greater than zero and less then 2400");
+                    this._startTime = value.ToBinary();
+                    OnPropertyChanged();
                 }
-                catch (ArgumentOutOfRangeException aoore)
-                {
-                    //If an error occurs, we simply do not set the value
-                    return;
-                }
-
-                this._startTime = value;
-                OnPropertyChanged();
+                //If it is equal to the previous value there is no need to update it
             }
         }
 
@@ -154,6 +145,11 @@ namespace DiabetesContolApp.Models
                 this._glucoseScalar = value;
                 OnPropertyChanged();
             }
+        }
+
+        public string ToStringCSV()
+        {
+            return DayProfileID + ", " + Name + ", ";
         }
     }
 }

@@ -62,5 +62,15 @@ namespace DiabetesContolApp.Persistence
 
             return await connection.DeleteAsync(dayProfile);
         }
+
+        public override string HeaderForCSVFile()
+        {
+            throw new NotImplementedException();
+        }
+
+        async public override Task<List<IModel>> GetAllAsync()
+        {
+            return new(await connection.Table<DayProfileModel>().ToListAsync());
+        }
     }
 }

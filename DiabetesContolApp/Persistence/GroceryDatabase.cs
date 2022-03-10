@@ -65,5 +65,15 @@ namespace DiabetesContolApp.Persistence
 
             return await connection.DeleteAsync(grocery);
         }
+
+        public override string HeaderForCSVFile()
+        {
+            return "GroceryID, Name, BrandName, CarbsPer100Grams, NameOfPortion, GramsPerPortion, CarbScalar\n";
+        }
+
+        async public override Task<List<IModel>> GetAllAsync()
+        {
+            return new(await connection.Table<GroceryModel>().ToListAsync());
+        }
     }
 }
