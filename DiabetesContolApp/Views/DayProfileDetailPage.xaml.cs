@@ -51,7 +51,7 @@ namespace DiabetesContolApp.Views
 
             DayProfile.Name = name.Text;
             DayProfile.TargetGlucoseValue = targetGlucoseValueFloat;
-            DayProfile.StartTime = new DateTime(0, 0, 0, timePickerStartTime.Time.Hours, timePickerStartTime.Time.Minutes, 0);
+            DayProfile.StartTime = new DateTime(2000, 5, 5, timePickerStartTime.Time.Hours, timePickerStartTime.Time.Minutes, 0);
 
             //------------------------------
 

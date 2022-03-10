@@ -149,7 +149,7 @@ namespace DiabetesContolApp.Models
 
         public string ToStringCSV()
         {
-            return DayProfileID + ", " + Name + ", ";
+            return DayProfileID + ", " + Name + ", " + StartTime.ToString("HH:mm") + ", " + CarbScalar + ", " + GlucoseScalar + ", " + TargetGlucoseValue + "\n";
         }
     }
 }
