@@ -135,10 +135,10 @@ namespace DiabetesContolApp
             }
         }
 
-        /*
-         * This variables gives the time the user has been inside
-         * the app, given in minutes, based on the TimeUsed variable.
-         */
+        /// <summary>
+        /// This variables gives the time the user has been inside
+        /// the app, given in minutes, based on the TimeUsed variable.
+        /// </summary>
         public ulong TimeUsedInMinutes
         {
             get
