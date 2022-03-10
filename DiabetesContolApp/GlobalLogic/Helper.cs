@@ -96,19 +96,19 @@ namespace DiabetesContolApp.GlobalLogic
             //Write logs to file
             data = "logData.csv";
             string logPath = Path.Combine(FileSystem.CacheDirectory, data);
-            WriteDatabaseToCSVFile(logPath, ReminderDatabase.GetInstance());
+            WriteDatabaseToCSVFile(logPath, LogDatabase.GetInstance());
 
             //Write logGrocery cross table to file
-            data = "logGroceryData.csv";
-            string logGroceryPath = Path.Combine(FileSystem.CacheDirectory, data);
-            WriteDatabaseToCSVFile(logGroceryPath, ReminderDatabase.GetInstance());
+            data = "groceryLogData.csv";
+            string groceryLogPath = Path.Combine(FileSystem.CacheDirectory, data);
+            WriteDatabaseToCSVFile(groceryLogPath, GroceryLogDatabase.GetInstance());
 
 
             return new List<ShareFile> { new ShareFile(groceryFilePath),
                 new ShareFile(dayProfileFilePath),
                 new ShareFile(reminderPath),
                 new ShareFile(logPath),
-                new ShareFile(logGroceryPath) };
+                new ShareFile(groceryLogPath) };
         }
 
         async private static void WriteDatabaseToCSVFile(string filePath, ModelDatabaseAbstract databaseConnection)
