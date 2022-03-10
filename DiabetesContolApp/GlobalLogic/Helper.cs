@@ -80,18 +80,18 @@ namespace DiabetesContolApp.GlobalLogic
         {
             //Write groceries to file
             string data = "groceryData.csv";
-            string filePath = Path.Combine(FileSystem.CacheDirectory, data);
-            WriteDatabaseToCSVFile(filePath, GroceryDatabase.GetInstance());
+            string groceryFilePath = Path.Combine(FileSystem.CacheDirectory, data);
+            WriteDatabaseToCSVFile(groceryFilePath, GroceryDatabase.GetInstance());
 
             //Write day profiles to file
             data = "dayProfileData.csv";
-            filePath = Path.Combine(FileSystem.CacheDirectory, data);
-            WriteDatabaseToCSVFile(filePath, DayProfileDatabase.GetInstance());
+            string dayProfileFilePath = Path.Combine(FileSystem.CacheDirectory, data);
+            WriteDatabaseToCSVFile(dayProfileFilePath, DayProfileDatabase.GetInstance());
 
 
 
 
-            return new List<ShareFile> { new ShareFile(filePath) };
+            return new List<ShareFile> { new ShareFile(groceryFilePath), new ShareFile(dayProfileFilePath) };
         }
 
         async private static void WriteDatabaseToCSVFile(string filePath, ModelDatabaseAbstract databaseConnection)
