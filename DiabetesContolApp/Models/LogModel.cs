@@ -18,6 +18,8 @@ namespace DiabetesContolApp.Models
         public int LogID { get; set; }
         [ForeignKey(typeof(DayProfileModel))]
         public int DayProfileID { get; set; }
+        [ForeignKey(typeof(ReminderModel))]
+        public int ReminderID { get; set; }
         [NotNull]
         public long DateTimeLong { get; set; }
         [NotNull]
@@ -28,8 +30,6 @@ namespace DiabetesContolApp.Models
         public List<GroceryModel> GroceryModels { get; set; }
         [Ignore]
         public List<NumberOfGroceryModel> NumberOfGroceryModels { get; set; }
-        [ForeignKey(typeof(ReminderModel))]
-        public int ReminderID { get; set; }
 
 
         public LogModel()
@@ -141,7 +141,12 @@ namespace DiabetesContolApp.Models
 
         public string ToStringCSV()
         {
-            return "";
+            return LogID + ", " +
+                DayProfileID + ", " +
+                ReminderID + ", " +
+                DateTimeValue.ToString("yyyy/MM/dd HH:mm") + ", " +
+                GlucoseAtMeal + ", " +
+                GlucoseAfterMeal + "\n";
         }
 
     }

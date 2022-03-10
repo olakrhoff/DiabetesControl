@@ -76,7 +76,7 @@ namespace DiabetesContolApp.GlobalLogic
             return true;
         }
 
-        async public static Task<List<ShareFile>> DatabaseToString()
+        public static List<ShareFile> DatabaseToString()
         {
             //Write groceries to file
             string data = "groceryData.csv";
@@ -88,10 +88,27 @@ namespace DiabetesContolApp.GlobalLogic
             string dayProfileFilePath = Path.Combine(FileSystem.CacheDirectory, data);
             WriteDatabaseToCSVFile(dayProfileFilePath, DayProfileDatabase.GetInstance());
 
+            //Write reminders to file
+            data = "reminderData.csv";
+            string reminderPath = Path.Combine(FileSystem.CacheDirectory, data);
+            WriteDatabaseToCSVFile(reminderPath, ReminderDatabase.GetInstance());
+
+            //Write logs to file
+            data = "logData.csv";
+            string logPath = Path.Combine(FileSystem.CacheDirectory, data);
+            WriteDatabaseToCSVFile(logPath, ReminderDatabase.GetInstance());
+
+            //Write logGrocery cross table to file
+            data = "logGroceryData.csv";
+            string logGroceryPath = Path.Combine(FileSystem.CacheDirectory, data);
+            WriteDatabaseToCSVFile(logGroceryPath, ReminderDatabase.GetInstance());
 
 
-
-            return new List<ShareFile> { new ShareFile(groceryFilePath), new ShareFile(dayProfileFilePath) };
+            return new List<ShareFile> { new ShareFile(groceryFilePath),
+                new ShareFile(dayProfileFilePath),
+                new ShareFile(reminderPath),
+                new ShareFile(logPath),
+                new ShareFile(logGroceryPath) };
         }
 
         async private static void WriteDatabaseToCSVFile(string filePath, ModelDatabaseAbstract databaseConnection)

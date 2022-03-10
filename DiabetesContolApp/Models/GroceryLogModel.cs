@@ -6,7 +6,7 @@ using SQLiteNetExtensions.Attributes;
 namespace DiabetesContolApp.Models
 {
     [Table("GroceryLog")]
-    public class GroceryLogModel
+    public class GroceryLogModel : IModel
     {
         [PrimaryKey, AutoIncrement]
         public int GroceryLogID { get; set; }
@@ -51,6 +51,14 @@ namespace DiabetesContolApp.Models
             }
 
             return numberOfGroceries;
+        }
+
+        public string ToStringCSV()
+        {
+            return GroceryLogID + ", " +
+                GroceryID + ", " +
+                LogID + ", " +
+                NumberOfGrocery + "\n";
         }
     }
 

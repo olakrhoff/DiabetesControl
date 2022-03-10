@@ -138,7 +138,10 @@ namespace DiabetesContolApp.Models
 
         public string ToStringCSV()
         {
-            throw new NotImplementedException();
+            return ReminderID + ", " +
+                DateTimeValue.ToString("yyyy/MM/dd HH:mm") + ", " +
+                GlucoseAfterMeal + ", " +
+                IsHandled + "\n";
         }
     }
 }

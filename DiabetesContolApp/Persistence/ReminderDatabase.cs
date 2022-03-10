@@ -148,7 +148,7 @@ namespace DiabetesContolApp.Persistence
 
         public override string HeaderForCSVFile()
         {
-            throw new NotImplementedException();
+            return "ReminderID, DateTimeValue, GlucoseAfterMeal, IsHandled\n";
         }
 
         async public override Task<List<IModel>> GetAllAsync()
