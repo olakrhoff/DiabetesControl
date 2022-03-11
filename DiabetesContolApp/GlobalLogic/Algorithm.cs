@@ -6,11 +6,16 @@ using System.Linq;
 using DiabetesContolApp.Persistence;
 using DiabetesContolApp.Models;
 
+using MathNet.Numerics;
+using MathNet.Numerics.Distributions;
+
 
 namespace DiabetesContolApp.GlobalLogic
 {
     public static class Algorithm
     {
+        private const int MINIMUM_OCCURENCES = 10;
+
         async public static void RunStatisticsOnReminder(int reminderID)
         {
             ReminderModel reminder = await ReminderDatabase.GetInstance().GetReminderAsync(reminderID);
@@ -61,17 +66,33 @@ namespace DiabetesContolApp.GlobalLogic
 
             //Change scalar based on statistics
 
-            ScalarUpdatedData scalarData = UpdateScalar(dataPoints);
-
-            if (scalarData.Updated)
+            if (dataPoints.Count >= MINIMUM_OCCURENCES) //Must have more than a given number of entries
             {
-                //TODO: Database call to scalar database
+                ScalarUpdatedData scalarData = UpdateScalar(dataPoints);
+
+                if (scalarData.Updated)
+                {
+                    //TODO: Database call to scalar database
+                }
             }
         }
 
         private static ScalarUpdatedData UpdateScalar(List<DataPoint> dataPoints)
         {
-            throw new NotImplementedException();
+            List<double> xValues = new(), yValues = new();
+
+            dataPoints.ForEach(point =>
+            {
+                xValues.Add(point.TimeStamp.ToOADate());
+                yValues.Add((double)point.GlucoseError);
+            });
+
+            Tuple<double, double> alphaAndBetaHat = Fit.Line(xValues.ToArray(), yValues.ToArray());
+
+            Tuple<double, double> predictionIntervallNextPoint = Statistics.PredictionInterval(xValues, yValues, alphaAndBetaHat.Item1, alphaAndBetaHat.Item2, 1 - 0.95);
+
+
+            return new();
         }
 
         /// <summary>
@@ -96,22 +117,6 @@ namespace DiabetesContolApp.GlobalLogic
         async private static Task<DataPoint> GetDataPointForDayProfile(LogModel log)
         {
             return new DataPoint(log.DateTimeValue, (float)log.GlucoseAfterMeal - await GetTargetGlucoseForLog(log));
-        }
-
-        /// <summary>
-        /// Used in analysis.
-        /// timestamp is x-coord, and glucoseError is y-coord.
-        /// </summary>
-        struct DataPoint
-        {
-            public DateTime TimeStamp { get; set; }
-            public float GlucoseError { get; set; }
-
-            public DataPoint(DateTime timeStamp, float glucoseError)
-            {
-                TimeStamp = timeStamp;
-                GlucoseError = glucoseError;
-            }
         }
 
         private static void UpdateGroceryScalar(int groceryID)
@@ -144,9 +149,35 @@ namespace DiabetesContolApp.GlobalLogic
             return reminder.Logs;
         }
 
+        /// <summary>
+        /// Helper method to get the target glucose
+        /// value of a day profile connected to a log
+        /// </summary>
+        /// <param name="log"></param>
+        /// <returns>
+        /// float, the target glucose from the day profile
+        /// with the cooresponding ID from the log.
+        /// </returns>
         async private static Task<float> GetTargetGlucoseForLog(LogModel log)
         {
             return (await DayProfileDatabase.GetInstance().GetDayProfileAsync(log.DayProfileID)).TargetGlucoseValue; //Target glucose of the log
+        }
+    }
+
+
+    /// <summary>
+    /// Used in analysis.
+    /// timestamp is x-coord, and glucoseError is y-coord.
+    /// </summary>
+    public struct DataPoint
+    {
+        public DateTime TimeStamp { get; set; }
+        public float GlucoseError { get; set; }
+
+        public DataPoint(DateTime timeStamp, float glucoseError)
+        {
+            TimeStamp = timeStamp;
+            GlucoseError = glucoseError;
         }
     }
 }
