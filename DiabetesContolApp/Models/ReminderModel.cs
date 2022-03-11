@@ -81,9 +81,7 @@ namespace DiabetesContolApp.Models
                 IsHandled = true;
             }
 
-
-            //TODO: Call statistical algorithm on involved logs.
-
+            Algorithm.RunStatisticsOnReminder(ReminderID);
 
             return true;
         }
