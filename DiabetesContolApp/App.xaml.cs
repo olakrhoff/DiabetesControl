@@ -17,6 +17,7 @@ namespace DiabetesContolApp
         private const string InsulinOnlyCorrectionScalarKey = "InsulinOnlyCorrectionScalar";
         private const string TimeUsedKey = "TimeUsed";
 
+
         private DateTime StartTime = DateTime.Now;
 
         public App()
@@ -147,12 +148,13 @@ namespace DiabetesContolApp
             }
         }
 
-
+        /// <summary>
+        /// Checks if there are any reminders to handle,
+        /// if so, they are handled.
+        /// </summary>
         private void CheckReminders()
         {
-            ReminderDatabase reminderDatabase = ReminderDatabase.GetInstance();
-
-            reminderDatabase.HandleReminders();
+            ReminderDatabase.GetInstance().HandleReminders();
         }
     }
 }

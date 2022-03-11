@@ -23,9 +23,10 @@ namespace DiabetesContolApp.Persistence
             connection.CreateTableAsync<LogModel>().Wait();
             //connection.DropTableAsync<GroceryLogModel>().Wait();
             connection.CreateTableAsync<GroceryLogModel>().Wait();
+            connection.CreateTableAsync<AverageTDDModel>().Wait();
         }
 
-        public abstract string HeaderForCSVFile();
         public abstract Task<List<IModel>> GetAllAsync();
+        public abstract string HeaderForCSVFile();
     }
 }

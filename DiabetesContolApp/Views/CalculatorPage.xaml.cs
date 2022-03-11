@@ -186,7 +186,10 @@ namespace DiabetesContolApp.Views
                 propertiesChanged = true;
                 string result = await DisplayPromptAsync("We don't have your insulin-carbs-ratio", "How many units of insulin did you set yesterday?", keyboard: Keyboard.Numeric);
                 if (Helper.ConvertToFloat(result, out float resultFloat))
+                {
                     globalVariables.InsulinToCarbohydratesRatio = Helper.Calculate500Rule(resultFloat);
+                    await AverageTDDDatabase.GetInstance().InsertAverageTDD(new(resultFloat));
+                }
             }
             if (globalVariables.InsulinToGlucoseRatio == -1.0f)
             {

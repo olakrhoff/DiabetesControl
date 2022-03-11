@@ -103,12 +103,19 @@ namespace DiabetesContolApp.GlobalLogic
             string groceryLogPath = Path.Combine(FileSystem.CacheDirectory, data);
             WriteDatabaseToCSVFile(groceryLogPath, GroceryLogDatabase.GetInstance());
 
+            //Write average TDD to file
+            data = "averageTDDData.csv";
+            string averageTDDPath = Path.Combine(FileSystem.CacheDirectory, data);
+            WriteDatabaseToCSVFile(averageTDDPath, AverageTDDDatabase.GetInstance());
+
 
             return new List<ShareFile> { new ShareFile(groceryFilePath),
                 new ShareFile(dayProfileFilePath),
                 new ShareFile(reminderPath),
                 new ShareFile(logPath),
-                new ShareFile(groceryLogPath) };
+                new ShareFile(groceryLogPath),
+                new ShareFile(averageTDDPath)
+            };
         }
 
         async private static void WriteDatabaseToCSVFile(string filePath, ModelDatabaseAbstract databaseConnection)

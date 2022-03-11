@@ -30,16 +30,13 @@ namespace DiabetesContolApp.Persistence
             return await connection.InsertAsync(reminderModel);
         }
 
-        /*
-         * This method loops through all reminders,
-         * and call the Handle()-method on the ones who
-         * are yet to be handled. If they were changed in 
-         * the handle()-method, they are updated in the database
-         * 
-         * Parmas: None
-         * 
-         * Return: void
-         */
+        /// <summary>
+        /// This method loops through all reminders,
+        /// and call the Handle()-method on the ones who
+        /// are yet to be handled.If they were changed in
+        /// the handle()-method, they are updated in the database
+        /// </summary>
+        /// <returns>void</returns>
         async public void HandleReminders()
         {
             List<ReminderModel> reminders = await GetRemindersAsync();

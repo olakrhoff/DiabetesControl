@@ -151,6 +151,7 @@ namespace DiabetesContolApp.Persistence
         async private Task<bool> UpdateAverageTDD()
         {
             List<LogModel> logs = new();
+
             int daysWithLogs = 0, maxIterations = 14;
             for (int i = 1; i <= maxIterations; ++i) //We start looking at yesterday
             {
@@ -176,6 +177,8 @@ namespace DiabetesContolApp.Persistence
             globalVariables.InsulinToGlucoseRatio = Helper.Calculate100Rule(newAverageTDD);
 
             await globalVariables.SavePropertiesAsync();
+
+            await AverageTDDDatabase.GetInstance().InsertAverageTDD(new(newAverageTDD));
 
             return true;
         }
