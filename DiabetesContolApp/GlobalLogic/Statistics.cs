@@ -35,7 +35,7 @@ namespace DiabetesContolApp.GlobalLogic
 
             double SEBetaHat = Math.Sqrt(betaHatVariance);
 
-            double nextX = 1;
+            double nextX = 1; //TODO: Find average value for next occurence
 
             double first = alphaHat + betaHat * nextX;
             double second = tValue * s * Math.Sqrt(1 + 1 / n + Math.Pow((nextX - xAverage) / (s / SEBetaHat), 2));
