@@ -16,6 +16,7 @@ namespace DiabetesContolApp.GlobalLogic
     public static class Algorithm
     {
         private const int MINIMUM_OCCURENCES = 10;
+        private const double LOWER_BOUND_FOR_PREDICTION_INTERVALL = -1.0;
 
         async public static void RunStatisticsOnReminder(int reminderID)
         {
@@ -62,23 +63,36 @@ namespace DiabetesContolApp.GlobalLogic
             //Create datapoints from logs
             List<DataPoint> dataPoints = new();
             foreach (LogModel log in logsWithDayProfileID)
-                dataPoints.Add(await GetDataPointForDayProfile(log)); //Add data points to the list
+            {
+                DataPoint dataPoint = await GetDataPointForDayProfile(log);
+                if (dataPoint.IsValid)
+                    dataPoints.Add(dataPoint); //Add data points to the list
+            }
 
 
             //Change scalar based on statistics
 
             if (dataPoints.Count >= MINIMUM_OCCURENCES) //Must have more than a given number of entries
             {
-                ScalarUpdatedData scalarData = UpdateScalar(dataPoints);
+                var globalVariables = Application.Current as App; //Get access to properites in the App
 
-                if (scalarData.Updated)
-                {
-                    //TODO: Database call to scalar database
-                }
+                double distance = GetGreatestSafeDistanceFromRegressionLine(dataPoints);
+
+                double totalInsulinGivenAvg = logsWithDayProfileID.Sum(log => log.InsulinFromUser) / logsWithDayProfileID.Count; //Average insulin with this day profile
+                double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //Either what we were missing or gave to much
+
+                double newScalar = (totalInsulinGivenAvg + extraInsulin) / totalInsulinGivenAvg;
+
+                //TODO: Update the scalar database
+                DayProfileModel dayProfile = await DayProfileDatabase.GetInstance().GetDayProfileAsync(dayProfileID);
+                dayProfile.CarbScalar = (float)newScalar;
+                dayProfile.GlucoseScalar = (float)newScalar;
+
+                await DayProfileDatabase.GetInstance().UpdateDayProfileAsync(dayProfile);
             }
         }
 
-        private static ScalarUpdatedData UpdateScalar(List<DataPoint> dataPoints)
+        private static double GetGreatestSafeDistanceFromRegressionLine(List<DataPoint> dataPoints)
         {
             List<double> xValues = new(), yValues = new();
 
@@ -92,21 +106,31 @@ namespace DiabetesContolApp.GlobalLogic
 
             Tuple<double, double> predictionIntervallNextPoint = Statistics.PredictionInterval(xValues, yValues, alphaAndBetaHat.Item1, alphaAndBetaHat.Item2, 1 - 0.95);
 
-            //TODO: finish
 
-            return new();
+            //Check the ends of the line to find the smallest distance to the wanted line on the X-axis
+            double smallestDifferenceToXAxis = Math.Min(alphaAndBetaHat.Item1, alphaAndBetaHat.Item1 + alphaAndBetaHat.Item2 * xValues[xValues.Count - 1]);
+
+            //Returns the smallest distance either between the regression line and the X-axis or the lower prediction line and the LOWER_BOUND_FOR_PREDICTION_INTERVALL
+            return Math.Min(smallestDifferenceToXAxis, predictionIntervallNextPoint.Item2 - LOWER_BOUND_FOR_PREDICTION_INTERVALL);
         }
 
         /// <summary>
         /// Data returned from UpdateScalar-method()
         /// Updated is true if scalar can be changed.
-        /// Scalar holds value for new scalar, only
+        /// Scalar holds value for the greates difference between
+        /// regression line and the wanted line, only
         /// valid if Updated is true.
         /// </summary>
         struct ScalarUpdatedData
         {
             public bool Updated { get; set; }
-            public float Scalar { get; set; }
+            public double Difference { get; set; }
+
+            public ScalarUpdatedData(bool updated, double difference)
+            {
+                Updated = updated;
+                Difference = difference;
+            }
         }
 
         /// <summary>
@@ -118,7 +142,9 @@ namespace DiabetesContolApp.GlobalLogic
         /// <returns></returns>
         async private static Task<DataPoint> GetDataPointForDayProfile(LogModel log)
         {
-            return new DataPoint(log.DateTimeValue, (float)log.GlucoseAfterMeal - await GetTargetGlucoseForLog(log));
+            if (log.GlucoseAfterMeal == null)
+                return new DataPoint(false, DateTime.Now, -1.0f);
+            return new DataPoint(true, log.DateTimeValue, (float)log.GlucoseAfterMeal - await GetTargetGlucoseForLog(log));
         }
 
         private static void UpdateGroceryScalar(int groceryID)
@@ -197,11 +223,13 @@ namespace DiabetesContolApp.GlobalLogic
     /// </summary>
     public struct DataPoint
     {
+        public bool IsValid { get; set; }
         public DateTime TimeStamp { get; set; }
         public float GlucoseError { get; set; }
 
-        public DataPoint(DateTime timeStamp, float glucoseError)
+        public DataPoint(bool isValid, DateTime timeStamp, float glucoseError)
         {
+            IsValid = isValid;
             TimeStamp = timeStamp;
             GlucoseError = glucoseError;
         }
