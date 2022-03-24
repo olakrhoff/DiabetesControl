@@ -140,12 +140,14 @@ namespace DiabetesContolApp.Models
 
         public string ToStringCSV()
         {
-            return LogID + ", " +
-                DayProfileID + ", " +
-                ReminderID + ", " +
-                DateTimeValue.ToString("yyyy/MM/dd HH:mm") + ", " +
-                GlucoseAtMeal + ", " +
-                GlucoseAfterMeal + "\n";
+            return LogID + "," +
+                DayProfileID + "," +
+                ReminderID + "," +
+                DateTimeValue.ToString("yyyy/MM/dd HH:mm") + "," +
+                GlucoseAtMeal + "," +
+                GlucoseAfterMeal + "," +
+                InsulinEstimate + "," +
+                InsulinFromUser + "\n";
         }
 
     }
