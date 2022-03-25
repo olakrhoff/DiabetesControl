@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-
+using DiabetesContolApp.Models;
 using SQLite;
 using SQLiteNetExtensions.Attributes;
 
@@ -12,6 +12,9 @@ namespace DiabetesContolApp.DAO
     public class LogModelDAO : INotifyPropertyChanged, IComparable<LogModelDAO>, IEquatable<LogModelDAO>, IModelDAO
     {
         public event PropertyChangedEventHandler PropertyChanged;
+
+        private float _insulinEstimate = -1.0f;
+        private float _insulinFromUser = -1.0f;
 
         [PrimaryKey, AutoIncrement]
         public int LogID { get; set; }
@@ -23,12 +26,8 @@ namespace DiabetesContolApp.DAO
         public long DateTimeLong { get; set; }
         [NotNull]
         public float GlucoseAtMeal { get; set; }
-
         public float? GlucoseAfterMeal { get; set; }
-        [ManyToMany(typeof(GroceryLogModelDAO))]
-        public List<GroceryModelDAO> GroceryModels { get; set; }
-        [Ignore]
-        public List<NumberOfGroceryModelDAO> NumberOfGroceryModels { get; set; }
+        public float CorrectionInsulin { get; set; }
 
 
         public LogModelDAO()
@@ -37,7 +36,7 @@ namespace DiabetesContolApp.DAO
             DayProfileID = -1;
             ReminderID = -1;
         }
-
+        /*
         public LogModelDAO(int dayProfileID, DateTime dateTime, float insulinEstimate, float insulinFromUser, float glucoseAtMeal, List<NumberOfGroceryModelDAO> numberOfGroceries, float? glucoseAfterMeal = null)
         {
             LogID = -1;
@@ -48,10 +47,20 @@ namespace DiabetesContolApp.DAO
             InsulinFromUser = insulinFromUser;
             GlucoseAtMeal = glucoseAtMeal;
             GlucoseAfterMeal = glucoseAfterMeal;
-            NumberOfGroceryModels = numberOfGroceries != null ? numberOfGroceries : new();
+        }*/
+
+        public LogModelDAO(LogModel newLog)
+        {
+            LogID = newLog.LogID;
+            DayProfileID = newLog.DayProfile.DayProfileID;
+            ReminderID = newLog.Reminder.ReminderID;
+            DateTimeValue = newLog.DateTimeValue;
+            GlucoseAtMeal = newLog.GlucoseAtMeal;
+            GlucoseAfterMeal = newLog.GlucoseAfterMeal;
+            InsulinEstimate = newLog.InsulinEstimate;
+            InsulinFromUser = newLog.InsulinFromUser;
+            CorrectionInsulin = newLog.CorrectionInsulin;
         }
-
-
 
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
@@ -96,8 +105,6 @@ namespace DiabetesContolApp.DAO
             }
         }
 
-        private float _insulinEstimate = -1.0f;
-
         [NotNull]
         public float InsulinEstimate
         {
@@ -116,8 +123,6 @@ namespace DiabetesContolApp.DAO
                 //If value is not greater than 0 or is the same, we don't wnat to set it
             }
         }
-
-        private float _insulinFromUser = -1.0f;
 
         [NotNull]
         public float InsulinFromUser

@@ -21,7 +21,7 @@ namespace DiabetesContolApp.DAO
         {
         }
 
-        public GroceryLogModelDAO(int groceryID, int logID, uint numberOfGrocery)
+        public GroceryLogModelDAO(int groceryID, int logID, uint numberOfGrocery, float insulinForGroceries)
         {
             GroceryID = groceryID;
             LogID = logID;

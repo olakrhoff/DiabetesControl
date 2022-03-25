@@ -287,7 +287,7 @@ namespace DiabetesContolApp.Persistence
         /// delete itself.
         /// </summary>
         /// <param name="logID">int (logID), the ID of the log to be deleted</param>
-        /// <returns>int (logID), the ID of the log to be deleted</returns>
+        /// <returns>int, the number of rows deleted</returns>
         async public Task<int> DeleteLogAsync(int logID)
         {
             List<GroceryLogModelDAO> groceryLogs = await connection.Table<GroceryLogModelDAO>().ToListAsync();

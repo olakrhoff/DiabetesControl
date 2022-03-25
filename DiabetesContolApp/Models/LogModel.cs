@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using DiabetesContolApp.DAO;
 
 namespace DiabetesContolApp.Models
 {
@@ -38,7 +39,6 @@ namespace DiabetesContolApp.Models
             GlucoseAfterMeal = glucoseAfterMeal;
             NumberOfGroceryModels = numberOfGroceries != null ? numberOfGroceries : new();
         }
-
 
         /*
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -105,7 +105,6 @@ namespace DiabetesContolApp.Models
         }
 
         private float _insulinFromUser = -1.0f;
-
 
         public float InsulinFromUser
         {
