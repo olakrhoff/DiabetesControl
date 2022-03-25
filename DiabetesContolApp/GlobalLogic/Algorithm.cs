@@ -156,25 +156,27 @@ namespace DiabetesContolApp.GlobalLogic
 
         /// <summary>
         /// This method partition the error in glucose after meal,
-        /// based on their insulin estimate,
+        /// based on the logs insulin estimate,
         /// between all logs involved (connected to the reminder).
-        /// The Logs are updated in their database.
+        /// The logs are updated in their database.
         /// </summary>
         /// <param name="reminder"></param>
-        /// <returns>A List of the Logs in question</returns>
+        /// <returns>The list of logs connected to the reminder</returns>
         async private static Task<List<LogModel>> PartitionGlucoseAfterMeal(ReminderModel reminder)
         {
-            var totalInsulinGiven = reminder.Logs.Sum(log => log.InsulinEstimate); //Total insulin from all logs estimate
+            var totalInsulinGiven = reminder.Logs.Sum(log => Math.Abs(log.InsulinEstimate)); //Total insulin from all logs estimate
+            if (totalInsulinGiven == 0)
+                totalInsulinGiven = 1; //This is to avoid edge case of division by zero
             var lastTargetGlucoseValue = await GetTargetGlucoseForLog(reminder.Logs[reminder.Logs.Count - 1]);
-            var glucoseDifference = reminder.GlucoseAfterMeal - lastTargetGlucoseValue; //Total error in glucose
+            var glucoseError = reminder.GlucoseAfterMeal - lastTargetGlucoseValue; //Total error in glucose
 
-            foreach (LogModel log in reminder.Logs)
+            foreach (LogModel log in reminder.Logs) //TODO: Check if there is any log in this variable
             {
                 var targetGlucoseForLog = await GetTargetGlucoseForLog(log); //Get the target glucose value
 
                 //We partiton the glucose difference based on the percentage of the insulin estimate
                 //from one log to the total insulin given within the reminder.
-                var glucoseDifferencePartitioned = glucoseDifference * (log.InsulinEstimate / totalInsulinGiven);
+                var glucoseDifferencePartitioned = glucoseError * (log.InsulinEstimate / totalInsulinGiven);
 
 
                 var globalVariables = Application.Current as App; //Get access to properites in the App
@@ -192,9 +194,9 @@ namespace DiabetesContolApp.GlobalLogic
                 //  4.8                       = 7.8                          - (3                   - 1                  ) * 1.5 | Case: adjusted insulin down
                 //  12.3                      = 7.8                          - (1                   - 4                  ) * 1.5 | Case: adjusted insulin up
                 //  8.3                       = 15.8                         - (5                   - 0                  ) * 1.5 | Case: did not set any insulin (happens sometimes)
-                var glucoseDifferenceAdjusted = glucoseDifferencePartitioned - (log.InsulinEstimate - log.InsulinFromUser) * globalVariables.InsulinToGlucoseRatio;
+                var glucoseErrorAdjusted = glucoseDifferencePartitioned - (log.InsulinEstimate - log.InsulinFromUser) * globalVariables.InsulinToGlucoseRatio;
 
-                log.GlucoseAfterMeal = glucoseDifferenceAdjusted;
+                log.GlucoseAfterMeal = glucoseErrorAdjusted;
                 await LogDatabase.GetInstance().UpdateLogAsync(log);
             }
 
