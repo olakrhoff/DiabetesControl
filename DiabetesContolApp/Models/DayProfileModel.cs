@@ -20,6 +20,12 @@ namespace DiabetesContolApp.Models
 
         public DayProfileModel()
         {
+            DayProfileID = -1;
+        }
+
+        public DayProfileModel(int dayProfileID)
+        {
+            DayProfileID = dayProfileID;
         }
 
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)

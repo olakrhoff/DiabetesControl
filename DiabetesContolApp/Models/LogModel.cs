@@ -5,41 +5,32 @@ using System.Runtime.CompilerServices;
 
 namespace DiabetesContolApp.Models
 {
-    public class LogModel : INotifyPropertyChanged, IComparable<LogModel>, IEquatable<LogModel>, IModel
+    public class LogModel : /*INotifyPropertyChanged,*/ IComparable<LogModel>, IEquatable<LogModel>, IModel
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-
-
         public int LogID { get; set; }
-
-        public int DayProfileID { get; set; }
-
-        public int ReminderID { get; set; }
-
+        public DayProfileModel DayProfile { get; set; }
+        public ReminderModel Reminder { get; set; }
         public long DateTimeLong { get; set; }
-
         public float GlucoseAtMeal { get; set; }
-
         public float? GlucoseAfterMeal { get; set; }
-
-        public List<GroceryModel> GroceryModels { get; set; }
-
+        public float CorrectionInsulin { get; set; }
         public List<NumberOfGroceryModel> NumberOfGroceryModels { get; set; }
 
 
         public LogModel()
         {
             LogID = -1;
-            DayProfileID = -1;
-            ReminderID = -1;
+            DayProfile = new();
+            Reminder = new();
         }
 
         public LogModel(int dayProfileID, DateTime dateTime, float insulinEstimate, float insulinFromUser, float glucoseAtMeal, List<NumberOfGroceryModel> numberOfGroceries, float? glucoseAfterMeal = null)
         {
             LogID = -1;
-            ReminderID = -1;
-            DayProfileID = dayProfileID;
+            Reminder = new();
+            DayProfile = new(dayProfileID);
             DateTimeValue = dateTime;
             InsulinEstimate = insulinEstimate;
             InsulinFromUser = insulinFromUser;
@@ -49,11 +40,11 @@ namespace DiabetesContolApp.Models
         }
 
 
-
+        /*
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        }*/
 
         public int CompareTo(LogModel other)
         {
@@ -78,7 +69,7 @@ namespace DiabetesContolApp.Models
                 if (value.ToBinary() != this.DateTimeLong)
                 {
                     this.DateTimeLong = value.ToBinary();
-                    OnPropertyChanged();
+                    //OnPropertyChanged();
                 }
                 //If it is equal to the previous value there is no need to update it
             }
@@ -95,7 +86,6 @@ namespace DiabetesContolApp.Models
 
         private float _insulinEstimate = -1.0f;
 
-
         public float InsulinEstimate
         {
             get
@@ -108,7 +98,7 @@ namespace DiabetesContolApp.Models
                 if (value >= 0.0f && value != this._insulinEstimate)
                 {
                     this._insulinEstimate = value;
-                    OnPropertyChanged();
+                    //OnPropertyChanged();
                 }
                 //If value is not greater than 0 or is the same, we don't wnat to set it
             }
@@ -129,7 +119,7 @@ namespace DiabetesContolApp.Models
                 if (value >= 0.0f && value != this._insulinFromUser)
                 {
                     this._insulinFromUser = value;
-                    OnPropertyChanged();
+                    //OnPropertyChanged();
                 }
                 //If value is not greater than 0 or is the same, we don't want to set it
             }
@@ -137,11 +127,11 @@ namespace DiabetesContolApp.Models
 
         public string ToStringCSV()
         {
-            return LogID + ", " +
-                DayProfileID + ", " +
-                ReminderID + ", " +
-                DateTimeValue.ToString("yyyy/MM/dd HH:mm") + ", " +
-                GlucoseAtMeal + ", " +
+            return LogID + "," +
+                DayProfile.DayProfileID + "," +
+                Reminder.ReminderID + "," +
+                DateTimeValue.ToString("yyyy/MM/dd HH:mm") + "," +
+                GlucoseAtMeal + "," +
                 GlucoseAfterMeal + "\n";
         }
 
