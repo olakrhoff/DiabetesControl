@@ -1,36 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using SQLite;
 using SQLiteNetExtensions.Attributes;
 
-namespace DiabetesContolApp.Models
+namespace DiabetesContolApp.DAO
 {
-
-    public class GroceryLogModel : IModel
+    [Table("GroceryLog")]
+    public class GroceryLogModelDAO : IModel
     {
-
+        [PrimaryKey, AutoIncrement]
         public int GroceryLogID { get; set; }
-
+        [ForeignKey(typeof(GroceryModel))]
         public int GroceryID { get; set; }
-
+        [ForeignKey(typeof(LogModel))]
         public int LogID { get; set; }
-
+        [NotNull]
         public uint NumberOfGrocery { get; set; }
 
-        public GroceryLogModel()
+        public GroceryLogModelDAO()
         {
         }
 
-        public GroceryLogModel(int groceryID, int logID, uint numberOfGrocery)
+        public GroceryLogModelDAO(int groceryID, int logID, uint numberOfGrocery)
         {
             GroceryID = groceryID;
             LogID = logID;
             NumberOfGrocery = numberOfGrocery;
         }
 
-        static public List<GroceryLogModel> GetGroceryLogs(List<NumberOfGroceryModel> numberOfGroceries, int logID)
+        static public List<GroceryLogModelDAO> GetGroceryLogs(List<NumberOfGroceryModel> numberOfGroceries, int logID)
         {
-            List<GroceryLogModel> groceryLogs = new();
+            List<GroceryLogModelDAO> groceryLogs = new();
 
             if (numberOfGroceries != null)
                 foreach (NumberOfGroceryModel numberOfGrocery in numberOfGroceries)
@@ -39,11 +39,11 @@ namespace DiabetesContolApp.Models
             return groceryLogs;
         }
 
-        static public List<NumberOfGroceryModel> GetNumberOfGroceries(List<GroceryLogModel> groceryLogs)
+        static public List<NumberOfGroceryModel> GetNumberOfGroceries(List<GroceryLogModelDAO> groceryLogs)
         {
             List<NumberOfGroceryModel> numberOfGroceries = new();
 
-            foreach (GroceryLogModel groceryLog in groceryLogs)
+            foreach (GroceryLogModelDAO groceryLog in groceryLogs)
             {
                 var tempNumberOfGrocery = new NumberOfGroceryModel(groceryLog.NumberOfGrocery, new GroceryModel());
                 tempNumberOfGrocery.Grocery.GroceryID = groceryLog.GroceryID;

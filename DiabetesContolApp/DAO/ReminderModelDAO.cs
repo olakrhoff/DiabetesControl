@@ -4,31 +4,36 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using SQLite;
 
 using DiabetesContolApp.GlobalLogic;
 using DiabetesContolApp.Persistence;
 
+using SQLiteNetExtensions.Attributes;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
-namespace DiabetesContolApp.Models
+namespace DiabetesContolApp.DAO
 {
-    public class ReminderModel : INotifyPropertyChanged, IComparable<ReminderModel>, IEquatable<ReminderModel>, IModel
+    [Table("Reminder")]
+    public class ReminderModelDAO : INotifyPropertyChanged, IComparable<ReminderModelDAO>, IEquatable<ReminderModelDAO>, IModel
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
         //The number of hours the reminder is sat to wait
         public static int TIME_TO_WAIT = 3;
 
+        [PrimaryKey, AutoIncrement]
         public int ReminderID { get; set; }
+        [NotNull]
         public long DateTimeLong { get; set; } //When to remind the user
         public float? GlucoseAfterMeal { get; set; }
-
-        public List<LogModel> Logs { get; set; }
+        [OneToMany]
+        public List<LogModelDAO> Logs { get; set; }
 
         public bool IsHandled { get; set; }
 
-        public ReminderModel()
+        public ReminderModelDAO()
         {
             ReminderID = -1;
             DateTimeLong = DateTime.Now.AddHours(TIME_TO_WAIT).ToBinary();
@@ -102,16 +107,17 @@ namespace DiabetesContolApp.Models
             return DateTime.Now > DateTimeValue;
         }
 
-        public int CompareTo(ReminderModel other)
+        public int CompareTo(ReminderModelDAO other)
         {
             return DateTimeValue.CompareTo(other.DateTimeValue);
         }
 
-        public bool Equals(ReminderModel other)
+        public bool Equals(ReminderModelDAO other)
         {
             return DateTimeValue.Equals(other.DateTimeValue);
         }
 
+        [Ignore]
         public DateTime DateTimeValue
         {
             get

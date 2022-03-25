@@ -248,7 +248,7 @@ namespace DiabetesContolApp.Views
         async void GlucoseLabelFocused(System.Object sender, Xamarin.Forms.FocusEventArgs e)
         {
             LogModel log = await logDatabase.GetNewestLogAsync();
-            ReminderModel reminder = null;
+            ReminderModelDAO reminder = null;
             if (log != null)
                 reminder = await reminderDatabase.GetReminderAsync(log.ReminderID);
 

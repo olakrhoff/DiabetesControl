@@ -3,32 +3,28 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-using SQLite;
-using SQLiteNetExtensions.Attributes;
-
 namespace DiabetesContolApp.Models
 {
-    [Table("Log")]
     public class LogModel : INotifyPropertyChanged, IComparable<LogModel>, IEquatable<LogModel>, IModel
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
 
-        [PrimaryKey, AutoIncrement]
+
         public int LogID { get; set; }
-        [ForeignKey(typeof(DayProfileModel))]
+
         public int DayProfileID { get; set; }
-        [ForeignKey(typeof(ReminderModel))]
+
         public int ReminderID { get; set; }
-        [NotNull]
+
         public long DateTimeLong { get; set; }
-        [NotNull]
+
         public float GlucoseAtMeal { get; set; }
 
         public float? GlucoseAfterMeal { get; set; }
-        [ManyToMany(typeof(GroceryLogModel))]
+
         public List<GroceryModel> GroceryModels { get; set; }
-        [Ignore]
+
         public List<NumberOfGroceryModel> NumberOfGroceryModels { get; set; }
 
 
@@ -69,7 +65,7 @@ namespace DiabetesContolApp.Models
             return this.DateTimeValue.Equals(other.DateTimeValue);
         }
 
-        [Ignore]
+
         public DateTime DateTimeValue
         {
             get
@@ -88,7 +84,7 @@ namespace DiabetesContolApp.Models
             }
         }
 
-        [Ignore]
+
         public string TimeString
         {
             get
@@ -99,7 +95,7 @@ namespace DiabetesContolApp.Models
 
         private float _insulinEstimate = -1.0f;
 
-        [NotNull]
+
         public float InsulinEstimate
         {
             get
@@ -120,7 +116,7 @@ namespace DiabetesContolApp.Models
 
         private float _insulinFromUser = -1.0f;
 
-        [NotNull]
+
         public float InsulinFromUser
         {
             get

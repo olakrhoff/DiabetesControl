@@ -1,14 +1,16 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using SQLite;
 
-
-namespace DiabetesContolApp.Models
+namespace DiabetesContolApp.DAO
 {
+    [Table("DayProfile")]
     public class DayProfileModel : IComparable<DayProfileModel>, IEquatable<DayProfileModel>, IModel
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
+        [PrimaryKey, AutoIncrement]
         public int DayProfileID { get; set; }
 
         private string _name;
@@ -16,6 +18,7 @@ namespace DiabetesContolApp.Models
         private float _carbScalar;
         private float _glucoseScalar;
 
+        [NotNull]
         public float TargetGlucoseValue { get; set; }
 
         public DayProfileModel()
@@ -41,6 +44,7 @@ namespace DiabetesContolApp.Models
             return this.DayProfileID.Equals(other.DayProfileID);
         }
 
+        [NotNull, MaxLength(255)]
         public string Name
         {
             get
@@ -68,6 +72,7 @@ namespace DiabetesContolApp.Models
             }
         }
 
+        [NotNull]
         public DateTime StartTime
         {
             get
@@ -86,6 +91,7 @@ namespace DiabetesContolApp.Models
             }
         }
 
+        [NotNull]
         public float CarbScalar
         {
             get
@@ -113,6 +119,7 @@ namespace DiabetesContolApp.Models
             }
         }
 
+        [NotNull]
         public float GlucoseScalar
         {
             get

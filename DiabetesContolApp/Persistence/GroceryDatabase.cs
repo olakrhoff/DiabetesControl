@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using DiabetesContolApp.Models;
+
+using DiabetesContolApp.DAO;
 
 using SQLite;
 using Xamarin.Forms;

@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
-using DiabetesContolApp.Models;
+using DiabetesContolApp.DAO;
 
 using SQLite;
 

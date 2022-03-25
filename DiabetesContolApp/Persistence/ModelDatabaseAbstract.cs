@@ -18,7 +18,7 @@ namespace DiabetesContolApp.Persistence
             connection.CreateTableAsync<DayProfileModel>().Wait();
             connection.CreateTableAsync<GroceryModel>().Wait();
             //connection.DropTableAsync<ReminderModel>().Wait();
-            connection.CreateTableAsync<ReminderModel>().Wait();
+            connection.CreateTableAsync<ReminderModelDAO>().Wait();
             //connection.DropTableAsync<LogModel>().Wait();
             connection.CreateTableAsync<LogModel>().Wait();
             //connection.DropTableAsync<GroceryLogModel>().Wait();

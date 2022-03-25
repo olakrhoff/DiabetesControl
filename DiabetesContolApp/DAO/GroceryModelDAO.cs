@@ -1,25 +1,36 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using SQLite;
+using SQLiteNetExtensions.Attributes;
 
-
-namespace DiabetesContolApp.Models
+namespace DiabetesContolApp.DAO
 {
-    public class DayProfileModel : IComparable<DayProfileModel>, IEquatable<DayProfileModel>, IModel
+    [Table("Grocery")]
+    public class GroceryModel : INotifyPropertyChanged, IEquatable<GroceryModel>, IComparable<GroceryModel>, IModel
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public int DayProfileID { get; set; }
+        [PrimaryKey, AutoIncrement]
+        public int GroceryID { get; set; }
 
         private string _name;
-        private long _startTime;
+        private string _brandName;
+
+        [NotNull]
+        public float CarbsPer100Grams { get; set; }
+        [NotNull]
+        public string NameOfPortion { get; set; }
+        [NotNull]
+        public float GramsPerPortion { get; set; }
+
         private float _carbScalar;
-        private float _glucoseScalar;
 
-        public float TargetGlucoseValue { get; set; }
-
-        public DayProfileModel()
+        public GroceryModel()
         {
+            GroceryID = -1; //This will indicate that the Grocery is not yet added to the database
+            this._carbScalar = 1.0f; //This is the default of the scalar, when it is one it has no effect on the calculations
         }
 
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -27,20 +38,17 @@ namespace DiabetesContolApp.Models
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public int CompareTo(DayProfileModel other)
+        public bool Equals(GroceryModel other)
         {
-            if (other == null)
-                return 1;
-            return this.StartTime.CompareTo(other.StartTime);
+            return this.GroceryID.Equals(other.GroceryID);
         }
 
-        public bool Equals(DayProfileModel other)
+        public int CompareTo(GroceryModel other)
         {
-            if (other == null)
-                return false;
-            return this.DayProfileID.Equals(other.DayProfileID);
+            return this.Name.CompareTo(other.Name);
         }
 
+        [NotNull, MaxLength(255)]
         public string Name
         {
             get
@@ -68,24 +76,35 @@ namespace DiabetesContolApp.Models
             }
         }
 
-        public DateTime StartTime
+        [MaxLength(255)]
+        public string BrandName
         {
             get
             {
-                return DateTime.FromBinary(this._startTime);
+                return this._brandName;
             }
 
             set
             {
-                if (value.ToBinary() != this._startTime)
+                if (this._brandName == value)
+                    return;
+                try
                 {
-                    this._startTime = value.ToBinary();
-                    OnPropertyChanged();
+                    if (value.Length > 255)
+                        throw new ArgumentOutOfRangeException("The name attribute of a grocery can not be longer than 255 chars");
                 }
-                //If it is equal to the previous value there is no need to update it
+                catch (ArgumentOutOfRangeException aoore)
+                {
+                    //If an error occurs, we simply do not set the value
+                    return;
+                }
+
+                this._brandName = value;
+                OnPropertyChanged();
             }
         }
 
+        [NotNull]
         public float CarbScalar
         {
             get
@@ -113,36 +132,9 @@ namespace DiabetesContolApp.Models
             }
         }
 
-        public float GlucoseScalar
-        {
-            get
-            {
-                return this._glucoseScalar;
-            }
-
-            set
-            {
-                if (this._glucoseScalar == value)
-                    return;
-                try
-                {
-                    if (value <= 0.0f)
-                        throw new ArgumentOutOfRangeException("The attribute GlucoseScalar must be a positive float greater than zero");
-                }
-                catch (ArgumentOutOfRangeException aoore)
-                {
-                    //If an error occurs, we simply do not set the value
-                    return;
-                }
-
-                this._glucoseScalar = value;
-                OnPropertyChanged();
-            }
-        }
-
         public string ToStringCSV()
         {
-            return DayProfileID + ", " + Name + ", " + StartTime.ToString("HH:mm") + ", " + CarbScalar + ", " + GlucoseScalar + ", " + TargetGlucoseValue + "\n";
+            return GroceryID + ", " + Name + ", " + BrandName + ", " + CarbsPer100Grams + ", " + NameOfPortion + ", " + GramsPerPortion + ", " + CarbScalar + "\n";
         }
     }
 }

@@ -13,12 +13,11 @@ namespace DiabetesContolApp.DAO
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-
         [PrimaryKey, AutoIncrement]
         public int LogID { get; set; }
-        [ForeignKey(typeof(DayProfileModel))]
+        [ForeignKey(typeof(DayProfileModelDAO))]
         public int DayProfileID { get; set; }
-        [ForeignKey(typeof(ReminderModel))]
+        [ForeignKey(typeof(ReminderModelDAO))]
         public int ReminderID { get; set; }
         [NotNull]
         public long DateTimeLong { get; set; }
@@ -27,9 +26,9 @@ namespace DiabetesContolApp.DAO
 
         public float? GlucoseAfterMeal { get; set; }
         [ManyToMany(typeof(GroceryLogModelDAO))]
-        public List<GroceryModel> GroceryModels { get; set; }
+        public List<GroceryModelDAO> GroceryModels { get; set; }
         [Ignore]
-        public List<NumberOfGroceryModel> NumberOfGroceryModels { get; set; }
+        public List<NumberOfGroceryModelDAO> NumberOfGroceryModels { get; set; }
 
 
         public LogModelDAO()

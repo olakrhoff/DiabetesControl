@@ -2,27 +2,24 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using SQLite;
-using SQLiteNetExtensions.Attributes;
+
+
 
 namespace DiabetesContolApp.Models
 {
-    [Table("Grocery")]
     public class GroceryModel : INotifyPropertyChanged, IEquatable<GroceryModel>, IComparable<GroceryModel>, IModel
     {
         public event PropertyChangedEventHandler PropertyChanged;
-
-        [PrimaryKey, AutoIncrement]
         public int GroceryID { get; set; }
 
         private string _name;
         private string _brandName;
 
-        [NotNull]
+
         public float CarbsPer100Grams { get; set; }
-        [NotNull]
+
         public string NameOfPortion { get; set; }
-        [NotNull]
+
         public float GramsPerPortion { get; set; }
 
         private float _carbScalar;
@@ -48,7 +45,6 @@ namespace DiabetesContolApp.Models
             return this.Name.CompareTo(other.Name);
         }
 
-        [NotNull, MaxLength(255)]
         public string Name
         {
             get
@@ -76,7 +72,7 @@ namespace DiabetesContolApp.Models
             }
         }
 
-        [MaxLength(255)]
+
         public string BrandName
         {
             get
@@ -104,7 +100,7 @@ namespace DiabetesContolApp.Models
             }
         }
 
-        [NotNull]
+
         public float CarbScalar
         {
             get
