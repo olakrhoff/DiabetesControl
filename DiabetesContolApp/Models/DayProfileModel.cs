@@ -5,17 +5,17 @@ using System.Runtime.CompilerServices;
 
 namespace DiabetesContolApp.Models
 {
-    public class DayProfileModel : IComparable<DayProfileModel>, IEquatable<DayProfileModel>, IModel
+    public class DayProfileModel : IComparable<DayProfileModel>, IEquatable<DayProfileModel>, IModel//, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public int DayProfileID { get; set; }
 
         private string _name;
         private long _startTime;
         private float _carbScalar;
         private float _glucoseScalar;
 
+        public int DayProfileID { get; set; }
         public float TargetGlucoseValue { get; set; }
 
         public DayProfileModel()
@@ -27,11 +27,11 @@ namespace DiabetesContolApp.Models
         {
             DayProfileID = dayProfileID;
         }
-
+        /*
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        }*/
 
         public int CompareTo(DayProfileModel other)
         {
@@ -70,7 +70,7 @@ namespace DiabetesContolApp.Models
                 }
 
                 this._name = value;
-                OnPropertyChanged();
+                //OnPropertyChanged();
             }
         }
 
@@ -86,7 +86,7 @@ namespace DiabetesContolApp.Models
                 if (value.ToBinary() != this._startTime)
                 {
                     this._startTime = value.ToBinary();
-                    OnPropertyChanged();
+                    //OnPropertyChanged();
                 }
                 //If it is equal to the previous value there is no need to update it
             }
@@ -115,7 +115,7 @@ namespace DiabetesContolApp.Models
                 }
 
                 this._carbScalar = value;
-                OnPropertyChanged();
+                //OnPropertyChanged();
             }
         }
 
@@ -142,13 +142,18 @@ namespace DiabetesContolApp.Models
                 }
 
                 this._glucoseScalar = value;
-                OnPropertyChanged();
+                //OnPropertyChanged();
             }
         }
 
         public string ToStringCSV()
         {
-            return DayProfileID + ", " + Name + ", " + StartTime.ToString("HH:mm") + ", " + CarbScalar + ", " + GlucoseScalar + ", " + TargetGlucoseValue + "\n";
+            return DayProfileID + "," +
+                Name + "," +
+                StartTime.ToString("HH:mm") + "," +
+                CarbScalar + "," +
+                GlucoseScalar + "," +
+                TargetGlucoseValue + "\n";
         }
     }
 }

@@ -10,22 +10,19 @@ namespace DiabetesContolApp.Models
     {
 
         public int GroceryLogID { get; set; }
+        public NumberOfGroceryModel NumberOfGrocery { get; set; }
+        public LogModel Log { get; set; }
 
-        public int GroceryID { get; set; }
-
-        public int LogID { get; set; }
-
-        public uint NumberOfGrocery { get; set; }
 
         public GroceryLogModel()
         {
         }
 
-        public GroceryLogModel(int groceryID, int logID, uint numberOfGrocery)
+        public GroceryLogModel(NumberOfGroceryModel numberOfGrocery, LogModel log)
         {
-            GroceryID = groceryID;
-            LogID = logID;
+            GroceryLogID = -1;
             NumberOfGrocery = numberOfGrocery;
+            Log = log;
         }
 
         static public List<GroceryLogModel> GetGroceryLogs(List<NumberOfGroceryModel> numberOfGroceries, int logID)
@@ -34,7 +31,8 @@ namespace DiabetesContolApp.Models
 
             if (numberOfGroceries != null)
                 foreach (NumberOfGroceryModel numberOfGrocery in numberOfGroceries)
-                    groceryLogs.Add(new(numberOfGrocery.Grocery.GroceryID, logID, numberOfGrocery.NumberOfGrocery));
+                    //groceryLogs.Add(new(numberOfGrocery.Grocery.GroceryID, logID, numberOfGrocery.NumberOfGrocery));
+                    throw new NotImplementedException("This seems like a bad way of doing things");
 
             return groceryLogs;
         }
@@ -45,9 +43,10 @@ namespace DiabetesContolApp.Models
 
             foreach (GroceryLogModel groceryLog in groceryLogs)
             {
-                var tempNumberOfGrocery = new NumberOfGroceryModel(groceryLog.NumberOfGrocery, new GroceryModel());
-                tempNumberOfGrocery.Grocery.GroceryID = groceryLog.GroceryID;
-                numberOfGroceries.Add(tempNumberOfGrocery);
+                throw new NotImplementedException("This seems like a bad way of doing things");
+                //var tempNumberOfGrocery = new NumberOfGroceryModel(groceryLog.NumberOfGrocery, new GroceryModel());
+                //tempNumberOfGrocery.Grocery.GroceryID = groceryLog.GroceryID;
+                //numberOfGroceries.Add(tempNumberOfGrocery);
             }
 
             return numberOfGroceries;
@@ -55,10 +54,10 @@ namespace DiabetesContolApp.Models
 
         public string ToStringCSV()
         {
-            return GroceryLogID + ", " +
-                GroceryID + ", " +
-                LogID + ", " +
-                NumberOfGrocery + "\n";
+            return GroceryLogID + "," +
+                NumberOfGrocery.Grocery.GroceryID + "," +
+                Log.LogID + "," +
+                NumberOfGrocery.NumberOfGrocery + "\n";
         }
     }
 
