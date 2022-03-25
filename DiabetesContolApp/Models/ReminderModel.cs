@@ -13,7 +13,7 @@ using Xamarin.Forms.Xaml;
 
 namespace DiabetesContolApp.Models
 {
-    public class ReminderModel : INotifyPropertyChanged, IComparable<ReminderModel>, IEquatable<ReminderModel>, IModel
+    public class ReminderModel : IComparable<ReminderModel>, IEquatable<ReminderModel>, IModel//, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -23,9 +23,7 @@ namespace DiabetesContolApp.Models
         public int ReminderID { get; set; }
         public long DateTimeLong { get; set; } //When to remind the user
         public float? GlucoseAfterMeal { get; set; }
-
         public List<LogModel> Logs { get; set; }
-
         public bool IsHandled { get; set; }
 
         public ReminderModel()
@@ -83,10 +81,11 @@ namespace DiabetesContolApp.Models
             return true;
         }
 
+        /*
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        }*/
 
         /// <summary>
         /// Updates the time the reminder is finnished to
@@ -97,6 +96,10 @@ namespace DiabetesContolApp.Models
             DateTimeValue = DateTime.Now.AddHours(TIME_TO_WAIT);
         }
 
+        /// <summary>
+        /// Checks if the reminder is ready to be handled
+        /// </summary>
+        /// <returns>Returns true if the reminder overlaps with the current time within TIME_TO_WAIT hours, else false </returns>
         public bool ReadyToHandle()
         {
             return DateTime.Now > DateTimeValue;
@@ -124,7 +127,7 @@ namespace DiabetesContolApp.Models
                 if (value.ToBinary() != this.DateTimeLong)
                 {
                     this.DateTimeLong = value.ToBinary();
-                    OnPropertyChanged();
+                    //OnPropertyChanged();
                 }
                 //If it is equal to the previous value there is no need to update it
             }
@@ -132,9 +135,9 @@ namespace DiabetesContolApp.Models
 
         public string ToStringCSV()
         {
-            return ReminderID + ", " +
-                DateTimeValue.ToString("yyyy/MM/dd HH:mm") + ", " +
-                GlucoseAfterMeal + ", " +
+            return ReminderID + "," +
+                DateTimeValue.ToString("yyyy/MM/dd HH:mm") + "," +
+                GlucoseAfterMeal + "," +
                 IsHandled + "\n";
         }
     }
