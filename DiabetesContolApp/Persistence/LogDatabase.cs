@@ -85,6 +85,21 @@ namespace DiabetesContolApp.Persistence
             return rowsAdded;
         }
 
+
+        /// <summary>
+        /// Gets all logs that occur after a given time
+        /// </summary>
+        /// <param name="lastUpdate"></param>
+        /// <returns>List of logs after given time, if none were found, list is empty.</returns>
+        async public Task<List<LogModel>> GetAllLogsAfterAsync(DateTime lastUpdate)
+        {
+            List<LogModel> logs = await connection.Table<LogModel>().Where(log => log.DateTimeValue.CompareTo(lastUpdate) > 0).ToListAsync();
+
+            if (logs == null)
+                return new();
+            return logs;
+        }
+
         /// <summary>
         /// Gets all logs connected to a reminder by the
         /// ReminderID.

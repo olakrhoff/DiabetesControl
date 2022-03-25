@@ -138,6 +138,11 @@ namespace DiabetesContolApp.Models
             }
         }
 
+        public double GetTotalGlucoseError()
+        {
+
+        }
+
         public string ToStringCSV()
         {
             return LogID + "," +

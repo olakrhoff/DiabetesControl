@@ -40,12 +40,69 @@ namespace DiabetesContolApp.GlobalLogic
         {
             foreach (LogModel log in logs)
             {
-                //float glucoseError = (float)log.GlucoseAfterMeal - await GetTargetGlucoseForLog(log);
-
+                UpdateDayProfileScalar(log.DayProfileID);
+                UpdateCorrectionInsulinScalar();
                 foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceryModels)
                     UpdateGroceryScalar(numberOfGrocery.Grocery.GroceryID);
-                UpdateDayProfileScalar(log.DayProfileID);
             }
+        }
+
+        /// <summary>
+        /// Gets all logs since the last update of the
+        /// correction insulin scalar update.
+        /// Gets data points from the logs, based on the partitioning
+        /// of the error to the correction dose. These data points
+        /// are used to statisticly get a safe new scalar.
+        /// </summary>
+        async private static void UpdateCorrectionInsulinScalar()
+        {
+            DateTime lastUpdate = DateTime.Now; //TODO: Update this to get when the last scalar update for the correction dose was made
+
+            List<LogModel> logs = await LogDatabase.GetInstance().GetAllLogsAfterAsync(lastUpdate);
+
+            List<DataPoint> dataPoints = new();
+            foreach (LogModel log in logs)
+            {
+                DataPoint dataPoint = await GetDataPointForCorrectionInsulin(log);
+                if (dataPoint.IsValid)
+                    dataPoints.Add(dataPoint);
+            }
+
+            if (dataPoints.Count >= MINIMUM_OCCURENCES)
+            {
+                var globalVariables = Application.Current as App; //Get access to properites in the App
+
+                double distance = GetGreatestSafeDistanceFromRegressionLine(dataPoints);
+
+                double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //Either what we were missing or gave to much
+
+                double newScalar = 1 + extraInsulin; //The statistics for correction insulin is adjusted to be per unit of insulin so all we need is this
+
+                //TODO: Update the scalar database
+            }
+        }
+
+        /// <summary>
+        /// Gets the error per unit of insulin sat.
+        /// </summary>
+        /// <param name="log"></param>
+        /// <returns>Data point with data, not valid if the log dosn't have a glucose after meal value</returns>
+        async private static Task<DataPoint> GetDataPointForCorrectionInsulin(LogModel log)
+        {
+            if (log.GlucoseAfterMeal == null)
+                return new DataPoint(false, DateTime.Now, -1.0f);
+
+            //double totalGlucoseError = (float)log.GlucoseAfterMeal - await GetTargetGlucoseForLog(log);
+
+            double totalGlucoseError = log.GetTotalGlucoseError();
+
+            //double glucoseErrorForCorrection = totalGlucoseError * (log.CorrectionDose / log.InsulinEstimate);
+            //double glucoseErrorPerUnitOfCorrectionInsulin = glucoseErrorForCorrection / log.CorrectionDose;
+
+            //This is per unit of insulin so it is easier to compare bigger and smaller doses.
+            double glucoseErrorPerUnitOfCorrectionInsulin = totalGlucoseError / log.InsulinEstimate;
+
+            return new DataPoint(true, log.DateTimeValue, glucoseErrorPerUnitOfCorrectionInsulin);
         }
 
         /// <summary>
@@ -59,8 +116,9 @@ namespace DiabetesContolApp.GlobalLogic
         {
             List<LogModel> logsWithDayProfileID = (await LogDatabase.GetInstance().GetLogsAsync()).Where(log => log.DayProfileID == dayProfileID).ToList();
 
+            //TODO: Only get logs after the newest scalar update for this day profile
 
-            //Create datapoints from logs
+            //Create data points from logs
             List<DataPoint> dataPoints = new();
             foreach (LogModel log in logsWithDayProfileID)
             {
@@ -227,9 +285,9 @@ namespace DiabetesContolApp.GlobalLogic
     {
         public bool IsValid { get; set; }
         public DateTime TimeStamp { get; set; }
-        public float GlucoseError { get; set; }
+        public double GlucoseError { get; set; }
 
-        public DataPoint(bool isValid, DateTime timeStamp, float glucoseError)
+        public DataPoint(bool isValid, DateTime timeStamp, double glucoseError)
         {
             IsValid = isValid;
             TimeStamp = timeStamp;
