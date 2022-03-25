@@ -22,22 +22,22 @@ namespace DiabetesContolApp.Persistence
             return instance == null ? new GroceryDatabase() : instance;
         }
 
-        async internal Task<int> InsertGroceryAsync(GroceryModel newGrocery)
+        async internal Task<int> InsertGroceryAsync(GroceryModelDAO newGrocery)
         {
             return await connection.InsertAsync(newGrocery);
         }
 
-        async internal Task<GroceryModel> GetGroceryAsync(int groceryID)
+        async internal Task<GroceryModelDAO> GetGroceryAsync(int groceryID)
         {
-            return await connection.GetAsync<GroceryModel>(groceryID);
+            return await connection.GetAsync<GroceryModelDAO>(groceryID);
         }
 
-        async internal Task<List<GroceryModel>> GetGroceriesAsync()
+        async internal Task<List<GroceryModelDAO>> GetGroceriesAsync()
         {
-            return await connection.Table<GroceryModel>().ToListAsync();
+            return await connection.Table<GroceryModelDAO>().ToListAsync();
         }
 
-        async internal Task<int> UpdateGroceryAsync(GroceryModel grocery)
+        async internal Task<int> UpdateGroceryAsync(GroceryModelDAO grocery)
         {
             return await connection.UpdateAsync(grocery);
         }
@@ -48,16 +48,16 @@ namespace DiabetesContolApp.Persistence
          * aswell as all the Log entries that have it as a grocery.
          * This is to ensure the integrety of the data.
          * 
-         * Paramas: GroceryModel (grocey), the grocery that is to be deleted
+         * Paramas: GroceryModelDAO (grocey), the grocery that is to be deleted
          * Return: int, the number of rows deleted
          */
-        async internal Task<int> DeleteGroceryAsync(GroceryModel grocery)
+        async internal Task<int> DeleteGroceryAsync(GroceryModelDAO grocery)
         {
             LogDatabase logDatabase = LogDatabase.GetInstance();
 
-            List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().ToListAsync();
+            List<GroceryLogModelDAO> groceryLogs = await connection.Table<GroceryLogModelDAO>().ToListAsync();
 
-            foreach (GroceryLogModel groceryLog in groceryLogs)
+            foreach (GroceryLogModelDAO groceryLog in groceryLogs)
                 if (groceryLog.GroceryID == grocery.GroceryID)
                 {
                     await connection.DeleteAsync(groceryLog); //Deletes all the entries in GroceryLog who are connected to the Grocery
@@ -72,9 +72,9 @@ namespace DiabetesContolApp.Persistence
             return "GroceryID, Name, BrandName, CarbsPer100Grams, NameOfPortion, GramsPerPortion, CarbScalar\n";
         }
 
-        async public override Task<List<IModel>> GetAllAsync()
+        async public override Task<List<IModelDAO>> GetAllAsync()
         {
-            return new(await connection.Table<GroceryModel>().ToListAsync());
+            return new(await connection.Table<GroceryModelDAO>().ToListAsync());
         }
     }
 }

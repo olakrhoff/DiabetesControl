@@ -9,7 +9,7 @@ using SQLiteNetExtensions.Attributes;
 namespace DiabetesContolApp.DAO
 {
     [Table("Log")]
-    public class LogModelDAO : INotifyPropertyChanged, IComparable<LogModelDAO>, IEquatable<LogModelDAO>, IModel
+    public class LogModelDAO : INotifyPropertyChanged, IComparable<LogModelDAO>, IEquatable<LogModelDAO>, IModelDAO
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -38,7 +38,7 @@ namespace DiabetesContolApp.DAO
             ReminderID = -1;
         }
 
-        public LogModelDAO(int dayProfileID, DateTime dateTime, float insulinEstimate, float insulinFromUser, float glucoseAtMeal, List<NumberOfGroceryModel> numberOfGroceries, float? glucoseAfterMeal = null)
+        public LogModelDAO(int dayProfileID, DateTime dateTime, float insulinEstimate, float insulinFromUser, float glucoseAtMeal, List<NumberOfGroceryModelDAO> numberOfGroceries, float? glucoseAfterMeal = null)
         {
             LogID = -1;
             ReminderID = -1;

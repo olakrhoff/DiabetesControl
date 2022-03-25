@@ -1,38 +1,38 @@
 ﻿using System;
-using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using DiabetesContolApp.Models;
 
 namespace DiabetesContolApp.Service
 {
-    public class LogService
+    public class DayProfileService
     {
-        public LogService()
+        public DayProfileService()
         {
         }
 
-        async public Task<bool> InsertLogAsync(LogModel newLog)
-        {
-            throw new NotImplementedException();
-        }
-
-        async public Task<bool> DeleteLogAsync(int logID)
+        async public Task<List<DayProfileModel>> GetDayProfilesAsync()
         {
             throw new NotImplementedException();
         }
 
-        async public Task<List<LogModel>> GetLogsAsync(DateTime dateTime)
+        async public Task<bool> InsertDayProfileAsync(DayProfileModel newDayProfile)
         {
             throw new NotImplementedException();
         }
 
-        async public Task<bool> UpdateLogAsync(LogModel log)
+        async public Task<bool> UpdateDayProfileAsync(DayProfileModel dayProfile)
         {
             throw new NotImplementedException();
         }
 
-        async public Task<LogModel> GetNewestLogAsync()
+        async public Task<bool> DeleteDayProfileAsync(DayProfileModel dayProfile)
+        {
+            throw new NotImplementedException();
+        }
+
+        async public Task<DayProfileModel> GetDayProfileAsync(int dayProfileID)
         {
             throw new NotImplementedException();
         }

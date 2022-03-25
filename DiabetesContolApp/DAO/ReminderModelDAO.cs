@@ -16,7 +16,7 @@ using Xamarin.Forms.Xaml;
 namespace DiabetesContolApp.DAO
 {
     [Table("Reminder")]
-    public class ReminderModelDAO : INotifyPropertyChanged, IComparable<ReminderModelDAO>, IEquatable<ReminderModelDAO>, IModel
+    public class ReminderModelDAO : INotifyPropertyChanged, IComparable<ReminderModelDAO>, IEquatable<ReminderModelDAO>, IModelDAO
     {
         public event PropertyChangedEventHandler PropertyChanged;
 

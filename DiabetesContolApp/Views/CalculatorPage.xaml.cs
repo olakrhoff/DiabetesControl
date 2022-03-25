@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+
 using DiabetesContolApp.Models;
-using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Service;
 using DiabetesContolApp.GlobalLogic;
-using SQLite;
 
 using Xamarin.Forms;
 using System.Linq;
@@ -21,9 +21,9 @@ namespace DiabetesContolApp.Views
         private float? _insulinEstimate;
         private int _reminderModelID = -1;
 
-        private DayProfileDatabase dayProfileDatabase = DayProfileDatabase.GetInstance();
-        private LogDatabase logDatabase = LogDatabase.GetInstance();
-        private ReminderDatabase reminderDatabase = ReminderDatabase.GetInstance();
+        private DayProfileService dayProfileService;
+        private LogService logService;
+        private ReminderService reminderService;
 
         public CalculatorPage()
         {
@@ -32,7 +32,7 @@ namespace DiabetesContolApp.Views
 
         protected override async void OnAppearing()
         {
-            var dayProfiles = await dayProfileDatabase.GetDayProfilesAsync();
+            var dayProfiles = await dayProfileService.GetDayProfilesAsync();
             dayProfiles.Sort(); //Sort the elements
 
             DayProfiles = new ObservableCollection<DayProfileModel>(dayProfiles);
@@ -66,7 +66,7 @@ namespace DiabetesContolApp.Views
             overlappingMealLabel.IsVisible = isOverlapping; //Visible if overlapping
             glucose.IsEnabled = !isOverlapping; //Enabled if not overlapping
             if (isOverlapping)
-                glucose.Text = (await dayProfileDatabase.GetDayProfileAsync(previousLog.DayProfileID)).TargetGlucoseValue.ToString();
+                glucose.Text = (await dayProfileService.GetDayProfileAsync(previousLog.DayProfileID)).TargetGlucoseValue.ToString();
 
             _reminderModelID = isOverlapping ? reminderID : -1;
         }
@@ -152,7 +152,7 @@ namespace DiabetesContolApp.Views
                 NumberOfGroceriesSummary?.ToList());
             newLogEntry.ReminderID = _reminderModelID;
 
-            await logDatabase.InsertLogAsync(newLogEntry);
+            await logService.InsertLogAsync(newLogEntry);
 
             ClearCalculatorData();
             SetOverlappingMeals(false, null); //Enable the glucose entry
@@ -188,7 +188,7 @@ namespace DiabetesContolApp.Views
                 if (Helper.ConvertToFloat(result, out float resultFloat))
                 {
                     globalVariables.InsulinToCarbohydratesRatio = Helper.Calculate500Rule(resultFloat);
-                    await AverageTDDDatabase.GetInstance().InsertAverageTDD(new(resultFloat));
+                    //await AverageTDDDatabase.GetInstance().InsertAverageTDD(new(resultFloat));
                 }
             }
             if (globalVariables.InsulinToGlucoseRatio == -1.0f)
@@ -247,10 +247,10 @@ namespace DiabetesContolApp.Views
 
         async void GlucoseLabelFocused(System.Object sender, Xamarin.Forms.FocusEventArgs e)
         {
-            LogModel log = await logDatabase.GetNewestLogAsync();
-            ReminderModelDAO reminder = null;
+            LogModel log = await logService.GetNewestLogAsync();
+            ReminderModel reminder = null;
             if (log != null)
-                reminder = await reminderDatabase.GetReminderAsync(log.ReminderID);
+                reminder = await reminderService.GetReminderAsync(log.ReminderID);
 
             //The previous log overlaps in time with the
             //new log, if it is to be added now

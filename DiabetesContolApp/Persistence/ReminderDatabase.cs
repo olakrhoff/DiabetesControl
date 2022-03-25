@@ -106,7 +106,7 @@ namespace DiabetesContolApp.Persistence
         /// List&lt;LogModel&gt; is the list of Logs that are
         /// connected to the reminder of the specified ID.
         /// </returns>
-        async private Task<List<LogModel>> GetLogsForReminderAsync(int reminderID)
+        async private Task<List<LogModelDAO>> GetLogsForReminderAsync(int reminderID)
         {
             LogDatabase logDatabase = LogDatabase.GetInstance();
 
@@ -148,7 +148,7 @@ namespace DiabetesContolApp.Persistence
             return "ReminderID, DateTimeValue, GlucoseAfterMeal, IsHandled\n";
         }
 
-        async public override Task<List<IModel>> GetAllAsync()
+        async public override Task<List<IModelDAO>> GetAllAsync()
         {
             return new(await connection.Table<ReminderModelDAO>().ToListAsync());
         }

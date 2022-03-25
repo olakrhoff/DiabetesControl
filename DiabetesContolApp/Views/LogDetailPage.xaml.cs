@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 using DiabetesContolApp.Models;
-using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Service;
 using DiabetesContolApp.GlobalLogic;
 
 using Xamarin.Forms;
@@ -20,7 +20,7 @@ namespace DiabetesContolApp.Views
         private ObservableCollection<NumberOfGroceryModel> NumberOfGrocerySummary;
         public ObservableCollection<DayProfileModel> DayProfiles { get; set; }
 
-        DayProfileDatabase dayProfileDatabase = DayProfileDatabase.GetInstance();
+        DayProfileService dayProfileService;
 
         public LogDetailPage(LogModel log)
         {
@@ -49,7 +49,7 @@ namespace DiabetesContolApp.Views
 
         async protected override void OnAppearing()
         {
-            var dayProfiles = await dayProfileDatabase.GetDayProfilesAsync();
+            var dayProfiles = await dayProfileService.GetDayProfilesAsync();
             dayProfiles.Sort(); //Sort the elements
 
             DayProfiles = new ObservableCollection<DayProfileModel>(dayProfiles);
@@ -114,7 +114,7 @@ namespace DiabetesContolApp.Views
             Log.NumberOfGroceryModels = NumberOfGrocerySummary.ToList();
 
             //Calcualte the estimated insulin
-            float insulinEsitmate = Helper.CalculateInsulin(Log.GlucoseAtMeal, Log.NumberOfGroceryModels, await dayProfileDatabase.GetDayProfileAsync(Log.DayProfileID));
+            float insulinEsitmate = Helper.CalculateInsulin(Log.GlucoseAtMeal, Log.NumberOfGroceryModels, await dayProfileService.GetDayProfileAsync(Log.DayProfileID));
 
             Log.InsulinEstimate = insulinEsitmate;
 

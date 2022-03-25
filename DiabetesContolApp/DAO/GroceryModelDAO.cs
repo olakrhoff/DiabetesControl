@@ -8,7 +8,7 @@ using SQLiteNetExtensions.Attributes;
 namespace DiabetesContolApp.DAO
 {
     [Table("Grocery")]
-    public class GroceryModel : INotifyPropertyChanged, IEquatable<GroceryModel>, IComparable<GroceryModel>, IModel
+    public class GroceryModelDAO : INotifyPropertyChanged, IEquatable<GroceryModelDAO>, IComparable<GroceryModelDAO>, IModelDAO
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -27,7 +27,7 @@ namespace DiabetesContolApp.DAO
 
         private float _carbScalar;
 
-        public GroceryModel()
+        public GroceryModelDAO()
         {
             GroceryID = -1; //This will indicate that the Grocery is not yet added to the database
             this._carbScalar = 1.0f; //This is the default of the scalar, when it is one it has no effect on the calculations
@@ -38,12 +38,12 @@ namespace DiabetesContolApp.DAO
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public bool Equals(GroceryModel other)
+        public bool Equals(GroceryModelDAO other)
         {
             return this.GroceryID.Equals(other.GroceryID);
         }
 
-        public int CompareTo(GroceryModel other)
+        public int CompareTo(GroceryModelDAO other)
         {
             return this.Name.CompareTo(other.Name);
         }

@@ -6,13 +6,13 @@ using SQLiteNetExtensions.Attributes;
 namespace DiabetesContolApp.DAO
 {
     [Table("GroceryLog")]
-    public class GroceryLogModelDAO : IModel
+    public class GroceryLogModelDAO : IModelDAO
     {
         [PrimaryKey, AutoIncrement]
         public int GroceryLogID { get; set; }
-        [ForeignKey(typeof(GroceryModel))]
+        [ForeignKey(typeof(GroceryModelDAO))]
         public int GroceryID { get; set; }
-        [ForeignKey(typeof(LogModel))]
+        [ForeignKey(typeof(LogModelDAO))]
         public int LogID { get; set; }
         [NotNull]
         public uint NumberOfGrocery { get; set; }
@@ -28,24 +28,24 @@ namespace DiabetesContolApp.DAO
             NumberOfGrocery = numberOfGrocery;
         }
 
-        static public List<GroceryLogModelDAO> GetGroceryLogs(List<NumberOfGroceryModel> numberOfGroceries, int logID)
+        static public List<GroceryLogModelDAO> GetGroceryLogs(List<NumberOfGroceryModelDAO> numberOfGroceries, int logID)
         {
             List<GroceryLogModelDAO> groceryLogs = new();
 
             if (numberOfGroceries != null)
-                foreach (NumberOfGroceryModel numberOfGrocery in numberOfGroceries)
+                foreach (NumberOfGroceryModelDAO numberOfGrocery in numberOfGroceries)
                     groceryLogs.Add(new(numberOfGrocery.Grocery.GroceryID, logID, numberOfGrocery.NumberOfGrocery));
 
             return groceryLogs;
         }
 
-        static public List<NumberOfGroceryModel> GetNumberOfGroceries(List<GroceryLogModelDAO> groceryLogs)
+        static public List<NumberOfGroceryModelDAO> GetNumberOfGroceries(List<GroceryLogModelDAO> groceryLogs)
         {
-            List<NumberOfGroceryModel> numberOfGroceries = new();
+            List<NumberOfGroceryModelDAO> numberOfGroceries = new();
 
             foreach (GroceryLogModelDAO groceryLog in groceryLogs)
             {
-                var tempNumberOfGrocery = new NumberOfGroceryModel(groceryLog.NumberOfGrocery, new GroceryModel());
+                var tempNumberOfGrocery = new NumberOfGroceryModelDAO(groceryLog.NumberOfGrocery, new GroceryModelDAO());
                 tempNumberOfGrocery.Grocery.GroceryID = groceryLog.GroceryID;
                 numberOfGroceries.Add(tempNumberOfGrocery);
             }

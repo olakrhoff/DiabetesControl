@@ -24,9 +24,9 @@ namespace DiabetesContolApp.Persistence
             return "GroceryLogID, GroceryID, LogID, NumberOfGrocery\n";
         }
 
-        async public override Task<List<IModel>> GetAllAsync()
+        async public override Task<List<IModelDAO>> GetAllAsync()
         {
-            return new(await connection.Table<GroceryLogModel>().ToListAsync());
+            return new(await connection.Table<GroceryLogModelDAO>().ToListAsync());
         }
     }
 }

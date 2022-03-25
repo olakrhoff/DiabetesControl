@@ -5,20 +5,20 @@ using System.Runtime.CompilerServices;
 
 namespace DiabetesContolApp.DAO
 {
-    public class NumberOfGroceryModel : IEquatable<NumberOfGroceryModel>, IComparable<NumberOfGroceryModel>, INotifyPropertyChanged
+    public class NumberOfGroceryModelDAO : IEquatable<NumberOfGroceryModelDAO>, IComparable<NumberOfGroceryModelDAO>, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
         private uint _numberOfGrocery;
-        public GroceryModel Grocery { get; set; }
+        public GroceryModelDAO Grocery { get; set; }
 
-        public NumberOfGroceryModel(uint number, GroceryModel grocery)
+        public NumberOfGroceryModelDAO(uint number, GroceryModelDAO grocery)
         {
             NumberOfGrocery = number;
             Grocery = grocery;
         }
 
-        public NumberOfGroceryModel(GroceryModel grocery)
+        public NumberOfGroceryModelDAO(GroceryModelDAO grocery)
         {
             NumberOfGrocery = 0;
             Grocery = grocery;
@@ -44,22 +44,22 @@ namespace DiabetesContolApp.DAO
         }
 
 
-        static public List<NumberOfGroceryModel> GetNumberOfGroceries(List<GroceryModel> groceries)
+        static public List<NumberOfGroceryModelDAO> GetNumberOfGroceries(List<GroceryModelDAO> groceries)
         {
-            List<NumberOfGroceryModel> temp = new();
+            List<NumberOfGroceryModelDAO> temp = new();
 
-            foreach (GroceryModel grocery in groceries)
-                temp.Add(new NumberOfGroceryModel(0, grocery));
+            foreach (GroceryModelDAO grocery in groceries)
+                temp.Add(new NumberOfGroceryModelDAO(0, grocery));
 
             return temp;
         }
 
-        public bool Equals(NumberOfGroceryModel other)
+        public bool Equals(NumberOfGroceryModelDAO other)
         {
             return this.Grocery.Equals(other.Grocery);
         }
 
-        public int CompareTo(NumberOfGroceryModel other)
+        public int CompareTo(NumberOfGroceryModelDAO other)
         {
             return this.Grocery.CompareTo(other.Grocery);
         }

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using DiabetesContolApp.Models;
-using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Service;
 using DiabetesContolApp.GlobalLogic;
 
 using Xamarin.Forms;
@@ -23,7 +23,7 @@ namespace DiabetesContolApp.Views
 
         public ObservableCollection<NumberOfGroceryModel> Groceries { get; set; }
         private List<NumberOfGroceryModel> GroceriesAdded { get; set; }
-        private GroceryDatabase groceryDatabase = GroceryDatabase.GetInstance();
+        private GroceryService groceryService;
 
         public GrocerySelectionListPage(List<NumberOfGroceryModel> groceries = null)
         {
@@ -52,9 +52,9 @@ namespace DiabetesContolApp.Views
 
         async private Task<List<NumberOfGroceryModel>> GetNumberOfGroceries()
         {
-            var groceries = await groceryDatabase.GetGroceriesAsync();
+            var groceries = await groceryService.GetGroceriesAsync();
             groceries.Sort();
-
+            //TODO: THIS SOULD NOT USE 
             return NumberOfGroceryModel.GetNumberOfGroceries(groceries);
         }
 
@@ -72,7 +72,7 @@ namespace DiabetesContolApp.Views
             {
                 Groceries.Add(new NumberOfGroceryModel(args));
                 Groceries = Helper.SortObservableCollection(Groceries);
-                await groceryDatabase.InsertGroceryAsync(args);
+                await groceryService.InsertGroceryAsync(args);
             };
 
             await Navigation.PushAsync(page);
@@ -95,7 +95,7 @@ namespace DiabetesContolApp.Views
             {
                 Groceries.Remove(grocery);
                 NumberOfGroceryDeleted?.Invoke(this, grocery);
-                await groceryDatabase.DeleteGroceryAsync(grocery.Grocery);
+                await groceryService.DeleteGroceryAsync(grocery.Grocery);
             }
         }
 
@@ -117,7 +117,7 @@ namespace DiabetesContolApp.Views
 
             page.GrocerySaved += async (source, args) =>
             {
-                await groceryDatabase.UpdateGroceryAsync(args);
+                await groceryService.UpdateGroceryAsync(args);
             };
 
             await Navigation.PushAsync(page);

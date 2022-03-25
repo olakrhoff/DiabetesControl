@@ -30,33 +30,33 @@ namespace DiabetesContolApp.Persistence
          * 
          * Return: int, the primaryKey (ID) of the DayProfile.
          */
-        async internal Task<DayProfileModel> GetDayProfileAsync(int dayProfileID)
+        async internal Task<DayProfileModelDAO> GetDayProfileAsync(int dayProfileID)
         {
-            return await connection.GetAsync<DayProfileModel>(dayProfileID);
+            return await connection.GetAsync<DayProfileModelDAO>(dayProfileID);
         }
 
-        async internal Task<List<DayProfileModel>> GetDayProfilesAsync()
+        async internal Task<List<DayProfileModelDAO>> GetDayProfilesAsync()
         {
-            return await connection.Table<DayProfileModel>().ToListAsync();
+            return await connection.Table<DayProfileModelDAO>().ToListAsync();
         }
 
-        async internal Task<int> InsertDayProfileAsync(DayProfileModel dayProfile)
+        async internal Task<int> InsertDayProfileAsync(DayProfileModelDAO dayProfile)
         {
             return await connection.InsertAsync(dayProfile);
         }
 
-        async internal Task<int> UpdateDayProfileAsync(DayProfileModel dayProfile)
+        async internal Task<int> UpdateDayProfileAsync(DayProfileModelDAO dayProfile)
         {
             return await connection.UpdateAsync(dayProfile);
         }
 
-        async internal Task<int> DeleteDayProfileAsync(DayProfileModel dayProfile)
+        async internal Task<int> DeleteDayProfileAsync(DayProfileModelDAO dayProfile)
         {
-            List<LogModel> logs = await connection.Table<LogModel>().ToListAsync();
+            List<LogModelDAO> logs = await connection.Table<LogModelDAO>().ToListAsync();
 
             LogDatabase logDatabase = LogDatabase.GetInstance();
 
-            foreach (LogModel log in logs)
+            foreach (LogModelDAO log in logs)
                 if (log.DayProfileID == dayProfile.DayProfileID)
                     await logDatabase.DeleteLogAsync(log.LogID);
 
@@ -68,9 +68,9 @@ namespace DiabetesContolApp.Persistence
             return "DayProfileID, Name, StartTime, CarbScalar, GlucoseScalar, TargetGlucoseValue\n";
         }
 
-        async public override Task<List<IModel>> GetAllAsync()
+        async public override Task<List<IModelDAO>> GetAllAsync()
         {
-            return new(await connection.Table<DayProfileModel>().ToListAsync());
+            return new(await connection.Table<DayProfileModelDAO>().ToListAsync());
         }
     }
 }

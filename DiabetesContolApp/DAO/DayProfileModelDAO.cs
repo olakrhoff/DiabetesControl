@@ -6,7 +6,7 @@ using SQLite;
 namespace DiabetesContolApp.DAO
 {
     [Table("DayProfile")]
-    public class DayProfileModel : IComparable<DayProfileModel>, IEquatable<DayProfileModel>, IModel
+    public class DayProfileModelDAO : IComparable<DayProfileModelDAO>, IEquatable<DayProfileModelDAO>, IModelDAO
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -21,7 +21,7 @@ namespace DiabetesContolApp.DAO
         [NotNull]
         public float TargetGlucoseValue { get; set; }
 
-        public DayProfileModel()
+        public DayProfileModelDAO()
         {
         }
 
@@ -30,14 +30,14 @@ namespace DiabetesContolApp.DAO
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public int CompareTo(DayProfileModel other)
+        public int CompareTo(DayProfileModelDAO other)
         {
             if (other == null)
                 return 1;
             return this.StartTime.CompareTo(other.StartTime);
         }
 
-        public bool Equals(DayProfileModel other)
+        public bool Equals(DayProfileModelDAO other)
         {
             if (other == null)
                 return false;

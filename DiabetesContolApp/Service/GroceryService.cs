@@ -6,33 +6,28 @@ using DiabetesContolApp.Models;
 
 namespace DiabetesContolApp.Service
 {
-    public class LogService
+    public class GroceryService
     {
-        public LogService()
+        public GroceryService()
         {
         }
 
-        async public Task<bool> InsertLogAsync(LogModel newLog)
-        {
-            throw new NotImplementedException();
-        }
-
-        async public Task<bool> DeleteLogAsync(int logID)
+        async public Task<List<GroceryModel>> GetGroceriesAsync()
         {
             throw new NotImplementedException();
         }
 
-        async public Task<List<LogModel>> GetLogsAsync(DateTime dateTime)
+        async public Task<bool> InsertGroceryAsync(GroceryModel newGrocery)
         {
             throw new NotImplementedException();
         }
 
-        async public Task<bool> UpdateLogAsync(LogModel log)
+        async public Task<bool> UpdateGroceryAsync(GroceryModel grocery)
         {
             throw new NotImplementedException();
         }
 
-        async public Task<LogModel> GetNewestLogAsync()
+        async public Task<bool> DeleteGroceryAsync(GroceryModel grocery)
         {
             throw new NotImplementedException();
         }

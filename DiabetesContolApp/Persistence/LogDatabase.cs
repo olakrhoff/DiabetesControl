@@ -178,7 +178,7 @@ namespace DiabetesContolApp.Persistence
 
             await globalVariables.SavePropertiesAsync();
 
-            await AverageTDDDatabase.GetInstance().InsertAverageTDD(new(newAverageTDD));
+            //await AverageTDDDatabase.GetInstance().InsertAverageTDD(new(newAverageTDD));
 
             return true;
         }
@@ -203,7 +203,7 @@ namespace DiabetesContolApp.Persistence
 
                 GroceryDatabase groceryDatabase = GroceryDatabase.GetInstance();
 
-                foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceryModels)
+                foreach (NumberOfGroceryModelDAO numberOfGrocery in log.NumberOfGroceryModels)
                     numberOfGrocery.Grocery = await groceryDatabase.GetGroceryAsync(numberOfGrocery.Grocery.GroceryID);
 
                 return log;
@@ -325,7 +325,7 @@ namespace DiabetesContolApp.Persistence
             return "LogID, DayProfileID, ReminderID, DateTimeValue, GlucoseAtMeal, GlucoseAfterMeal\n";
         }
 
-        public override async Task<List<IModel>> GetAllAsync()
+        public override async Task<List<IModelDAO>> GetAllAsync()
         {
             return new(await connection.Table<LogModelDAO>().ToListAsync());
         }

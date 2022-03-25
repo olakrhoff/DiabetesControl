@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using DiabetesContolApp.Models;
+
+using DiabetesContolApp.DAO;
+
 using SQLite;
 using Xamarin.Forms;
 
@@ -15,18 +17,17 @@ namespace DiabetesContolApp.Persistence
         {
             connection = DependencyService.Get<ISQLiteDB>().GetConnection();
 
-            connection.CreateTableAsync<DayProfileModel>().Wait();
-            connection.CreateTableAsync<GroceryModel>().Wait();
-            //connection.DropTableAsync<ReminderModel>().Wait();
+            connection.CreateTableAsync<DayProfileModelDAO>().Wait();
+            connection.CreateTableAsync<GroceryModelDAO>().Wait();
+            //connection.DropTableAsync<ReminderModelDAO>().Wait();
             connection.CreateTableAsync<ReminderModelDAO>().Wait();
-            //connection.DropTableAsync<LogModel>().Wait();
-            connection.CreateTableAsync<LogModel>().Wait();
-            //connection.DropTableAsync<GroceryLogModel>().Wait();
-            connection.CreateTableAsync<GroceryLogModel>().Wait();
-            connection.CreateTableAsync<AverageTDDModel>().Wait();
+            //connection.DropTableAsync<LogModelDAO>().Wait();
+            connection.CreateTableAsync<LogModelDAO>().Wait();
+            //connection.DropTableAsync<GroceryLogModelDAO>().Wait();
+            connection.CreateTableAsync<GroceryLogModelDAO>().Wait();
         }
 
-        public abstract Task<List<IModel>> GetAllAsync();
+        public abstract Task<List<IModelDAO>> GetAllAsync();
         public abstract string HeaderForCSVFile();
     }
 }
