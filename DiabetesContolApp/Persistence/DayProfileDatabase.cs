@@ -7,6 +7,7 @@ using DiabetesContolApp.DAO;
 using SQLite;
 
 using Xamarin.Forms;
+using System.Diagnostics;
 
 namespace DiabetesContolApp.Persistence
 {
@@ -23,34 +24,41 @@ namespace DiabetesContolApp.Persistence
             return instance == null ? new DayProfileDatabase() : instance;
         }
 
-        /*
-         * This method gets a DayProfileModel based on its ID.
-         * 
-         * Parmas: int, the ID of the DayProfileModel
-         * 
-         * Return: int, the primaryKey (ID) of the DayProfile.
-         */
-        async internal Task<DayProfileModelDAO> GetDayProfileAsync(int dayProfileID)
+        /// <summary>
+        /// Gets the DAO with the given ID, if it exists.
+        /// </summary>
+        /// <param name="dayProfileID"></param>
+        /// <returns>The DAO with the given ID, or null if no element was found.</returns>
+        async public Task<DayProfileModelDAO> GetDayProfileAsync(int dayProfileID)
         {
-            return await connection.GetAsync<DayProfileModelDAO>(dayProfileID);
+            try
+            {
+                DayProfileModelDAO dayProfileDAO = await connection.GetAsync<DayProfileModelDAO>(dayProfileID);
+                return dayProfileDAO;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return null;
+            }
         }
 
-        async internal Task<List<DayProfileModelDAO>> GetDayProfilesAsync()
+        async public Task<List<DayProfileModelDAO>> GetDayProfilesAsync()
         {
             return await connection.Table<DayProfileModelDAO>().ToListAsync();
         }
 
-        async internal Task<int> InsertDayProfileAsync(DayProfileModelDAO dayProfile)
+        async public Task<int> InsertDayProfileAsync(DayProfileModelDAO dayProfile)
         {
             return await connection.InsertAsync(dayProfile);
         }
 
-        async internal Task<int> UpdateDayProfileAsync(DayProfileModelDAO dayProfile)
+        async public Task<int> UpdateDayProfileAsync(DayProfileModelDAO dayProfile)
         {
             return await connection.UpdateAsync(dayProfile);
         }
 
-        async internal Task<int> DeleteDayProfileAsync(DayProfileModelDAO dayProfile)
+        async public Task<int> DeleteDayProfileAsync(DayProfileModelDAO dayProfile)
         {
             List<LogModelDAO> logs = await connection.Table<LogModelDAO>().ToListAsync();
 

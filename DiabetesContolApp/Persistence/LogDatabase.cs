@@ -196,16 +196,6 @@ namespace DiabetesContolApp.Persistence
             try
             {
                 LogModelDAO log = await connection.GetAsync<LogModelDAO>(logID);
-
-                List<GroceryLogModelDAO> groceryLogs = await connection.Table<GroceryLogModelDAO>().Where(e => e.LogID == logID).ToListAsync();
-
-                log.NumberOfGroceryModels = GroceryLogModelDAO.GetNumberOfGroceries(groceryLogs);
-
-                GroceryDatabase groceryDatabase = GroceryDatabase.GetInstance();
-
-                foreach (NumberOfGroceryModelDAO numberOfGrocery in log.NumberOfGroceryModels)
-                    numberOfGrocery.Grocery = await groceryDatabase.GetGroceryAsync(numberOfGrocery.Grocery.GroceryID);
-
                 return log;
             }
             catch (InvalidOperationException ioe)
@@ -252,6 +242,24 @@ namespace DiabetesContolApp.Persistence
 
 
             return await connection.UpdateAsync(log);
+        }
+
+        /// <summary>
+        /// Gets all logs, filter on the given date, then returns whats left.
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <returns>Return all log on given date</returns>
+        async public Task<List<LogModelDAO>> GetLogsOnDateAsync(DateTime dateTime)
+        {
+            var logs = await connection.Table<LogModelDAO>().ToListAsync();
+
+            List<LogModelDAO> temp = new();
+
+            foreach (LogModelDAO log in logs)
+                if (log.DateTimeValue.Date.Equals(dateTime.Date))
+                    temp.Add(log);
+
+            return temp;
         }
 
         async public Task<List<LogModelDAO>> GetLogsAsync(DateTime? dateTime = null)

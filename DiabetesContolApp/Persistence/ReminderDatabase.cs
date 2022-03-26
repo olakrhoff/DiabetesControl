@@ -74,21 +74,21 @@ namespace DiabetesContolApp.Persistence
         /// </returns>
         async public Task<ReminderModelDAO> GetReminderAsync(int reminderID)
         {
-            ReminderModelDAO reminder = null;
-
             try
             {
-                reminder = await connection.GetAsync<ReminderModelDAO>(reminderID);
+                ReminderModelDAO reminder = await connection.GetAsync<ReminderModelDAO>(reminderID);
+                return reminder;
             }
             catch (InvalidOperationException ioe)
             {
                 Debug.WriteLine(ioe.Message);
                 return null;
             }
-
-            reminder.Logs = await GetLogsForReminderAsync(reminder.ReminderID);
-
-            return reminder;
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return null;
+            }
         }
 
         /// <summary>

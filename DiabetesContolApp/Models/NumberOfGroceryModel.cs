@@ -19,6 +19,13 @@ namespace DiabetesContolApp.Models
             InsulinForGroceries = insulinForGroceries;
         }
 
+        public NumberOfGroceryModel(GroceryLogModel groceryLog)
+        {
+            NumberOfGrocery = groceryLog.NumberOfGrocery;
+            Grocery = groceryLog.Grocery;
+            InsulinForGroceries = groceryLog.InsulinForGrocery;
+        }
+
         public NumberOfGroceryModel(GroceryModel grocery)
         {
             NumberOfGrocery = 0;

@@ -27,6 +27,15 @@ namespace DiabetesContolApp.Models
             GroceryID = -1; //This will indicate that the Grocery is not yet added to the database
             this._carbScalar = 1.0f; //This is the default of the scalar, when it is one it has no effect on the calculations
         }
+
+        public GroceryModel(int groceryID)
+        {
+            GroceryID = groceryID; //This will indicate that the Grocery is not yet added to the database
+            this._carbScalar = 1.0f; //This is the default of the scalar, when it is one it has no effect on the calculations
+        }
+
+
+
         /*
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {

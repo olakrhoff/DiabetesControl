@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 using DiabetesContolApp.GlobalLogic;
-using DiabetesContolApp.Persistence;
+using DiabetesContolApp.DAO;
 
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
@@ -32,6 +32,23 @@ namespace DiabetesContolApp.Models
             DateTimeLong = DateTime.Now.AddHours(TIME_TO_WAIT).ToBinary();
             IsHandled = false;
             Logs = new();
+        }
+
+        public ReminderModel(int reminderID)
+        {
+            ReminderID = reminderID;
+            DateTimeLong = DateTime.Now.AddHours(TIME_TO_WAIT).ToBinary();
+            IsHandled = false;
+            Logs = new();
+        }
+
+        public ReminderModel(ReminderModelDAO reminderDAO)
+        {
+            ReminderID = reminderDAO.ReminderID;
+            DateTimeValue = reminderDAO.DateTimeValue;
+            GlucoseAfterMeal = reminderDAO.GlucoseAfterMeal;
+            Logs = new();
+            IsHandled = reminderDAO.IsHandled;
         }
 
         /// <summary>

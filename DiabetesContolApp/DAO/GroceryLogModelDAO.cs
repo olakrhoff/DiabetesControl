@@ -16,16 +16,20 @@ namespace DiabetesContolApp.DAO
         public int LogID { get; set; }
         [NotNull]
         public uint NumberOfGrocery { get; set; }
+        public float InsulinForGrocery { get; set; }
 
         public GroceryLogModelDAO()
         {
+            GroceryLogID = -1;
         }
 
-        public GroceryLogModelDAO(int groceryID, int logID, uint numberOfGrocery, float insulinForGroceries)
+        public GroceryLogModelDAO(int groceryID, int logID, uint numberOfGrocery, float insulinForGrocery)
         {
+            GroceryLogID = -1;
             GroceryID = groceryID;
             LogID = logID;
             NumberOfGrocery = numberOfGrocery;
+            InsulinForGrocery = insulinForGrocery;
         }
 
         static public List<GroceryLogModelDAO> GetGroceryLogs(List<NumberOfGroceryModelDAO> numberOfGroceries, int logID)

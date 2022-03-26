@@ -27,8 +27,30 @@ namespace DiabetesContolApp.Models
             Reminder = new();
         }
 
+        public LogModel(int logID)
+        {
+            LogID = logID;
+            DayProfile = new();
+            Reminder = new();
+        }
+
+        public LogModel(LogModelDAO logDAO)
+        {
+            LogID = logDAO.LogID;
+            Reminder = new(logDAO.ReminderID);
+            DayProfile = new(logDAO.DayProfileID);
+            DateTimeValue = logDAO.DateTimeValue;
+            InsulinEstimate = logDAO.InsulinEstimate;
+            InsulinFromUser = logDAO.InsulinFromUser;
+            GlucoseAtMeal = logDAO.GlucoseAtMeal;
+            GlucoseAfterMeal = logDAO.GlucoseAfterMeal;
+            CorrectionInsulin = logDAO.CorrectionInsulin;
+            NumberOfGroceryModels = new();
+        }
+
         public LogModel(int dayProfileID, DateTime dateTime, float insulinEstimate, float insulinFromUser, float glucoseAtMeal, List<NumberOfGroceryModel> numberOfGroceries, float? glucoseAfterMeal = null)
         {
+            throw new NotImplementedException("Should be updated");
             LogID = -1;
             Reminder = new();
             DayProfile = new(dayProfileID);

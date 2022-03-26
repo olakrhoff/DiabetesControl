@@ -2,6 +2,8 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
+using DiabetesContolApp.DAO;
+
 
 namespace DiabetesContolApp.Models
 {
@@ -27,6 +29,17 @@ namespace DiabetesContolApp.Models
         {
             DayProfileID = dayProfileID;
         }
+
+        public DayProfileModel(DayProfileModelDAO dayProfileDAO)
+        {
+            DayProfileID = dayProfileDAO.DayProfileID;
+            Name = dayProfileDAO.Name;
+            StartTime = dayProfileDAO.StartTime;
+            CarbScalar = dayProfileDAO.CarbScalar;
+            GlucoseScalar = dayProfileDAO.GlucoseScalar;
+            TargetGlucoseValue = dayProfileDAO.TargetGlucoseValue;
+        }
+
         /*
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {

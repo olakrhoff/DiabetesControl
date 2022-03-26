@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using SQLiteNetExtensions.Attributes;
+using DiabetesContolApp.DAO;
 
 namespace DiabetesContolApp.Models
 {
@@ -10,19 +10,35 @@ namespace DiabetesContolApp.Models
     {
 
         public int GroceryLogID { get; set; }
-        public NumberOfGroceryModel NumberOfGrocery { get; set; }
+        public GroceryModel Grocery { get; set; }
         public LogModel Log { get; set; }
+        public uint NumberOfGrocery { get; set; }
+        public float InsulinForGrocery { get; set; }
+
 
 
         public GroceryLogModel()
         {
+            GroceryLogID = -1;
         }
 
-        public GroceryLogModel(NumberOfGroceryModel numberOfGrocery, LogModel log)
+        public GroceryLogModel(GroceryLogModelDAO groceryLogDAO)
+        {
+            GroceryLogID = groceryLogDAO.GroceryLogID;
+            Grocery = new(groceryLogDAO.GroceryID);
+            Log = new(groceryLogDAO.LogID);
+            NumberOfGrocery = groceryLogDAO.NumberOfGrocery;
+            InsulinForGrocery = groceryLogDAO.InsulinForGrocery;
+        }
+
+
+        public GroceryLogModel(GroceryModel grocery, LogModel log, uint numberOfGrocery, float insulinForGrocery)
         {
             GroceryLogID = -1;
-            NumberOfGrocery = numberOfGrocery;
+            Grocery = grocery;
             Log = log;
+            NumberOfGrocery = numberOfGrocery;
+            InsulinForGrocery = insulinForGrocery;
         }
 
         static public List<GroceryLogModel> GetGroceryLogs(List<NumberOfGroceryModel> numberOfGroceries, int logID)
@@ -55,9 +71,9 @@ namespace DiabetesContolApp.Models
         public string ToStringCSV()
         {
             return GroceryLogID + "," +
-                NumberOfGrocery.Grocery.GroceryID + "," +
+                Grocery.GroceryID + "," +
                 Log.LogID + "," +
-                NumberOfGrocery.NumberOfGrocery + "\n";
+                NumberOfGrocery + "\n";
         }
     }
 
