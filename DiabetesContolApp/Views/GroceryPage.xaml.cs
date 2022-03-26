@@ -71,7 +71,7 @@ namespace DiabetesContolApp.Views
             if (await DisplayAlert("Deleting", $"Are you sure you want to delete {grocery.Name}?", "Delete", "Cancel"))
             {
                 Groceries.Remove(grocery);
-                await groceryService.DeleteGroceryAsync(grocery);
+                await groceryService.DeleteGroceryAsync(grocery.GroceryID);
             }
         }
     }

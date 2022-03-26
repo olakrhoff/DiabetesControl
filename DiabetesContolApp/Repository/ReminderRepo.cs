@@ -33,5 +33,24 @@ namespace DiabetesContolApp.Repository
 
             return new(reminderDAO);
         }
+
+        /// <summary>
+        /// Converts ReminderModel to DAO and inserts it into database.
+        /// </summary>
+        /// <param name="newReminder"></param>
+        /// <returns>
+        /// Return the ID of the newly added Reminder.
+        /// If error returns -1.
+        /// </returns>
+        async public Task<int> InsertAsync(ReminderModel newReminder)
+        {
+            if (await reminderDatabase.InsertReminderAsync(new(newReminder)) == 0)
+                return -1;
+
+            ReminderModelDAO newestRemidnerDAO = await reminderDatabase.GetNewestReminderAsync();
+            if (newestRemidnerDAO == null)
+                return -1;
+            return newestRemidnerDAO.ReminderID;
+        }
     }
 }

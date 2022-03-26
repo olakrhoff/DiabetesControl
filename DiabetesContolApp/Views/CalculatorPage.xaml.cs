@@ -66,7 +66,7 @@ namespace DiabetesContolApp.Views
             overlappingMealLabel.IsVisible = isOverlapping; //Visible if overlapping
             glucose.IsEnabled = !isOverlapping; //Enabled if not overlapping
             if (isOverlapping)
-                glucose.Text = (await dayProfileService.GetDayProfileAsync(previousLog.DayProfileID)).TargetGlucoseValue.ToString();
+                glucose.Text = previousLog.DayProfile.TargetGlucoseValue.ToString();
 
             _reminderModelID = isOverlapping ? reminderID : -1;
         }
@@ -150,7 +150,7 @@ namespace DiabetesContolApp.Views
                 insulinFromUserFloat,
                 glucoseAtMealFloat,
                 NumberOfGroceriesSummary?.ToList());
-            newLogEntry.ReminderID = _reminderModelID;
+            newLogEntry.Reminder.ReminderID = _reminderModelID;
 
             await logService.InsertLogAsync(newLogEntry);
 
@@ -250,7 +250,7 @@ namespace DiabetesContolApp.Views
             LogModel log = await logService.GetNewestLogAsync();
             ReminderModel reminder = null;
             if (log != null)
-                reminder = await reminderService.GetReminderAsync(log.ReminderID);
+                reminder = log.Reminder;
 
             //The previous log overlaps in time with the
             //new log, if it is to be added now

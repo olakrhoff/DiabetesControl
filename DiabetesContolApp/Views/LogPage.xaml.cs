@@ -45,7 +45,7 @@ namespace DiabetesContolApp.Views
 
         async private void GetLogsForDate()
         {
-            var logs = await logService.GetLogsAsync(localDate);
+            var logs = await logService.GetLogsOnDateAsync(localDate);
             logs.Sort();
             logs.Reverse();
             Logs = new(logs);

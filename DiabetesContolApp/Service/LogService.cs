@@ -27,6 +27,15 @@ namespace DiabetesContolApp.Service
         /// <returns>true if log was inserted, else false</returns>
         async public Task<bool> InsertLogAsync(LogModel newLog)
         {
+            if (newLog.Reminder.ReminderID == -1) //Remidner did not overlap, need new Reminder
+            {
+                int reminderID = await reminderRepo.InsertAsync(new());
+                if (reminderID == -1)
+                    return false; //An error occured while creating the remidner
+
+                newLog.Reminder.ReminderID = reminderID;
+            }
+
             int logID = await logRepo.InsertAsync(newLog); //Insert new Log
             if (logID == -1)
                 return false;
@@ -128,7 +137,7 @@ namespace DiabetesContolApp.Service
             if (!await logRepo.UpdateAsync(log))
                 return false; //No log was updated, stop
 
-            bool deleted = await groceryLogRepo.DeleteAllAsync(log.LogID); //Delete all entries with this log
+            bool deleted = await groceryLogRepo.DeleteAllWithLogIDAsync(log.LogID); //Delete all entries with this log
             bool added = await groceryLogRepo.InsertAllAsync(log.NumberOfGroceryModels, log.LogID); //Add all the new ones
 
             if (deleted && added)

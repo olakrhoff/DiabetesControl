@@ -4,14 +4,14 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using SQLite;
 
 using DiabetesContolApp.GlobalLogic;
 using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Models;
 
+using SQLite;
 using SQLiteNetExtensions.Attributes;
 using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
 
 namespace DiabetesContolApp.DAO
 {
@@ -28,9 +28,6 @@ namespace DiabetesContolApp.DAO
         [NotNull]
         public long DateTimeLong { get; set; } //When to remind the user
         public float? GlucoseAfterMeal { get; set; }
-        [OneToMany]
-        public List<LogModelDAO> Logs { get; set; }
-
         public bool IsHandled { get; set; }
 
         public ReminderModelDAO()
@@ -38,7 +35,15 @@ namespace DiabetesContolApp.DAO
             ReminderID = -1;
             DateTimeLong = DateTime.Now.AddHours(TIME_TO_WAIT).ToBinary();
             IsHandled = false;
-            Logs = new();
+        }
+
+        public ReminderModelDAO(ReminderModel reminder)
+        {
+            ReminderID = reminder.ReminderID;
+            DateTimeLong = reminder.DateTimeLong;
+            DateTimeValue = reminder.DateTimeValue;
+            GlucoseAfterMeal = reminder.GlucoseAfterMeal;
+            IsHandled = reminder.IsHandled;
         }
 
         /// <summary>

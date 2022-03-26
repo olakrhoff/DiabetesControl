@@ -95,7 +95,7 @@ namespace DiabetesContolApp.Views
             {
                 Groceries.Remove(grocery);
                 NumberOfGroceryDeleted?.Invoke(this, grocery);
-                await groceryService.DeleteGroceryAsync(grocery.Grocery);
+                await groceryService.DeleteGroceryAsync(grocery.Grocery.GroceryID);
             }
         }
 

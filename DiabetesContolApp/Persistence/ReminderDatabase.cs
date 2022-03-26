@@ -25,6 +25,11 @@ namespace DiabetesContolApp.Persistence
             return instance == null ? new ReminderDatabase() : instance;
         }
 
+        /// <summary>
+        /// Inserts a new Reminder into the database.
+        /// </summary>
+        /// <param name="reminderModel"></param>
+        /// <returns>The number of rows added.</returns>
         async public Task<int> InsertReminderAsync(ReminderModelDAO reminderModel)
         {
             return await connection.InsertAsync(reminderModel);
@@ -46,6 +51,20 @@ namespace DiabetesContolApp.Persistence
                 if (!e.IsHandled && await e.Handle())
                     await UpdateReminderAsync(e);
             });
+        }
+
+        /// <summary>
+        /// Gets the newest Reminder.
+        /// </summary>
+        /// <returns>ReminderDAO for the newest reminder, null if no reminders exist.</returns>
+        async public Task<ReminderModelDAO> GetNewestReminderAsync()
+        {
+            List<ReminderModelDAO> remindersDAO = await connection.Table<ReminderModelDAO>().ToListAsync();
+
+            if (remindersDAO.Count == 0)
+                return null;
+
+            return remindersDAO[remindersDAO.Count - 1];
         }
 
         /*

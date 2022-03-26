@@ -78,7 +78,7 @@ namespace DiabetesContolApp.Views
             if (await DisplayAlert("Deleting", $"Are you sure you want to delete {dayProfile.Name}?", "Delete", "Cancel"))
             {
                 DayProfiles.Remove(dayProfile);
-                await dayProfileService.DeleteDayProfileAsync(dayProfile);
+                await dayProfileService.DeleteDayProfileAsync(dayProfile.DayProfileID);
             }
         }
     }

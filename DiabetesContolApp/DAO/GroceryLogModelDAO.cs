@@ -43,7 +43,7 @@ namespace DiabetesContolApp.DAO
             NumberOfGrocery = numberOfGrocery;
             InsulinForGrocery = insulinForGrocery;
         }
-
+        /*
         static public List<GroceryLogModelDAO> GetGroceryLogs(List<NumberOfGroceryModelDAO> numberOfGroceries, int logID)
         {
             List<GroceryLogModelDAO> groceryLogs = new();
@@ -53,8 +53,8 @@ namespace DiabetesContolApp.DAO
                     groceryLogs.Add(new(numberOfGrocery.Grocery.GroceryID, logID, numberOfGrocery.NumberOfGrocery));
 
             return groceryLogs;
-        }
-
+        }*/
+        /*
         static public List<NumberOfGroceryModelDAO> GetNumberOfGroceries(List<GroceryLogModelDAO> groceryLogs)
         {
             List<NumberOfGroceryModelDAO> numberOfGroceries = new();
@@ -67,13 +67,13 @@ namespace DiabetesContolApp.DAO
             }
 
             return numberOfGroceries;
-        }
+        }*/
 
         public string ToStringCSV()
         {
-            return GroceryLogID + ", " +
-                GroceryID + ", " +
-                LogID + ", " +
+            return GroceryLogID + "," +
+                GroceryID + "," +
+                LogID + "," +
                 NumberOfGrocery + "\n";
         }
     }

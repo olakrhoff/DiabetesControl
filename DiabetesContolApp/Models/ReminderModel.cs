@@ -74,11 +74,7 @@ namespace DiabetesContolApp.Models
             {
                 GlucoseAfterMeal = -1.0f; //Indicates invalid data
 
-                (await LogDatabase.GetInstance().GetLogsWithReminderAsync(ReminderID)).ForEach(async log =>
-                {
-                    log.GlucoseAfterMeal = -1.0f; //Set it invald.
-                    await LogDatabase.GetInstance().UpdateLogAsync(log);
-                });
+                Logs.ForEach(log => log.GlucoseAfterMeal = -1.0f); //Set all data to be invalid.
 
                 IsHandled = true;
 

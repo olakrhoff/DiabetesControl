@@ -56,9 +56,9 @@ namespace DiabetesContolApp.Views
             dayProfilePicker.ItemsSource = DayProfiles;
 
             int index = -1;
-            if (Log.DayProfileID != -1)
+            if (Log.DayProfile.DayProfileID != -1)
                 for (int i = 0; i < DayProfiles.Count; ++i)
-                    if (DayProfiles[i].DayProfileID == Log.DayProfileID)
+                    if (DayProfiles[i].DayProfileID == Log.DayProfile.DayProfileID)
                     {
                         index = i;
                         break;
@@ -109,12 +109,12 @@ namespace DiabetesContolApp.Views
             Log.GlucoseAtMeal = glucoseAtMealFloat;
             Log.DateTimeValue = new DateTime(datePickerDateOfMeal.Date.Year, datePickerDateOfMeal.Date.Month, datePickerDateOfMeal.Date.Day, timePickerTimeOfMeal.Time.Hours, timePickerTimeOfMeal.Time.Minutes, 0);
             Log.InsulinFromUser = insulinFromUserFloat;
-            Log.DayProfileID = (dayProfilePicker.SelectedItem as DayProfileModel).DayProfileID;
+            Log.DayProfile.DayProfileID = (dayProfilePicker.SelectedItem as DayProfileModel).DayProfileID;
 
             Log.NumberOfGroceryModels = NumberOfGrocerySummary.ToList();
 
             //Calcualte the estimated insulin
-            float insulinEsitmate = Helper.CalculateInsulin(Log.GlucoseAtMeal, Log.NumberOfGroceryModels, await dayProfileService.GetDayProfileAsync(Log.DayProfileID));
+            float insulinEsitmate = Helper.CalculateInsulin(Log.GlucoseAtMeal, Log.NumberOfGroceryModels, Log.DayProfile);
 
             Log.InsulinEstimate = insulinEsitmate;
 
