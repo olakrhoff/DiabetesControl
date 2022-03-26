@@ -9,6 +9,7 @@ using DiabetesContolApp.GlobalLogic;
 using SQLite;
 using Xamarin.Forms;
 using System.Diagnostics;
+using DiabetesContolApp.Models;
 
 namespace DiabetesContolApp.Persistence
 {
@@ -83,6 +84,16 @@ namespace DiabetesContolApp.Persistence
             await UpdateAverageTDD();
 
             return rowsAdded;
+        }
+
+        /// <summary>
+        /// Gets all logs with a given DayProfile ID.
+        /// </summary>
+        /// <param name="dayProfileID"></param>
+        /// <returns>List of LogModelDAOs with given DayProfile ID.</returns>
+        async public Task<List<LogModelDAO>> GetLogsWithDayProfile(int dayProfileID)
+        {
+            return await connection.Table<LogModelDAO>().Where(logDAO => logDAO.DayProfileID == dayProfileID).ToListAsync();
         }
 
         /// <summary>

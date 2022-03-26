@@ -43,32 +43,44 @@ namespace DiabetesContolApp.Persistence
             }
         }
 
+
+        /// <summary>
+        /// Gets all DayProfilesDAOs.
+        /// </summary>
+        /// <returns>Returns a list of DayProfileDAOs.</returns>
         async public Task<List<DayProfileModelDAO>> GetDayProfilesAsync()
         {
             return await connection.Table<DayProfileModelDAO>().ToListAsync();
         }
 
+        /// <summary>
+        /// Inserts a DayProfileDAO into the database.
+        /// </summary>
+        /// <param name="dayProfile"></param>
+        /// <returns>int, number of rows added.</returns>
         async public Task<int> InsertDayProfileAsync(DayProfileModelDAO dayProfile)
         {
             return await connection.InsertAsync(dayProfile);
         }
 
+        /// <summary>
+        /// Takes a DayProfileDAO and updates it in the database.
+        /// </summary>
+        /// <param name="dayProfile"></param>
+        /// <returns>int, number of rows updated.</returns>
         async public Task<int> UpdateDayProfileAsync(DayProfileModelDAO dayProfile)
         {
             return await connection.UpdateAsync(dayProfile);
         }
 
-        async public Task<int> DeleteDayProfileAsync(DayProfileModelDAO dayProfile)
+        /// <summary>
+        /// Deletes the DayProfile with the given ID.
+        /// </summary>
+        /// <param name="dayProfile"></param>
+        /// <returns>int, number of row deleted.</returns>
+        async public Task<int> DeleteDayProfileAsync(int dayProfileID)
         {
-            List<LogModelDAO> logs = await connection.Table<LogModelDAO>().ToListAsync();
-
-            LogDatabase logDatabase = LogDatabase.GetInstance();
-
-            foreach (LogModelDAO log in logs)
-                if (log.DayProfileID == dayProfile.DayProfileID)
-                    await logDatabase.DeleteLogAsync(log.LogID);
-
-            return await connection.DeleteAsync(dayProfile);
+            return await connection.DeleteAsync<DayProfileModelDAO>(dayProfileID);
         }
 
         public override string HeaderForCSVFile()

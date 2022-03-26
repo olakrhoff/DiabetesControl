@@ -74,6 +74,24 @@ namespace DiabetesContolApp.Repository
         }
 
         /// <summary>
+        /// Gets all LogModelDAOs with a given
+        /// DayProfile ID, converts them into LogModels.
+        /// </summary>
+        /// <param name="dayProfileID"></param>
+        /// <returns>List of LogModels who has the given DayProfile ID.</returns>
+        async public Task<List<LogModel>> GetAllWithDayProfileID(int dayProfileID)
+        {
+            List<LogModelDAO> logsDAOWithDayProfileID = await logDatabase.GetLogsWithDayProfile(dayProfileID);
+
+            List<LogModel> logs = new();
+
+            foreach (LogModelDAO logDAO in logsDAOWithDayProfileID)
+                logs.Add(new(logDAO));
+
+            return logs;
+        }
+
+        /// <summary>
         /// Deletes all Logs with matching the IDs in the list.
         /// </summary>
         /// <param name="logIDs"></param>

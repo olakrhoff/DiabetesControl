@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.Repository;
+using System.Diagnostics;
 
 namespace DiabetesContolApp.Service
 {
@@ -49,10 +50,33 @@ namespace DiabetesContolApp.Service
         /// <returns>Returns false if an error occurs, else true</returns>
         async public Task<bool> DeleteLogAsync(int logID)
         {
-            if (!await groceryLogRepo.DeleteAllAsync(logID))
+            if (!await groceryLogRepo.DeleteAllWithLogIDAsync(logID))
                 throw new Exception("This state should not happen");
 
             return await logRepo.DeleteAsync(logID);
+        }
+
+        /// <summary>
+        /// Deletes all logs who has the DayProfile with the given ID.
+        /// </summary>
+        /// <param name="dayProfileID"></param>
+        /// <returns>False if an error occurs, else true.</returns>
+        async public Task<bool> DeleteAllWithDayProfileIDAsync(int dayProfileID)
+        {
+            try
+            {
+                List<LogModel> logsWithDayProfileID = await logRepo.GetAllWithDayProfileID(dayProfileID);
+
+                foreach (LogModel log in logsWithDayProfileID)
+                    await DeleteLogAsync(log.LogID);
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return false;
+            }
         }
 
         /// <summary>
