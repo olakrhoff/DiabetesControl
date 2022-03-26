@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+
+using DiabetesContolApp.Models;
+
 using SQLite;
 using SQLiteNetExtensions.Attributes;
 
@@ -21,6 +24,15 @@ namespace DiabetesContolApp.DAO
         public GroceryLogModelDAO()
         {
             GroceryLogID = -1;
+        }
+
+        public GroceryLogModelDAO(GroceryLogModel groceryLog)
+        {
+            GroceryLogID = groceryLog.GroceryLogID;
+            GroceryID = groceryLog.Grocery.GroceryID;
+            LogID = groceryLog.Log.LogID;
+            NumberOfGrocery = groceryLog.NumberOfGrocery;
+            InsulinForGrocery = groceryLog.InsulinForGrocery;
         }
 
         public GroceryLogModelDAO(int groceryID, int logID, uint numberOfGrocery, float insulinForGrocery)

@@ -93,15 +93,32 @@ namespace DiabetesContolApp.Service
 
             return log;
         }
-
+        /// <summary>
+        /// Tells the logRepo to update the log. Then the
+        /// groceryLogRepo to update all the cross table entries.
+        /// </summary>
+        /// <param name="log"></param>
+        /// <returns>Returns true if it was updated, else false</returns>
         async public Task<bool> UpdateLogAsync(LogModel log)
         {
-            throw new NotImplementedException();
+            if (!await logRepo.UpdateAsync(log))
+                return false; //No log was updated, stop
+
+            bool deleted = await groceryLogRepo.DeleteAllAsync(log.LogID); //Delete all entries with this log
+            bool added = await groceryLogRepo.InsertAllAsync(log.NumberOfGroceryModels, log.LogID); //Add all the new ones
+
+            if (deleted && added)
+                return true; //If no problems, return true
+            return false; //If problem, return false
         }
 
+        /// <summary>
+        /// Get the newest log added.
+        /// </summary>
+        /// <returns>Returns LogModel for the newest log, return null if there are no LogModels.</returns>
         async public Task<LogModel> GetNewestLogAsync()
         {
-            throw new NotImplementedException();
+            return await logRepo.GetNewestAsync();
         }
     }
 }

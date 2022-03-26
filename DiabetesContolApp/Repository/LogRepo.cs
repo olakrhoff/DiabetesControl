@@ -90,5 +90,34 @@ namespace DiabetesContolApp.Repository
 
             return new(logDAO);
         }
+
+
+        /// <summary>
+        /// Updates the log with the matching ID.
+        /// </summary>
+        /// <param name="log"></param>
+        /// <returns>True if it was updated, else false.</returns>
+        async public Task<bool> UpdateAsync(LogModel log)
+        {
+            LogModelDAO logDAO = new(log);
+
+            if (await logDatabase.UpdateLogAsync(logDAO) > 0)
+                return true;
+            return false; //No log with this ID
+        }
+
+        /// <summary>
+        /// Gets the newest Log.
+        /// </summary>
+        /// <returns>Return LogModel, unless there are no Logs, then it returns null.</returns>
+        async public Task<LogModel> GetNewestAsync()
+        {
+            LogModelDAO logDAO = await logDatabase.GetNewestLogAsync();
+
+            if (logDAO == null)
+                return null;
+
+            return new(logDAO);
+        }
     }
 }

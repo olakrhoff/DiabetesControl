@@ -100,10 +100,8 @@ namespace DiabetesContolApp.Persistence
 
         /// <summary>
         /// This method get the newest Log based on the time it
-        /// has in its variable DateTime. If dateTime is passed in
-        /// it returns the Log that is newest before that time.
+        /// has in its variable DateTime.
         /// </summary>
-        /// <param name="dateTime"></param>
         /// <returns>
         /// Task&lt;LogModelDAO&gt;
         /// 
@@ -111,7 +109,7 @@ namespace DiabetesContolApp.Persistence
         /// LogModelDAO is the newest model,
         /// if no Log is found, it returns null.
         /// </returns>
-        async public Task<LogModelDAO> GetNewestLogAsync(DateTime? dateTime = null)
+        async public Task<LogModelDAO> GetNewestLogAsync()
         {
             var logs = await connection.Table<LogModelDAO>().ToListAsync();
 
@@ -120,15 +118,7 @@ namespace DiabetesContolApp.Persistence
 
             logs.Sort();
 
-            if (dateTime == null)
-                return logs[logs.Count - 1]; //We want the newest before now
-
-            //Find the log that was just before the given time
-            for (int i = logs.Count - 1; i >= 0; --i)
-                if (logs[i].DateTimeValue < dateTime)
-                    return logs[i];
-
-            return null; //If no log before the given time exists return null
+            return logs[logs.Count - 1];
         }
 
 
@@ -216,31 +206,9 @@ namespace DiabetesContolApp.Persistence
         /// Updates the given log by it's ID
         /// </summary>
         /// <param name="log"></param>
-        /// <returns>int, the number od rows updated</returns>
+        /// <returns>int, the number of rows updated</returns>
         async public Task<int> UpdateLogAsync(LogModelDAO log)
         {
-            //Start by deleting all references in the coss table
-            List<GroceryLogModelDAO> groceryLogs = await connection.Table<GroceryLogModelDAO>().Where(e => e.LogID == log.LogID).ToListAsync();
-
-
-            foreach (GroceryLogModelDAO groceryLog in groceryLogs)
-                await connection.DeleteAsync(groceryLog); //Delete the prevoius GroceryLog entris for the log
-
-            try
-            {
-                var test = await connection.GetAsync<LogModelDAO>(log.LogID);
-            }
-            catch (InvalidOperationException ioe)
-            {
-                Debug.WriteLine(ioe.Message);
-                return 0; //If the log wasn't in the database
-            }
-
-
-            //Insert the updated grocery list for the log
-            await connection.InsertAllAsync(GroceryLogModelDAO.GetGroceryLogs(log.NumberOfGroceryModels, log.LogID));
-
-
             return await connection.UpdateAsync(log);
         }
 
