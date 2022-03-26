@@ -59,8 +59,8 @@ namespace DiabetesContolApp.Persistence
         /// Deletes all rows with the given logID.
         /// </summary>
         /// <param name="logID"></param>
-        /// <returns>int, the number of rows deleted, -1 if an error occurs</returns>
-        async public Task<int> DeleteAllWithLogID(int logID)
+        /// <returns>int, the number of rows deleted, -1 if an error occurs.</returns>
+        async public Task<int> DeleteAllWithLogIDAsync(int logID)
         {
             try
             {
@@ -78,6 +78,44 @@ namespace DiabetesContolApp.Persistence
                 Debug.WriteLine(e.StackTrace);
                 return -1; //Indicating error
             }
+        }
+
+        /// <summary>
+        /// Deletes all rows with a given Grocery ID.
+        /// </summary>
+        /// <param name="groceryID"></param>
+        /// <returns>int, the number of rows deleted, -1 if an error occurs.</returns>
+        async public Task<int> DeleteAllWithGroceryIDAsync(int groceryID)
+        {
+            try
+            {
+                List<GroceryLogModelDAO> groceryLogsWithLogID = await connection.Table<GroceryLogModelDAO>().Where(groceryLog => groceryLog.GroceryID == groceryID).ToListAsync();
+
+                int rowsDeleted = 0;
+
+                foreach (GroceryLogModelDAO groceryLog in groceryLogsWithLogID)
+                    rowsDeleted += await connection.DeleteAsync(groceryLog);
+
+                return rowsDeleted;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return -1; //Indicating error
+            }
+        }
+
+        /// <summary>
+        /// Gets all DAOs with the given Grocery ID.
+        /// </summary>
+        /// <param name="groceryID"></param>
+        /// <returns>List of GroceryLogModelDAOs with the given Grocery ID.</returns>
+        async public Task<List<GroceryLogModelDAO>> GetAllWithGroceryID(int groceryID)
+        {
+            List<GroceryLogModelDAO> groceryLogDAOsWithGroceryID = await connection.Table<GroceryLogModelDAO>().Where(groceryLogDAO => groceryLogDAO.GroceryID == groceryID).ToListAsync();
+            if (groceryLogDAOsWithGroceryID == null)
+                return new List<GroceryLogModelDAO>();
+            return groceryLogDAOsWithGroceryID;
         }
 
         /// <summary>

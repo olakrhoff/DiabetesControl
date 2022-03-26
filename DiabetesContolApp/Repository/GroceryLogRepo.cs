@@ -47,12 +47,42 @@ namespace DiabetesContolApp.Repository
         /// Deletes all elements with the given logID.
         /// </summary>
         /// <param name="logID"></param>
-        /// <returns>Return false if an error occurs, else true</returns>
-        async public Task<bool> DeleteAllAsync(int logID)
+        /// <returns>Return false if an error occurs, else true.</returns>
+        async public Task<bool> DeleteAllWithLogIDAsync(int logID)
         {
-            if (await groceryLogDatabase.DeleteAllWithLogID(logID) >= 0)
+            if (await groceryLogDatabase.DeleteAllWithLogIDAsync(logID) >= 0)
                 return true;
             return false;
+        }
+
+        /// <summary>
+        /// Deletes all elements with the given GroceryID
+        /// </summary>
+        /// <param name="groceryID"></param>
+        /// <returns>Returns fdlase if an error occurs, else true.</returns>
+        async public Task<bool> DeleteAllWithGroceryIDAsync(int groceryID)
+        {
+            if (await groceryLogDatabase.DeleteAllWithGroceryIDAsync(groceryID) >= 0)
+                return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Gets all GroceryLogDAOs with a given grocery ID.
+        /// Then converts them into GroceryLogModel objects.
+        /// </summary>
+        /// <param name="groceryID"></param>
+        /// <returns>List of GroceryLogModels.</returns>
+        async public Task<List<GroceryLogModel>> GetAllWithGroceryID(int groceryID)
+        {
+            List<GroceryLogModelDAO> groceryLogsDAO = await groceryLogDatabase.GetAllWithGroceryID(groceryID);
+
+            List<GroceryLogModel> groceryLogs = new();
+
+            foreach (GroceryLogModelDAO groceryLogDAO in groceryLogsDAO)
+                groceryLogs.Add(new(groceryLogDAO));
+
+            return groceryLogs;
         }
 
         /// <summary>

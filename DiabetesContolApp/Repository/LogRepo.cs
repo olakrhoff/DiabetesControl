@@ -74,6 +74,26 @@ namespace DiabetesContolApp.Repository
         }
 
         /// <summary>
+        /// Deletes all Logs with matching the IDs in the list.
+        /// </summary>
+        /// <param name="logIDs"></param>
+        /// <returns>True if no problem, else false.</returns>
+        async public Task<bool> DeleteAllAsync(List<int> logIDs)
+        {
+            try
+            {
+                foreach (int logID in logIDs)
+                    await DeleteAsync(logID);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Gets the logDAO with the given logID, if it exists,
         /// then convert it to a logModel.
         /// </summary>

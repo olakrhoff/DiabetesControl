@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
+using DiabetesContolApp.DAO;
 
 
 namespace DiabetesContolApp.Models
@@ -34,7 +34,16 @@ namespace DiabetesContolApp.Models
             this._carbScalar = 1.0f; //This is the default of the scalar, when it is one it has no effect on the calculations
         }
 
-
+        public GroceryModel(GroceryModelDAO groceryDAO)
+        {
+            GroceryID = groceryDAO.GroceryID;
+            CarbsPer100Grams = groceryDAO.CarbsPer100Grams;
+            NameOfPortion = groceryDAO.NameOfPortion;
+            GramsPerPortion = groceryDAO.GramsPerPortion;
+            Name = groceryDAO.Name;
+            BrandName = groceryDAO.BrandName;
+            CarbScalar = groceryDAO.CarbScalar;
+        }
 
         /*
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
