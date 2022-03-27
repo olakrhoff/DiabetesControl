@@ -114,15 +114,15 @@ namespace DiabetesContolApp.GlobalLogic
             //TODO: TEMP
             data = "breadData.csv";
             string breadDataPath = Path.Combine(FileSystem.CacheDirectory, data);
-            WriteBreadToCSVFile(breadDataPath);
+            //WriteBreadToCSVFile(breadDataPath);
 
             return new List<ShareFile> { new ShareFile(groceryFilePath),
                 new ShareFile(dayProfileFilePath),
                 new ShareFile(reminderPath),
                 new ShareFile(logPath),
                 new ShareFile(groceryLogPath),
-                new ShareFile(averageTDDPath),
-                new ShareFile(breadDataPath)
+                new ShareFile(averageTDDPath)
+                //new ShareFile(breadDataPath)
             };
         }
 

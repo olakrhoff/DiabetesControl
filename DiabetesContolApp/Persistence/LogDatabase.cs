@@ -80,7 +80,7 @@ namespace DiabetesContolApp.Persistence
 
             await connection.InsertAllAsync(GroceryLogModel.GetGroceryLogs(newLogEntry.NumberOfGroceryModels, newLogEntry.LogID));
 
-            await UpdateAverageTDD();
+            //await UpdateAverageTDD();
 
             return rowsAdded;
         }
