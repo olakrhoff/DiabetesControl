@@ -84,7 +84,6 @@ namespace DiabetesContolApp.Models
 
             //TODO: Call statistical algorithm on involved logs.
 
-
             return true;
         }
 

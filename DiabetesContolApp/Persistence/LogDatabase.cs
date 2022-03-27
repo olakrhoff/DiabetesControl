@@ -258,21 +258,20 @@ namespace DiabetesContolApp.Persistence
         {
             var logs = await connection.Table<LogModel>().ToListAsync();
 
-            if (dateTime == null)
-                return logs;
+            if (dateTime != null)
+            {
+                //This is safe since we will not get past the
+                //if-statment above if dateTime is null
+                DateTime dateTimeNotNull = (DateTime)dateTime;
 
-            //This is safe since we will not get past the
-            //if-statment above if dateTime is null
-            DateTime dateTimeNotNull = (DateTime)dateTime;
+                List<LogModel> temp = new();
 
-            List<LogModel> temp = new();
+                foreach (LogModel log in logs)
+                    if (log.DateTimeValue.Date.Equals(dateTimeNotNull.Date))
+                        temp.Add(log);
 
-            foreach (LogModel log in logs)
-                if (log.DateTimeValue.Date.Equals(dateTimeNotNull.Date))
-                    temp.Add(log);
-
-            logs = temp;
-
+                logs = temp;
+            }
             for (int i = 0; i < logs.Count; ++i)
                 logs[i] = await GetLogAsync(logs[i].LogID);
 
