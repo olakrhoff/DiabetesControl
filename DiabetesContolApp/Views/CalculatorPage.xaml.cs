@@ -19,7 +19,7 @@ namespace DiabetesContolApp.Views
         public ObservableCollection<DayProfileModel> DayProfiles { get; set; }
         public ObservableCollection<NumberOfGroceryModel> NumberOfGroceriesSummary { get; set; }
         private float? _insulinEstimate;
-        private int _reminderModelID = -1;
+        private ReminderModel _reminder;
 
         private DayProfileService dayProfileService = new();
         private LogService logService = new();
@@ -63,7 +63,7 @@ namespace DiabetesContolApp.Views
             if (isOverlapping)
                 glucose.Text = previousLog.DayProfile.TargetGlucoseValue.ToString();
 
-            _reminderModelID = isOverlapping ? previousLog.Reminder.ReminderID : -1;
+            _reminder = isOverlapping ? previousLog.Reminder : null;
         }
 
         private DayProfileModel GetDayProfileByTime()
@@ -139,13 +139,14 @@ namespace DiabetesContolApp.Views
                 !Helper.ConvertToFloat(glucose.Text, out float glucoseAtMealFloat))
                 return;
 
-            LogModel newLogEntry = new((pickerDayprofiles.SelectedItem as DayProfileModel).DayProfileID,
+            LogModel newLogEntry = new(pickerDayprofiles.SelectedItem as DayProfileModel,
+                _reminder,
                 DateTime.Now,
                 (float)_insulinEstimate,
                 insulinFromUserFloat,
                 glucoseAtMealFloat,
                 NumberOfGroceriesSummary?.ToList());
-            newLogEntry.Reminder.ReminderID = _reminderModelID;
+            newLogEntry.Reminder = _reminder;
 
             await logService.InsertLogAsync(newLogEntry);
 

@@ -42,22 +42,32 @@ namespace DiabetesContolApp.Persistence
         /// </summary>
         /// <param name="dayProfileID"></param>
         /// <returns>List of LogModelDAOs with given DayProfile ID.</returns>
-        async public Task<List<LogModelDAO>> GetLogsWithDayProfile(int dayProfileID)
+        async public Task<List<LogModelDAO>> GetLogsWithDayProfileIDAsync(int dayProfileID)
         {
             return await connection.Table<LogModelDAO>().Where(logDAO => logDAO.DayProfileID == dayProfileID).ToListAsync();
         }
 
         /// <summary>
-        /// Gets all logs connected to a reminder by the
+        /// Gets all LogDAOs connected to a reminder by the
         /// ReminderID.
         /// </summary>
         /// <param name="reminderID"></param>
         /// <returns>
-        /// List of LogModelDAOs connected to the remidnerID.
+        /// List of LogModelDAOs connected to the remidnerID, if no one, then
+        /// an empty list.
         /// </returns>
-        async public Task<List<LogModelDAO>> GetLogsWithReminderAsync(int reminderID)
+        async public Task<List<LogModelDAO>> GetLogsWithReminderIDAsync(int reminderID)
         {
-            return (await GetLogsAsync()).Where(log => log.ReminderID == reminderID).ToList();
+            try
+            {
+                List<LogModelDAO> logDAOs = await connection.Table<LogModelDAO>().Where(log => log.ReminderID == reminderID).ToListAsync();
+                return logDAOs;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return new();
+            }
         }
 
         /// <summary>
@@ -140,6 +150,7 @@ namespace DiabetesContolApp.Persistence
             return temp;
         }
 
+        /*
         async public Task<List<LogModelDAO>> GetLogsAsync(DateTime? dateTime = null)
         {
             var logs = await connection.Table<LogModelDAO>().ToListAsync();
@@ -163,7 +174,7 @@ namespace DiabetesContolApp.Persistence
                 logs[i] = await GetLogAsync(logs[i].LogID);
 
             return logs;
-        }
+        }*/
 
         /// <summary>
         /// This method deletes a log based on it's ID.

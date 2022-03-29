@@ -9,7 +9,7 @@ namespace DiabetesContolApp.Models
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public uint NumberOfGrocery { get; set; }
+        private uint _numberOfGrocery = 0;
         public GroceryModel Grocery { get; set; }
         public float InsulinForGroceries { get; set; }
 
@@ -43,6 +43,20 @@ namespace DiabetesContolApp.Models
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public uint NumberOfGrocery
+        {
+            get
+            {
+                return this._numberOfGrocery;
+            }
+
+            set
+            {
+                this._numberOfGrocery = value;
+                OnPropertyChanged();
+            }
         }
 
 

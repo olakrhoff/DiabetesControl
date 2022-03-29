@@ -48,12 +48,11 @@ namespace DiabetesContolApp.Models
             NumberOfGroceryModels = new();
         }
 
-        public LogModel(int dayProfileID, DateTime dateTime, float insulinEstimate, float insulinFromUser, float glucoseAtMeal, List<NumberOfGroceryModel> numberOfGroceries, float? glucoseAfterMeal = null)
+        public LogModel(DayProfileModel dayProfile, ReminderModel reminder, DateTime dateTime, float insulinEstimate, float insulinFromUser, float glucoseAtMeal, List<NumberOfGroceryModel> numberOfGroceries, float? glucoseAfterMeal = null)
         {
-            throw new NotImplementedException("Should be updated");
             LogID = -1;
-            Reminder = new();
-            DayProfile = new(dayProfileID);
+            Reminder = reminder;
+            DayProfile = dayProfile;
             DateTimeValue = dateTime;
             InsulinEstimate = insulinEstimate;
             InsulinFromUser = insulinFromUser;

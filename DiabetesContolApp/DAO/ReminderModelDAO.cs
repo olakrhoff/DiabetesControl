@@ -69,7 +69,7 @@ namespace DiabetesContolApp.DAO
             {
                 GlucoseAfterMeal = -1.0f; //Indicates invalid data
 
-                (await LogDatabase.GetInstance().GetLogsWithReminderAsync(ReminderID)).ForEach(async log =>
+                (await LogDatabase.GetInstance().GetLogsWithReminderIDAsync(ReminderID)).ForEach(async log =>
                 {
                     log.GlucoseAfterMeal = -1.0f; //Set it invald.
                     await LogDatabase.GetInstance().UpdateLogAsync(log);

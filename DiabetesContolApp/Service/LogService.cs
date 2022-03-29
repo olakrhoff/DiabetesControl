@@ -16,6 +16,7 @@ namespace DiabetesContolApp.Service
         private DayProfileRepo dayProfileRepo = new();
 
         private GroceryLogService groceryLogService = new();
+        private ReminderService reminderService = new();
 
         public LogService()
         {
@@ -29,12 +30,13 @@ namespace DiabetesContolApp.Service
         /// <returns>true if log was inserted, else false</returns>
         async public Task<bool> InsertLogAsync(LogModel newLog)
         {
-            if (newLog.Reminder.ReminderID == -1) //Remidner did not overlap, need new Reminder
+            if (newLog.Reminder == null) //Reminder did not overlap, need new Reminder
             {
-                int reminderID = await reminderRepo.InsertAsync(new());
+                newLog.Reminder = new();
+
+                int reminderID = await reminderRepo.InsertAsync(newLog.Reminder);
                 if (reminderID == -1)
                     return false; //An error occured while creating the remidner
-
                 newLog.Reminder.ReminderID = reminderID;
             }
 
@@ -54,17 +56,33 @@ namespace DiabetesContolApp.Service
         }
 
         /// <summary>
-        /// Deletes all groceryLog cross table entries.
-        /// Then deletes the accual log.
+        /// Gets all Logs with the same reminder as the one to
+        /// be deleted, since these also need to be deleted.
+        /// Deletes all groceryLog cross table entries for all logs.
+        /// Then deletes the accual logs.
         /// </summary>
         /// <param name="logID"></param>
         /// <returns>Returns false if an error occurs, else true</returns>
         async public Task<bool> DeleteLogAsync(int logID)
         {
-            if (!await groceryLogRepo.DeleteAllWithLogIDAsync(logID))
-                throw new Exception("This state should not happen");
+            try
+            {
+                LogModel currentLog = await GetLogAsync(logID);
+                List<LogModel> logsWithReminderID = await logRepo.GetAllWithReminderIDAsync(currentLog.Reminder.ReminderID);
 
-            return await logRepo.DeleteAsync(logID);
+                foreach (LogModel log in logsWithReminderID)
+                {
+                    await groceryLogRepo.DeleteAllWithLogIDAsync(log.LogID);
+                    await logRepo.DeleteAsync(log.LogID);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -76,7 +94,7 @@ namespace DiabetesContolApp.Service
         {
             try
             {
-                List<LogModel> logsWithDayProfileID = await logRepo.GetAllWithDayProfileID(dayProfileID);
+                List<LogModel> logsWithDayProfileID = await logRepo.GetAllWithDayProfileIDAsync(dayProfileID);
 
                 foreach (LogModel log in logsWithDayProfileID)
                     await DeleteLogAsync(log.LogID);

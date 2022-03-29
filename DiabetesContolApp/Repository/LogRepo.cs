@@ -74,14 +74,32 @@ namespace DiabetesContolApp.Repository
         }
 
         /// <summary>
+        /// Gets all LogModelDAOs with the given reminderID.
+        /// Then converts them into LogModels.
+        /// </summary>
+        /// <param name="reminderID"></param>
+        /// <returns>List of LogModels with the given reminder ID</returns>
+        async public Task<List<LogModel>> GetAllWithReminderIDAsync(int reminderID)
+        {
+            List<LogModelDAO> logDAOs = await logDatabase.GetLogsWithReminderIDAsync(reminderID);
+
+            List<LogModel> logsWithRemiderID = new();
+
+            foreach (LogModelDAO logDAO in logDAOs)
+                logsWithRemiderID.Add(new(logDAO));
+
+            return logsWithRemiderID;
+        }
+
+        /// <summary>
         /// Gets all LogModelDAOs with a given
         /// DayProfile ID, converts them into LogModels.
         /// </summary>
         /// <param name="dayProfileID"></param>
         /// <returns>List of LogModels who has the given DayProfile ID.</returns>
-        async public Task<List<LogModel>> GetAllWithDayProfileID(int dayProfileID)
+        async public Task<List<LogModel>> GetAllWithDayProfileIDAsync(int dayProfileID)
         {
-            List<LogModelDAO> logsDAOWithDayProfileID = await logDatabase.GetLogsWithDayProfile(dayProfileID);
+            List<LogModelDAO> logsDAOWithDayProfileID = await logDatabase.GetLogsWithDayProfileIDAsync(dayProfileID);
 
             List<LogModel> logs = new();
 

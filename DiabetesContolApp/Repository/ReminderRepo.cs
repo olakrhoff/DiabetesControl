@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using DiabetesContolApp.Models;
 using DiabetesContolApp.DAO;
 using DiabetesContolApp.Persistence;
+using System.Collections.Generic;
 
 namespace DiabetesContolApp.Repository
 {
@@ -32,6 +33,34 @@ namespace DiabetesContolApp.Repository
                 return null;
 
             return new(reminderDAO);
+        }
+
+        /// <summary>
+        /// Converts the RemidnerModel to a DAO and updates
+        /// it in the database.
+        /// </summary>
+        /// <param name="reminder"></param>
+        /// <returns>True if updated, else false.</returns>
+        async public Task<bool> UpdateAsync(ReminderModel reminder)
+        {
+            return await reminderDatabase.UpdateReminderAsync(new(reminder)) > 0;
+        }
+
+        /// <summary>
+        /// Gets all RemidnerDAOs which are unhandled,
+        /// converts them into ReminderModels.
+        /// </summary>
+        /// <returns>List of ReminderModels which are unhandled</returns>
+        async public Task<List<ReminderModel>> GetAllUnhandledRemindersAsync()
+        {
+            List<ReminderModelDAO> unhandledReminderDAOs = await reminderDatabase.GetAllUnhandledRemindersAsync();
+
+            List<ReminderModel> unhandledReminders = new();
+
+            foreach (ReminderModelDAO reminderDAO in unhandledReminderDAOs)
+                unhandledReminders.Add(new(reminderDAO));
+
+            return unhandledReminders;
         }
 
         /// <summary>
