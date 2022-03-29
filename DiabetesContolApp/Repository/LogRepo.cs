@@ -68,7 +68,7 @@ namespace DiabetesContolApp.Repository
             List<LogModel> logsOnDate = new();
 
             foreach (LogModelDAO logDAO in logDAOs)
-                logsOnDate.Add(new(logDAO));
+                logsOnDate.Add(await GetAsync(logDAO.LogID));
 
             return logsOnDate;
         }

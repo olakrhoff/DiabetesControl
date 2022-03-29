@@ -10,10 +10,12 @@ namespace DiabetesContolApp.Service
 {
     public class LogService
     {
-        private LogRepo logRepo;
-        private GroceryLogRepo groceryLogRepo;
-        private ReminderRepo reminderRepo;
-        private DayProfileRepo dayProfileRepo;
+        private LogRepo logRepo = new();
+        private GroceryLogRepo groceryLogRepo = new();
+        private ReminderRepo reminderRepo = new();
+        private DayProfileRepo dayProfileRepo = new();
+
+        private GroceryLogService groceryLogService = new();
 
         public LogService()
         {
@@ -122,7 +124,8 @@ namespace DiabetesContolApp.Service
                 return null;
             log.DayProfile = await dayProfileRepo.GetAsync(log.DayProfile.DayProfileID);
             log.Reminder = await reminderRepo.GetAsync(log.Reminder.ReminderID);
-            log.NumberOfGroceryModels = await groceryLogRepo.GetAllWithLogID(log.LogID);
+            //log.NumberOfGroceryModels = await groceryLogRepo.GetAllWithLogID(log.LogID);
+            log.NumberOfGroceryModels = await groceryLogService.GetAllWithLogID(log.LogID);
 
             return log;
         }

@@ -14,8 +14,9 @@ namespace DiabetesContolApp.Views
     public partial class LogPage : ContentPage
     {
         public ObservableCollection<LogModel> Logs { get; set; }
-        LogService logService;
         DateTime localDate = DateTime.Now;
+
+        private LogService logService = new();
 
         private string dateString
         {

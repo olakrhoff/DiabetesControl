@@ -21,9 +21,8 @@ namespace DiabetesContolApp.Views
         private float? _insulinEstimate;
         private int _reminderModelID = -1;
 
-        private DayProfileService dayProfileService;
-        private LogService logService;
-        private ReminderService reminderService;
+        private DayProfileService dayProfileService = new();
+        private LogService logService = new();
 
         public CalculatorPage()
         {
@@ -32,7 +31,7 @@ namespace DiabetesContolApp.Views
 
         protected override async void OnAppearing()
         {
-            var dayProfiles = await dayProfileService.GetDayProfilesAsync();
+            List<DayProfileModel> dayProfiles = await dayProfileService.GetDayProfilesAsync();
             dayProfiles.Sort(); //Sort the elements
 
             DayProfiles = new ObservableCollection<DayProfileModel>(dayProfiles);

@@ -26,12 +26,16 @@ namespace DiabetesContolApp.Models
             InsulinForGroceries = groceryLog.InsulinForGrocery;
         }
 
+        /// <summary>
+        /// This is used to create a dummy object for the
+        /// listing of groceries in the calculator
+        /// </summary>
+        /// <param name="grocery"></param>
         public NumberOfGroceryModel(GroceryModel grocery)
         {
             NumberOfGrocery = 0;
             Grocery = grocery;
             InsulinForGroceries = 0.0f;
-            throw new NotImplementedException("This constructor should probalbly not exist");
         }
 
         /*
@@ -41,6 +45,12 @@ namespace DiabetesContolApp.Models
         }*/
 
 
+        /// <summary>
+        /// Turns a list of GroceryModels into a
+        /// list of NumberOfGroceryModel
+        /// </summary>
+        /// <param name="groceries"></param>
+        /// <returns>The list of NumberOfGroceryModels</returns>
         static public List<NumberOfGroceryModel> GetNumberOfGroceries(List<GroceryModel> groceries)
         {
             List<NumberOfGroceryModel> temp = new();

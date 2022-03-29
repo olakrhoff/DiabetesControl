@@ -16,7 +16,8 @@ namespace DiabetesContolApp.Views
     public partial class GroceryPage : ContentPage
     {
         public ObservableCollection<GroceryModel> Groceries { get; set; }
-        private GroceryService groceryService;
+
+        private GroceryService groceryService = new();
 
         public GroceryPage()
         {

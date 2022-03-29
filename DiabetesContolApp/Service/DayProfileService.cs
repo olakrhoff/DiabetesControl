@@ -9,8 +9,8 @@ namespace DiabetesContolApp.Service
 {
     public class DayProfileService
     {
-        private DayProfileRepo dayProfileRepo;
-        private LogService logService;
+        private DayProfileRepo dayProfileRepo = new();
+        private LogService logService = new();
 
         public DayProfileService()
         {

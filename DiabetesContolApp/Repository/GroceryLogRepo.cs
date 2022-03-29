@@ -95,14 +95,10 @@ namespace DiabetesContolApp.Repository
         {
             List<GroceryLogModelDAO> groceryLogDAOs = await groceryLogDatabase.GetAllWithLogID(logID);
 
-            List<GroceryLogModel> groceryLogs = new();
             List<NumberOfGroceryModel> numberOfGroceries = new();
 
             foreach (GroceryLogModelDAO groceryLogDAO in groceryLogDAOs)
-            {
-                groceryLogs.Add(new(groceryLogDAO));
-                numberOfGroceries.Add(new(groceryLogs[groceryLogs.Count - 1]));
-            }
+                numberOfGroceries.Add(new NumberOfGroceryModel(new GroceryLogModel(groceryLogDAO)));
 
             return numberOfGroceries;
         }

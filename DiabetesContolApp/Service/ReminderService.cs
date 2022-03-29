@@ -8,7 +8,7 @@ namespace DiabetesContolApp.Service
 {
     public class ReminderService
     {
-        private ReminderRepo reminderRepo;
+        private ReminderRepo reminderRepo = new();
 
         public ReminderService()
         {

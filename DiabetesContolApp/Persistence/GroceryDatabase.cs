@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 using DiabetesContolApp.DAO;
@@ -32,9 +33,23 @@ namespace DiabetesContolApp.Persistence
             return await connection.InsertAsync(newGrocery);
         }
 
+        /// <summary>
+        /// Get the groceryDAO with the given ID.
+        /// </summary>
+        /// <param name="groceryID"></param>
+        /// <returns>Retursns the GroceryDAO, if not found then null.</returns>
         async public Task<GroceryModelDAO> GetGroceryAsync(int groceryID)
         {
-            return await connection.GetAsync<GroceryModelDAO>(groceryID);
+            try
+            {
+                GroceryModelDAO groceryDAO = await connection.GetAsync<GroceryModelDAO>(groceryID);
+                return groceryDAO;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return null;
+            }
         }
 
         /// <summary>

@@ -33,6 +33,21 @@ namespace DiabetesContolApp.Repository
         }
 
         /// <summary>
+        /// Gets the GroceryDAO an converts it to a GroceryModel,
+        /// with the given grocery ID.
+        /// </summary>
+        /// <param name="groceryID"></param>
+        /// <returns>The GroceryModel with the given ID, null if not found</returns>
+        async public Task<GroceryModel> GetAsync(int groceryID)
+        {
+            GroceryModelDAO groceryDAO = await groceryDatabase.GetGroceryAsync(groceryID);
+            if (groceryDAO == null)
+                return null;
+
+            return new(groceryDAO);
+        }
+
+        /// <summary>
         /// Converts the GroceryModel to a DAO object. Then updates
         /// it in the database.
         /// </summary>

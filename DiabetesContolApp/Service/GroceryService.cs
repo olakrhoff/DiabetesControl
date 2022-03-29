@@ -11,9 +11,9 @@ namespace DiabetesContolApp.Service
 {
     public class GroceryService
     {
-        private GroceryRepo groceryRepo;
-        private LogRepo logRepo;
-        private GroceryLogRepo groceryLogRepo;
+        private GroceryRepo groceryRepo = new();
+        private LogRepo logRepo = new();
+        private GroceryLogRepo groceryLogRepo = new();
 
         public GroceryService()
         {

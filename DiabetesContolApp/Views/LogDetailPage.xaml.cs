@@ -20,7 +20,7 @@ namespace DiabetesContolApp.Views
         private ObservableCollection<NumberOfGroceryModel> NumberOfGrocerySummary;
         public ObservableCollection<DayProfileModel> DayProfiles { get; set; }
 
-        DayProfileService dayProfileService;
+        DayProfileService dayProfileService = new();
 
         public LogDetailPage(LogModel log)
         {
@@ -32,10 +32,10 @@ namespace DiabetesContolApp.Views
 
             if (log.LogID == -1) //A new log entry
             {
-                NumberOfGrocerySummary = new();
                 glucoseAtMeal.Text = insulinFromUser.Text = "";
                 timePickerTimeOfMeal.Time = DateTime.Now.TimeOfDay;
                 datePickerDateOfMeal.Date = Log.DateTimeValue.Date;
+                NumberOfGrocerySummary = new();
             }
             else
             {
