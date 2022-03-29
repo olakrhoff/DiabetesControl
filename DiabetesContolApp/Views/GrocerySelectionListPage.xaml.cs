@@ -9,13 +9,9 @@ using DiabetesContolApp.Service;
 using DiabetesContolApp.GlobalLogic;
 
 using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
-
-using SQLite;
 
 namespace DiabetesContolApp.Views
 {
-    [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class GrocerySelectionListPage : ContentPage
     {
         public event EventHandler<List<NumberOfGroceryModel>> NumberOfGroceryListSaved;
@@ -55,7 +51,7 @@ namespace DiabetesContolApp.Views
         {
             var groceries = await groceryService.GetGroceriesAsync();
             groceries.Sort();
-            //TODO: THIS SOULD NOT USE 
+
             return NumberOfGroceryModel.GetNumberOfGroceries(groceries);
         }
 
@@ -84,7 +80,7 @@ namespace DiabetesContolApp.Views
             if (e == null)
                 return;
 
-            var selectedGrocery = (e as ItemTappedEventArgs).Item as NumberOfGroceryModel;
+            var selectedGrocery = e.Item as NumberOfGroceryModel;
             groceriesList.SelectedItem = null;
             selectedGrocery.NumberOfGrocery++;
         }
