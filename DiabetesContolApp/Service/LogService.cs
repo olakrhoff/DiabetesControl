@@ -154,7 +154,9 @@ namespace DiabetesContolApp.Service
         /// <returns>Returns LogModel for the newest log, return null if there are no LogModels.</returns>
         async public Task<LogModel> GetNewestLogAsync()
         {
-            return await logRepo.GetNewestAsync();
+            LogModel newestLog = await logRepo.GetNewestAsync();
+
+            return await GetLogAsync(newestLog.LogID);
         }
     }
 }

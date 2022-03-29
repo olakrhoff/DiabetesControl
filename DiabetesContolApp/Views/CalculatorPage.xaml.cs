@@ -55,19 +55,15 @@ namespace DiabetesContolApp.Views
         /// The previous log entry that overlapps with the potensial new one,
         /// needed to get the TargetGlucoseValue from the respective DayProfile.
         /// </param>
-        /// <param name="reminderID">
-        /// Reference ID to the reminder involved in the overlap. If not given it is
-        /// sat to -1 by default.
-        /// </param>
         /// <returns>void</returns>
-        async private void SetOverlappingMeals(bool isOverlapping, LogModel previousLog, int reminderID = -1)
+        private void SetOverlappingMeals(bool isOverlapping, LogModel previousLog)
         {
             overlappingMealLabel.IsVisible = isOverlapping; //Visible if overlapping
             glucose.IsEnabled = !isOverlapping; //Enabled if not overlapping
             if (isOverlapping)
                 glucose.Text = previousLog.DayProfile.TargetGlucoseValue.ToString();
 
-            _reminderModelID = isOverlapping ? reminderID : -1;
+            _reminderModelID = isOverlapping ? previousLog.Reminder.ReminderID : -1;
         }
 
         private DayProfileModel GetDayProfileByTime()
@@ -244,19 +240,24 @@ namespace DiabetesContolApp.Views
             Content.LayoutTo(new Rectangle(Content.Bounds.Left, 0, Content.Bounds.Width, Content.Bounds.Height));
         }
 
-        async void GlucoseLabelFocused(System.Object sender, Xamarin.Forms.FocusEventArgs e)
+        /// <summary>
+        /// When the glucose entry is focused it checks
+        /// if there is an active reminder which overlaps with
+        /// the current time, then if it is overlapping
+        /// then the filed is overridden.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        async void GlucoseEntryFocused(System.Object sender, Xamarin.Forms.FocusEventArgs e)
         {
             LogModel log = await logService.GetNewestLogAsync();
-            ReminderModel reminder = null;
-            if (log != null)
-                reminder = log.Reminder;
+            if (log == null || log.Reminder == null)
+                SetOverlappingMeals(false, null); //No log, then there is no overlap
 
             //The previous log overlaps in time with the
             //new log, if it is to be added now
-            if (reminder != null)
-                SetOverlappingMeals(!reminder.ReadyToHandle(), log, reminder.ReminderID);
-            else
-                SetOverlappingMeals(false, log);
+
+            SetOverlappingMeals(!log.Reminder.ReadyToHandle(), log);
         }
     }
 }

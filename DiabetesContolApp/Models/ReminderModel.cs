@@ -112,7 +112,7 @@ namespace DiabetesContolApp.Models
         /// <summary>
         /// Checks if the reminder is ready to be handled
         /// </summary>
-        /// <returns>Returns true if the reminder overlaps with the current time within TIME_TO_WAIT hours, else false </returns>
+        /// <returns>Returns true if the reminder doesn't overlap with the current time within TIME_TO_WAIT hours, else false </returns>
         public bool ReadyToHandle()
         {
             return DateTime.Now > DateTimeValue;
