@@ -59,6 +59,22 @@ namespace DiabetesContolApp.Service
         }
 
         /// <summary>
+        /// Deletes all the logs with the given IDs.
+        /// </summary>
+        /// <param name="logIDs"></param>
+        /// <returns>False if an error occurs, else true.</returns>
+        async public Task<bool> DeleteAllLogsAsync(List<int> logIDs)
+        {
+            bool result = true;
+
+            foreach (int id in logIDs)
+                if (!await DeleteLogAsync(id))
+                    result = false;
+
+            return result;
+        }
+
+        /// <summary>
         /// Gets all Logs with the same reminder as the one to
         /// be deleted, since these also need to be deleted.
         /// Deletes all groceryLog cross table entries for all logs.
@@ -150,7 +166,7 @@ namespace DiabetesContolApp.Service
             log.NumberOfGroceryModels = await groceryLogRepo.GetAllGroceryLogsWithLogID(log.LogID);
 
             foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceryModels)
-                numberOfGrocery.Grocery = await groceryRepo.GetAsync(numberOfGrocery.Grocery.GroceryID); //Gets the Groceries in the NumberOfGroceries in the log
+                numberOfGrocery.Grocery = await groceryRepo.GetGroceryAsync(numberOfGrocery.Grocery.GroceryID); //Gets the Groceries in the NumberOfGroceries in the log
 
             return log;
         }

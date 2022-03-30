@@ -34,7 +34,7 @@ namespace DiabetesContolApp.Service
 
             //TODO: If grocery is not found the Log might be corrupt, consider deleting the log in this case.
             foreach (NumberOfGroceryModel numberOfGrocery in numberOfGroceries)
-                numberOfGrocery.Grocery = await groceryRepo.GetAsync(numberOfGrocery.Grocery.GroceryID);
+                numberOfGrocery.Grocery = await groceryRepo.GetGroceryAsync(numberOfGrocery.Grocery.GroceryID);
 
             return numberOfGroceries;
         }

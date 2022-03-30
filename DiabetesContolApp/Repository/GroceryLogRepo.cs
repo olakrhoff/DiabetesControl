@@ -59,7 +59,7 @@ namespace DiabetesContolApp.Repository
         /// Deletes all elements with the given GroceryID
         /// </summary>
         /// <param name="groceryID"></param>
-        /// <returns>Returns fdlase if an error occurs, else true.</returns>
+        /// <returns>Returns false if an error occurs, else true.</returns>
         async public Task<bool> DeleteAllGroceryLogsWithGroceryIDAsync(int groceryID)
         {
             if (await groceryLogDatabase.DeleteAllWithGroceryIDAsync(groceryID) >= 0)

@@ -17,8 +17,9 @@ namespace DiabetesContolApp.Service
     public class GroceryService
     {
         private GroceryRepo groceryRepo = new();
-        private LogRepo logRepo = new();
         private GroceryLogRepo groceryLogRepo = new();
+
+        private LogService logService = new();
 
         public GroceryService()
         {
@@ -30,7 +31,7 @@ namespace DiabetesContolApp.Service
         /// <returns>List of GroceryModels.</returns>
         async public Task<List<GroceryModel>> GetGroceriesAsync()
         {
-            return await groceryRepo.GetAllAsync();
+            return await groceryRepo.GetAllGroceriesAsync();
         }
 
         /// <summary>
@@ -40,7 +41,7 @@ namespace DiabetesContolApp.Service
         /// <returns>Returns true if it was inserted, else false.</returns>
         async public Task<bool> InsertGroceryAsync(GroceryModel newGrocery)
         {
-            return await groceryRepo.InsertAsync(newGrocery);
+            return await groceryRepo.InsertGroceryAsync(newGrocery);
         }
 
         /// <summary>
@@ -50,7 +51,7 @@ namespace DiabetesContolApp.Service
         /// <returns>True if it was updated, else false.</returns>
         async public Task<bool> UpdateGroceryAsync(GroceryModel grocery)
         {
-            return await groceryRepo.UpdateAsync(grocery);
+            return await groceryRepo.UpdateGroceryAsync(grocery);
         }
 
         /// <summary>
@@ -65,12 +66,13 @@ namespace DiabetesContolApp.Service
 
             List<int> logIDs = groceryLogsWithGroceryID.Select(log => log.Log.LogID).ToList();
 
+            //TODO: Should have some safety code here to handle these deletions failing.
             await groceryLogRepo.DeleteAllGroceryLogsWithGroceryIDAsync(groceryID); //Deletes all entries in cross table
 
-            await logRepo.DeleteAllLogsAsync(logIDs); //Deletes all logs
+            await logService.DeleteAllLogsAsync(logIDs); //Deletes all logs
 
 
-            return await groceryRepo.DeleteAsync(groceryID);
+            return await groceryRepo.DeleteGroceryAsync(groceryID);
         }
     }
 }
