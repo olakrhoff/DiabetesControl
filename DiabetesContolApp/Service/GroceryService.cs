@@ -9,6 +9,11 @@ using DiabetesContolApp.Repository;
 
 namespace DiabetesContolApp.Service
 {
+    /// <summary>
+    /// This is the Service class for Groceries. It is responsible for
+    /// Assembeling and disassembling GroceryModel objects and make the
+    /// appropriate calls to the respective repositories.
+    /// </summary>
     public class GroceryService
     {
         private GroceryRepo groceryRepo = new();

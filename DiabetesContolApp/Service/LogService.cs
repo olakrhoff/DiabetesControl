@@ -8,6 +8,11 @@ using System.Diagnostics;
 
 namespace DiabetesContolApp.Service
 {
+    /// <summary>
+    /// This is the Service class for Logs. It is responsible for
+    /// Assembeling and disassembling LogModel objects and make the
+    /// appropriate calls to the respective repositories.
+    /// </summary>
     public class LogService
     {
         private LogRepo logRepo = new();

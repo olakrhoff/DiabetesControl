@@ -7,6 +7,11 @@ using DiabetesContolApp.Repository;
 
 namespace DiabetesContolApp.Service
 {
+    /// <summary>
+    /// This is the Service class for Reminders. It is responsible for
+    /// Assembeling and disassembling RemdinerModel objects and make the
+    /// appropriate calls to the respective repositories.
+    /// </summary>
     public class ReminderService
     {
         private ReminderRepo reminderRepo = new();

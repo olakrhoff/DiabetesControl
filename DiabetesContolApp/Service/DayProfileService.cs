@@ -7,6 +7,11 @@ using DiabetesContolApp.Repository;
 
 namespace DiabetesContolApp.Service
 {
+    /// <summary>
+    /// This is the Service class for DayProfiles. It is responsible for
+    /// Assembeling and disassembling DayProfileModel objects and make the
+    /// appropriate calls to the respective repositories.
+    /// </summary>
     public class DayProfileService
     {
         private DayProfileRepo dayProfileRepo = new();
