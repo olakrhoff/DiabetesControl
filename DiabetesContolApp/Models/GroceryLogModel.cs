@@ -22,6 +22,15 @@ namespace DiabetesContolApp.Models
             GroceryLogID = -1;
         }
 
+        public GroceryLogModel(NumberOfGroceryModel numberOfGrocery, LogModel log)
+        {
+            GroceryLogID = -1;
+            Grocery = numberOfGrocery.Grocery;
+            Log = log;
+            NumberOfGrocery = numberOfGrocery.NumberOfGrocery;
+            InsulinForGrocery = numberOfGrocery.InsulinForGroceries;
+        }
+
         public GroceryLogModel(GroceryLogModelDAO groceryLogDAO)
         {
             GroceryLogID = groceryLogDAO.GroceryLogID;

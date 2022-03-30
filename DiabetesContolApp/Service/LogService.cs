@@ -46,9 +46,14 @@ namespace DiabetesContolApp.Service
             int logID = await logRepo.InsertLogAsync(newLog); //Insert new Log
             if (logID == -1)
                 return false;
+            newLog.LogID = logID;
 
+            List<GroceryLogModel> groceryLogs = new();
 
-            if (!await groceryLogRepo.InsertAllGroceryLogsAsync(newLog.NumberOfGroceryModels, logID)) //Insert all grocery-log-cross table entries
+            foreach (NumberOfGroceryModel numberOfGrocery in newLog.NumberOfGroceryModels)
+                groceryLogs.Add(new(numberOfGrocery, newLog));
+
+            if (!await groceryLogRepo.InsertAllGroceryLogsAsync(groceryLogs, logID)) //Insert all grocery-log-cross table entries
             {
                 if (!await logRepo.DeleteLogAsync(logID))
                     throw new Exception("This state should not be possible");
@@ -163,7 +168,15 @@ namespace DiabetesContolApp.Service
                 return null;
             log.DayProfile = await dayProfileRepo.GetAsync(log.DayProfile.DayProfileID);
             log.Reminder = await reminderRepo.GetReminderAsync(log.Reminder.ReminderID);
-            log.NumberOfGroceryModels = await groceryLogRepo.GetAllGroceryLogsWithLogID(log.LogID);
+
+            List<GroceryLogModel> groceryLogs = await groceryLogRepo.GetAllGroceryLogsWithLogID(log.LogID);
+
+            List<NumberOfGroceryModel> numberOfGroceries = new();
+
+            foreach (GroceryLogModel groceryLog in groceryLogs)
+                numberOfGroceries.Add(new(groceryLog));
+
+            log.NumberOfGroceryModels = numberOfGroceries;
 
             foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceryModels)
                 numberOfGrocery.Grocery = await groceryRepo.GetGroceryAsync(numberOfGrocery.Grocery.GroceryID); //Gets the Groceries in the NumberOfGroceries in the log
@@ -182,7 +195,13 @@ namespace DiabetesContolApp.Service
                 return false; //No log was updated, stop
 
             bool deleted = await groceryLogRepo.DeleteAllGroceryLogsWithLogIDAsync(log.LogID); //Delete all entries with this log
-            bool added = await groceryLogRepo.InsertAllGroceryLogsAsync(log.NumberOfGroceryModels, log.LogID); //Add all the new ones
+
+            List<GroceryLogModel> groceryLogs = new();
+
+            foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceryModels)
+                groceryLogs.Add(new(numberOfGrocery, log));
+
+            bool added = await groceryLogRepo.InsertAllGroceryLogsAsync(groceryLogs, log.LogID); //Add all the new ones
 
             if (deleted && added)
                 return true; //If no problems, return true

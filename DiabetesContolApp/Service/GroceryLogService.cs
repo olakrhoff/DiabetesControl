@@ -24,13 +24,20 @@ namespace DiabetesContolApp.Service
 
         /// <summary>
         /// Gets all GroceryLogs with the given log ID
-        /// Then fills out the GroceryModels in them
+        /// Then converts them to NumberOfGroeryModels and
+        /// fills them out in with GroceryModels.
         /// </summary>
         /// <param name="logID"></param>
         /// <returns>List of NumberOfGroceryModel with GroceryModels</returns>
-        async public Task<List<NumberOfGroceryModel>> GetAllWithLogID(int logID)
+        async public Task<List<NumberOfGroceryModel>> GetAllGroceryLogsAsNumberOfGroceryWithLogID(int logID)
         {
-            List<NumberOfGroceryModel> numberOfGroceries = await groceryLogRepo.GetAllGroceryLogsWithLogID(logID);
+            //List<NumberOfGroceryModel> numberOfGroceries = await groceryLogRepo.GetAllGroceryLogsWithLogID(logID);
+            List<GroceryLogModel> groceryLogs = await groceryLogRepo.GetAllGroceryLogsWithLogID(logID);
+
+            List<NumberOfGroceryModel> numberOfGroceries = new();
+
+            foreach (GroceryLogModel groceryLog in groceryLogs) //Convert all GroceryLogs to NumberOfGroceries
+                numberOfGroceries.Add(new(groceryLog));
 
             //TODO: If grocery is not found the Log might be corrupt, consider deleting the log in this case.
             foreach (NumberOfGroceryModel numberOfGrocery in numberOfGroceries)
