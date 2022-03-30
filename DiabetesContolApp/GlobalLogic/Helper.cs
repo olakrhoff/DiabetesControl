@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using System.Linq;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.Persistence;
@@ -10,6 +11,7 @@ using Xamarin.Forms;
 using System.Threading.Tasks;
 using Xamarin.Essentials;
 using System.IO;
+using System.Globalization;
 
 namespace DiabetesContolApp.GlobalLogic
 {
@@ -104,12 +106,78 @@ namespace DiabetesContolApp.GlobalLogic
             WriteDatabaseToCSVFile(groceryLogPath, GroceryLogDatabase.GetInstance());
 
 
+            //TODO: TEMP
+            data = "breadData.csv";
+            string breadDataPath = Path.Combine(FileSystem.CacheDirectory, data);
+            //WriteBreadToCSVFile(breadDataPath);
+
             return new List<ShareFile> { new ShareFile(groceryFilePath),
                 new ShareFile(dayProfileFilePath),
                 new ShareFile(reminderPath),
                 new ShareFile(logPath),
-                new ShareFile(groceryLogPath)
+                new ShareFile(groceryLogPath),
+                new ShareFile(breadDataPath)
             };
+        }
+
+        async private static void WriteBreadToCSVFile(string filePath)
+        {
+            List<LogModel> logs = new();
+
+            List<ReminderModel> reminders = await ReminderDatabase.GetInstance().GetRemindersAsync();
+
+            reminders = reminders.Where(remidner => remidner.IsHandled && remidner.GlucoseAfterMeal > 0).ToList();
+
+            foreach (ReminderModel reminder in reminders)
+            {
+                List<LogModel> logsWithReminderID = await LogDatabase.GetInstance().GetLogsWithReminderAsync(reminder.ReminderID);
+                double totalInsulin = logsWithReminderID.Sum(log => log.InsulinEstimate);
+                double glucoseError = (float)reminder.GlucoseAfterMeal - (await DayProfileDatabase.GetInstance().GetDayProfileAsync(logsWithReminderID[logsWithReminderID.Count - 1].DayProfileID)).TargetGlucoseValue;
+
+                foreach (LogModel log in logsWithReminderID)
+                {
+                    float targetGlucose = (await DayProfileDatabase.GetInstance().GetDayProfileAsync(log.DayProfileID)).TargetGlucoseValue;
+                    log.GlucoseAfterMeal = (float)(targetGlucose + glucoseError * (log.InsulinEstimate / totalInsulin));
+                }
+                logs.AddRange(logsWithReminderID);
+            }
+
+            string output = "TimeStamp,GlucoseErrorForBreadPerBread\n";
+
+            //Get all log with bread
+            logs = logs.Where(log =>
+            {
+                foreach (NumberOfGroceryModel g in log.NumberOfGroceryModels)
+                    if (g.Grocery.Name == "Brød")
+                        return true;
+                return false;
+            }).ToList();
+
+            //Find fault for bread per log
+            foreach (LogModel log in logs)
+            {
+                if (log.GlucoseAfterMeal == null || log.GlucoseAfterMeal == -1.0f)
+                    continue; //Not ready or corrupt data.
+
+                DayProfileModel dayProfile = await DayProfileDatabase.GetInstance().GetDayProfileAsync(log.DayProfileID);
+                float targetGlucose = dayProfile.TargetGlucoseValue;
+                float gluoseError = (float)log.GlucoseAfterMeal - targetGlucose;
+
+                NumberOfGroceryModel numberOfGrocery = log.NumberOfGroceryModels.Find(log => log.Grocery.Name == "Brød");
+                float carbsPerBread = numberOfGrocery.Grocery.CarbsPer100Grams * numberOfGrocery.Grocery.GramsPerPortion * numberOfGrocery.Grocery.CarbScalar;
+
+                Application app = Application.Current as App;
+                List<NumberOfGroceryModel> breadList = new();
+                breadList.Add(numberOfGrocery);
+                float breadInsulin = CalculateInsulin(dayProfile.TargetGlucoseValue, breadList, dayProfile);
+
+                float gluoseErrorForBreadPerBread = gluoseError * (breadInsulin / log.InsulinEstimate) / numberOfGrocery.NumberOfGrocery;
+
+                output += log.DateTimeValue.ToString("yyyy/MM/dd HH:mm") + "," + gluoseErrorForBreadPerBread.ToString("0.00", CultureInfo.InvariantCulture) + "\n";
+            }
+            //Write timestamp and fault to file
+
+            File.WriteAllText(filePath, output);
         }
 
         async private static void WriteDatabaseToCSVFile(string filePath, ModelDatabaseAbstract databaseConnection)

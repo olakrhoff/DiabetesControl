@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using DiabetesContolApp.DAO;
 
@@ -151,8 +152,10 @@ namespace DiabetesContolApp.Models
                 DayProfile.DayProfileID + "," +
                 Reminder.ReminderID + "," +
                 DateTimeValue.ToString("yyyy/MM/dd HH:mm") + "," +
-                GlucoseAtMeal + "," +
-                GlucoseAfterMeal + "\n";
+                GlucoseAtMeal.ToString("0.00", CultureInfo.InvariantCulture) + "," +
+                GlucoseAfterMeal?.ToString("0.00", CultureInfo.InvariantCulture) + "," +
+                InsulinEstimate.ToString("0.00", CultureInfo.InvariantCulture) + "," +
+                InsulinFromUser.ToString("0.00", CultureInfo.InvariantCulture) + "\n";
         }
 
     }

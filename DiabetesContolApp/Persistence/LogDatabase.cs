@@ -34,6 +34,7 @@ namespace DiabetesContolApp.Persistence
         /// <returns>The number of rows added.</returns>
         async public Task<int> InsertLogAsync(LogModelDAO newLog)
         {
+
             return await connection.InsertAsync(newLog);
         }
 
@@ -150,32 +151,6 @@ namespace DiabetesContolApp.Persistence
             return temp;
         }
 
-        /*
-        async public Task<List<LogModelDAO>> GetLogsAsync(DateTime? dateTime = null)
-        {
-            var logs = await connection.Table<LogModelDAO>().ToListAsync();
-
-            if (dateTime == null)
-                return logs;
-
-            //This is safe since we will not get past the
-            //if-statment above if dateTime is null
-            DateTime dateTimeNotNull = (DateTime)dateTime;
-
-            List<LogModelDAO> temp = new();
-
-            foreach (LogModelDAO log in logs)
-                if (log.DateTimeValue.Date.Equals(dateTimeNotNull.Date))
-                    temp.Add(log);
-
-            logs = temp;
-
-            for (int i = 0; i < logs.Count; ++i)
-                logs[i] = await GetLogAsync(logs[i].LogID);
-
-            return logs;
-        }*/
-
         /// <summary>
         /// This method deletes a log based on it's ID.
         /// </summary>
@@ -188,7 +163,7 @@ namespace DiabetesContolApp.Persistence
 
         public override string HeaderForCSVFile()
         {
-            return "LogID,DayProfileID,ReminderID,DateTimeValue,GlucoseAtMeal,GlucoseAfterMeal\n";
+            return "LogID,DayProfileID,ReminderID,DateTimeValue,GlucoseAtMeal,GlucoseAfterMeal,InsulinEstimate,InsulinFromUser\n";
         }
 
         public override async Task<List<IModelDAO>> GetAllAsync()
