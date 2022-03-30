@@ -23,7 +23,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="newLog"></param>
         /// <returns>Returns the LogID of the new log, if an error occurs -1 is returned</returns>
-        async public Task<int> InsertAsync(LogModel newLog)
+        async public Task<int> InsertLogAsync(LogModel newLog)
         {
             LogModelDAO newLogDAO = new(newLog);
 
@@ -41,7 +41,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="logID"></param>
         /// <returns>Returns true if it was deleted, if an error occurs then false</returns>
-        async public Task<bool> DeleteAsync(int logID)
+        async public Task<bool> DeleteLogAsync(int logID)
         {
             try
             {
@@ -61,14 +61,14 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="dateTime"></param>
         /// <returns>The list of LogModels on the given date</returns>
-        async public Task<List<LogModel>> GetAllOnDateAsync(DateTime dateTime)
+        async public Task<List<LogModel>> GetAllLogsOnDateAsync(DateTime dateTime)
         {
             List<LogModelDAO> logDAOs = await logDatabase.GetLogsOnDateAsync(dateTime);
 
             List<LogModel> logsOnDate = new();
 
             foreach (LogModelDAO logDAO in logDAOs)
-                logsOnDate.Add(await GetAsync(logDAO.LogID));
+                logsOnDate.Add(await GetLogAsync(logDAO.LogID));
 
             return logsOnDate;
         }
@@ -79,7 +79,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="reminderID"></param>
         /// <returns>List of LogModels with the given reminder ID</returns>
-        async public Task<List<LogModel>> GetAllWithReminderIDAsync(int reminderID)
+        async public Task<List<LogModel>> GetAllLogsWithReminderIDAsync(int reminderID)
         {
             List<LogModelDAO> logDAOs = await logDatabase.GetLogsWithReminderIDAsync(reminderID);
 
@@ -97,7 +97,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="dayProfileID"></param>
         /// <returns>List of LogModels who has the given DayProfile ID.</returns>
-        async public Task<List<LogModel>> GetAllWithDayProfileIDAsync(int dayProfileID)
+        async public Task<List<LogModel>> GetAllLogsWithDayProfileIDAsync(int dayProfileID)
         {
             List<LogModelDAO> logsDAOWithDayProfileID = await logDatabase.GetLogsWithDayProfileIDAsync(dayProfileID);
 
@@ -114,12 +114,12 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="logIDs"></param>
         /// <returns>True if no problem, else false.</returns>
-        async public Task<bool> DeleteAllAsync(List<int> logIDs)
+        async public Task<bool> DeleteAllLogsAsync(List<int> logIDs)
         {
             try
             {
                 foreach (int logID in logIDs)
-                    await DeleteAsync(logID);
+                    await DeleteLogAsync(logID);
                 return true;
             }
             catch (Exception e)
@@ -138,7 +138,7 @@ namespace DiabetesContolApp.Repository
         /// Return the LogModel with the given logID or
         /// null if no log with the given ID was found.
         /// </returns>
-        async public Task<LogModel> GetAsync(int logID)
+        async public Task<LogModel> GetLogAsync(int logID)
         {
             LogModelDAO logDAO = await logDatabase.GetLogAsync(logID);
             if (logDAO == null)
@@ -153,7 +153,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="log"></param>
         /// <returns>True if it was updated, else false.</returns>
-        async public Task<bool> UpdateAsync(LogModel log)
+        async public Task<bool> UpdateLogAsync(LogModel log)
         {
             LogModelDAO logDAO = new(log);
 
@@ -166,7 +166,7 @@ namespace DiabetesContolApp.Repository
         /// Gets the newest Log.
         /// </summary>
         /// <returns>Return LogModel, unless there are no Logs, then it returns null.</returns>
-        async public Task<LogModel> GetNewestAsync()
+        async public Task<LogModel> GetNewestLogAsync()
         {
             LogModelDAO logDAO = await logDatabase.GetNewestLogAsync();
 

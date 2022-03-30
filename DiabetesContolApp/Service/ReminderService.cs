@@ -33,7 +33,7 @@ namespace DiabetesContolApp.Service
             if (reminder == null)
                 return null;
 
-            reminder.Logs = await logRepo.GetAllWithReminderIDAsync(reminder.ReminderID);
+            reminder.Logs = await logRepo.GetAllLogsWithReminderIDAsync(reminder.ReminderID);
 
             return reminder;
         }
@@ -65,7 +65,7 @@ namespace DiabetesContolApp.Service
         async private Task<bool> UpdateReminderAsync(ReminderModel reminder)
         {
             foreach (LogModel log in reminder.Logs)
-                await logRepo.UpdateAsync(log);
+                await logRepo.UpdateLogAsync(log);
 
             return await reminderRepo.UpdateReminderAsync(reminder);
         }

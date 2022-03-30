@@ -20,8 +20,7 @@ namespace DiabetesContolApp.Service
         private ReminderRepo reminderRepo = new();
         private DayProfileRepo dayProfileRepo = new();
 
-        private GroceryLogService groceryLogService = new();
-        private ReminderService reminderService = new();
+        //private GroceryLogService groceryLogService = new();
 
         public LogService()
         {
@@ -45,14 +44,14 @@ namespace DiabetesContolApp.Service
                 newLog.Reminder.ReminderID = reminderID;
             }
 
-            int logID = await logRepo.InsertAsync(newLog); //Insert new Log
+            int logID = await logRepo.InsertLogAsync(newLog); //Insert new Log
             if (logID == -1)
                 return false;
 
 
             if (!await groceryLogRepo.InsertAllAsync(newLog.NumberOfGroceryModels, logID)) //Insert all grocery-log-cross table entries
             {
-                if (!await logRepo.DeleteAsync(logID))
+                if (!await logRepo.DeleteLogAsync(logID))
                     throw new Exception("This state should not be possible");
                 return false;
             }
@@ -73,12 +72,12 @@ namespace DiabetesContolApp.Service
             try
             {
                 LogModel currentLog = await GetLogAsync(logID);
-                List<LogModel> logsWithReminderID = await logRepo.GetAllWithReminderIDAsync(currentLog.Reminder.ReminderID);
+                List<LogModel> logsWithReminderID = await logRepo.GetAllLogsWithReminderIDAsync(currentLog.Reminder.ReminderID);
 
                 foreach (LogModel log in logsWithReminderID)
                 {
                     await groceryLogRepo.DeleteAllWithLogIDAsync(log.LogID);
-                    await logRepo.DeleteAsync(log.LogID);
+                    await logRepo.DeleteLogAsync(log.LogID);
                 }
             }
             catch (Exception e)
@@ -99,7 +98,7 @@ namespace DiabetesContolApp.Service
         {
             try
             {
-                List<LogModel> logsWithDayProfileID = await logRepo.GetAllWithDayProfileIDAsync(dayProfileID);
+                List<LogModel> logsWithDayProfileID = await logRepo.GetAllLogsWithDayProfileIDAsync(dayProfileID);
 
                 foreach (LogModel log in logsWithDayProfileID)
                     await DeleteLogAsync(log.LogID);
@@ -121,7 +120,7 @@ namespace DiabetesContolApp.Service
         /// <returns>Returns the lsit of logs with Dayprofile, Reminder and Groceries added</returns>
         async public Task<List<LogModel>> GetLogsOnDateAsync(DateTime dateTime)
         {
-            List<LogModel> logsOnDate = await logRepo.GetAllOnDateAsync(dateTime);
+            List<LogModel> logsOnDate = await logRepo.GetAllLogsOnDateAsync(dateTime);
 
             for (int i = 0; i < logsOnDate.Count; ++i)
                 logsOnDate[i] = await GetLogAsync(logsOnDate[i].LogID);
@@ -142,7 +141,7 @@ namespace DiabetesContolApp.Service
         /// </returns>
         async public Task<LogModel> GetLogAsync(int logID)
         {
-            LogModel log = await logRepo.GetAsync(logID);
+            LogModel log = await logRepo.GetLogAsync(logID);
             if (log == null)
                 return null;
             log.DayProfile = await dayProfileRepo.GetAsync(log.DayProfile.DayProfileID);
@@ -160,7 +159,7 @@ namespace DiabetesContolApp.Service
         /// <returns>Returns true if it was updated, else false</returns>
         async public Task<bool> UpdateLogAsync(LogModel log)
         {
-            if (!await logRepo.UpdateAsync(log))
+            if (!await logRepo.UpdateLogAsync(log))
                 return false; //No log was updated, stop
 
             bool deleted = await groceryLogRepo.DeleteAllWithLogIDAsync(log.LogID); //Delete all entries with this log
@@ -177,7 +176,7 @@ namespace DiabetesContolApp.Service
         /// <returns>Returns LogModel for the newest log, return null if there are no LogModels.</returns>
         async public Task<LogModel> GetNewestLogAsync()
         {
-            LogModel newestLog = await logRepo.GetNewestAsync();
+            LogModel newestLog = await logRepo.GetNewestLogAsync();
 
             return await GetLogAsync(newestLog.LogID);
         }

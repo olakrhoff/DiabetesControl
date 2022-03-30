@@ -67,7 +67,7 @@ namespace DiabetesContolApp.Service
 
             await groceryLogRepo.DeleteAllWithGroceryIDAsync(groceryID); //Deletes all entries in cross table
 
-            await logRepo.DeleteAllAsync(logIDs); //Deletes all logs
+            await logRepo.DeleteAllLogsAsync(logIDs); //Deletes all logs
 
 
             return await groceryRepo.DeleteAsync(groceryID);
