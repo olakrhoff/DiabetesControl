@@ -153,6 +153,16 @@ namespace DiabetesContolApp.Service
         }
 
         /// <summary>
+        /// Gets all LogModels with the given Reminder ID.
+        /// </summary>
+        /// <param name="reminderID"></param>
+        /// <returns>List of LogModels with the given Reminder ID, might be empty</returns>
+        async public Task<List<LogModel>> GetAllLogsWithReminderIDAsync(int reminderID)
+        {
+            return await logRepo.GetAllLogsWithReminderIDAsync(reminderID);
+        }
+
+        /// <summary>
         /// Gets the LogModel with the given ID, if it exists.
         /// Then it adds the corresponding DayProfile, Reminder and Groceries.
         /// </summary>

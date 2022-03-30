@@ -84,5 +84,14 @@ namespace DiabetesContolApp.Service
 
             return unhandledReminders;
         }
+
+        /// <summary>
+        /// Gets all ReminderModels.
+        /// </summary>
+        /// <returns>List of ReminderModels, might be empty.</returns>
+        async public Task<List<ReminderModel>> GetAllRemindersAsync()
+        {
+            return await reminderRepo.GetAllRemindersAsync();
+        }
     }
 }

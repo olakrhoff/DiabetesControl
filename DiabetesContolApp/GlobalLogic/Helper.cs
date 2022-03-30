@@ -2,16 +2,16 @@
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
+using System.Globalization;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.Persistence;
+using DiabetesContolApp.DAO;
+using DiabetesContolApp.Service;
 
 using Xamarin.Forms;
-using System.Threading.Tasks;
 using Xamarin.Essentials;
-using System.IO;
-using System.Globalization;
 
 namespace DiabetesContolApp.GlobalLogic
 {
@@ -122,21 +122,24 @@ namespace DiabetesContolApp.GlobalLogic
 
         async private static void WriteBreadToCSVFile(string filePath)
         {
+            ReminderService reminderService = new();
+            LogService logService = new();
+
             List<LogModel> logs = new();
 
-            List<ReminderModel> reminders = await ReminderDatabase.GetInstance().GetRemindersAsync();
+            List<ReminderModel> reminders = await reminderService.GetAllRemindersAsync();
 
             reminders = reminders.Where(remidner => remidner.IsHandled && remidner.GlucoseAfterMeal > 0).ToList();
 
             foreach (ReminderModel reminder in reminders)
             {
-                List<LogModel> logsWithReminderID = await LogDatabase.GetInstance().GetLogsWithReminderAsync(reminder.ReminderID);
+                List<LogModel> logsWithReminderID = await logService.GetAllLogsWithReminderIDAsync(reminder.ReminderID);
                 double totalInsulin = logsWithReminderID.Sum(log => log.InsulinEstimate);
-                double glucoseError = (float)reminder.GlucoseAfterMeal - (await DayProfileDatabase.GetInstance().GetDayProfileAsync(logsWithReminderID[logsWithReminderID.Count - 1].DayProfileID)).TargetGlucoseValue;
+                double glucoseError = (float)reminder.GlucoseAfterMeal - logsWithReminderID[logsWithReminderID.Count - 1].DayProfile.TargetGlucoseValue;
 
                 foreach (LogModel log in logsWithReminderID)
                 {
-                    float targetGlucose = (await DayProfileDatabase.GetInstance().GetDayProfileAsync(log.DayProfileID)).TargetGlucoseValue;
+                    float targetGlucose = log.DayProfile.TargetGlucoseValue;
                     log.GlucoseAfterMeal = (float)(targetGlucose + glucoseError * (log.InsulinEstimate / totalInsulin));
                 }
                 logs.AddRange(logsWithReminderID);
@@ -159,7 +162,7 @@ namespace DiabetesContolApp.GlobalLogic
                 if (log.GlucoseAfterMeal == null || log.GlucoseAfterMeal == -1.0f)
                     continue; //Not ready or corrupt data.
 
-                DayProfileModel dayProfile = await DayProfileDatabase.GetInstance().GetDayProfileAsync(log.DayProfileID);
+                DayProfileModel dayProfile = log.DayProfile;
                 float targetGlucose = dayProfile.TargetGlucoseValue;
                 float gluoseError = (float)log.GlucoseAfterMeal - targetGlucose;
 

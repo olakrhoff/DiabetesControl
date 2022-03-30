@@ -78,7 +78,7 @@ namespace DiabetesContolApp.Repository
         /// Then converts them into LogModels.
         /// </summary>
         /// <param name="reminderID"></param>
-        /// <returns>List of LogModels with the given reminder ID</returns>
+        /// <returns>List of LogModels with the given reminder ID, might be empty.</returns>
         async public Task<List<LogModel>> GetAllLogsWithReminderIDAsync(int reminderID)
         {
             List<LogModelDAO> logDAOs = await logDatabase.GetLogsWithReminderIDAsync(reminderID);
