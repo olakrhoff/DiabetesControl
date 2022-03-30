@@ -22,7 +22,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="numberOfGroceries"></param>
         /// <returns>Return false if an error occured, else true</returns>
-        async public Task<bool> InsertAllAsync(List<NumberOfGroceryModel> numberOfGroceries, int logID)
+        async public Task<bool> InsertAllGroceryLogsAsync(List<NumberOfGroceryModel> numberOfGroceries, int logID)
         {
             if (numberOfGroceries.Count == 0)
                 return true; //Empty list
@@ -48,7 +48,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="logID"></param>
         /// <returns>Return false if an error occurs, else true.</returns>
-        async public Task<bool> DeleteAllWithLogIDAsync(int logID)
+        async public Task<bool> DeleteAllGroceryLogsWithLogIDAsync(int logID)
         {
             if (await groceryLogDatabase.DeleteAllWithLogIDAsync(logID) >= 0)
                 return true;
@@ -60,7 +60,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="groceryID"></param>
         /// <returns>Returns fdlase if an error occurs, else true.</returns>
-        async public Task<bool> DeleteAllWithGroceryIDAsync(int groceryID)
+        async public Task<bool> DeleteAllGroceryLogsWithGroceryIDAsync(int groceryID)
         {
             if (await groceryLogDatabase.DeleteAllWithGroceryIDAsync(groceryID) >= 0)
                 return true;
@@ -73,7 +73,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="groceryID"></param>
         /// <returns>List of GroceryLogModels.</returns>
-        async public Task<List<GroceryLogModel>> GetAllWithGroceryID(int groceryID)
+        async public Task<List<GroceryLogModel>> GetAllGroceryLogsWithGroceryID(int groceryID)
         {
             List<GroceryLogModelDAO> groceryLogsDAO = await groceryLogDatabase.GetAllWithGroceryID(groceryID);
 
@@ -91,7 +91,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="logID"></param>
         /// <returns>Return list of NumberOfGroceryModel, might be empty.</returns>
-        async public Task<List<NumberOfGroceryModel>> GetAllWithLogID(int logID)
+        async public Task<List<NumberOfGroceryModel>> GetAllGroceryLogsWithLogID(int logID)
         {
             List<GroceryLogModelDAO> groceryLogDAOs = await groceryLogDatabase.GetAllWithLogID(logID);
 
