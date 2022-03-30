@@ -19,8 +19,7 @@ namespace DiabetesContolApp.Service
         private GroceryLogRepo groceryLogRepo = new();
         private ReminderRepo reminderRepo = new();
         private DayProfileRepo dayProfileRepo = new();
-
-        //private GroceryLogService groceryLogService = new();
+        private GroceryRepo groceryRepo = new();
 
         public LogService()
         {
@@ -49,7 +48,7 @@ namespace DiabetesContolApp.Service
                 return false;
 
 
-            if (!await groceryLogRepo.InsertAllAsync(newLog.NumberOfGroceryModels, logID)) //Insert all grocery-log-cross table entries
+            if (!await groceryLogRepo.InsertAllGroceryLogsAsync(newLog.NumberOfGroceryModels, logID)) //Insert all grocery-log-cross table entries
             {
                 if (!await logRepo.DeleteLogAsync(logID))
                     throw new Exception("This state should not be possible");
@@ -76,7 +75,7 @@ namespace DiabetesContolApp.Service
 
                 foreach (LogModel log in logsWithReminderID)
                 {
-                    await groceryLogRepo.DeleteAllWithLogIDAsync(log.LogID);
+                    await groceryLogRepo.DeleteAllGroceryLogsWithLogIDAsync(log.LogID);
                     await logRepo.DeleteLogAsync(log.LogID);
                 }
             }
@@ -101,13 +100,15 @@ namespace DiabetesContolApp.Service
                 List<LogModel> logsWithDayProfileID = await logRepo.GetAllLogsWithDayProfileIDAsync(dayProfileID);
 
                 foreach (LogModel log in logsWithDayProfileID)
-                    await DeleteLogAsync(log.LogID);
+                    if (!await DeleteLogAsync(log.LogID))
+                        throw new Exception("An error occured while deleting log with logID: " + log.LogID);
 
                 return true;
             }
             catch (Exception e)
             {
                 Debug.WriteLine(e.StackTrace);
+                Debug.WriteLine(e.Message);
                 return false;
             }
         }
@@ -123,7 +124,7 @@ namespace DiabetesContolApp.Service
             List<LogModel> logsOnDate = await logRepo.GetAllLogsOnDateAsync(dateTime);
 
             for (int i = 0; i < logsOnDate.Count; ++i)
-                logsOnDate[i] = await GetLogAsync(logsOnDate[i].LogID);
+                logsOnDate[i] = await GetLogAsync(logsOnDate[i].LogID); //Gets the LogModels properly
 
             logsOnDate = logsOnDate.FindAll(log => log != null); //Remove all null values, if any
 
@@ -132,11 +133,11 @@ namespace DiabetesContolApp.Service
 
         /// <summary>
         /// Gets the LogModel with the given ID, if it exists.
-        /// Then it adds the corresponding DayProfile, Remidner and Groceries.
+        /// Then it adds the corresponding DayProfile, Reminder and Groceries.
         /// </summary>
         /// <param name="logID"></param>
         /// <returns>
-        /// The LogModel with DayProfile, Remidner and Groceries added.
+        /// The LogModel with DayProfile, Reminder and Groceries added.
         /// If no LogModel with this ID exists it returns null.
         /// </returns>
         async public Task<LogModel> GetLogAsync(int logID)
@@ -146,8 +147,10 @@ namespace DiabetesContolApp.Service
                 return null;
             log.DayProfile = await dayProfileRepo.GetAsync(log.DayProfile.DayProfileID);
             log.Reminder = await reminderRepo.GetReminderAsync(log.Reminder.ReminderID);
-            //log.NumberOfGroceryModels = await groceryLogRepo.GetAllWithLogID(log.LogID);
-            log.NumberOfGroceryModels = await groceryLogService.GetAllWithLogID(log.LogID);
+            log.NumberOfGroceryModels = await groceryLogRepo.GetAllGroceryLogsWithLogID(log.LogID);
+
+            foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceryModels)
+                numberOfGrocery.Grocery = await groceryRepo.GetAsync(numberOfGrocery.Grocery.GroceryID); //Gets the Groceries in the NumberOfGroceries in the log
 
             return log;
         }
@@ -162,8 +165,8 @@ namespace DiabetesContolApp.Service
             if (!await logRepo.UpdateLogAsync(log))
                 return false; //No log was updated, stop
 
-            bool deleted = await groceryLogRepo.DeleteAllWithLogIDAsync(log.LogID); //Delete all entries with this log
-            bool added = await groceryLogRepo.InsertAllAsync(log.NumberOfGroceryModels, log.LogID); //Add all the new ones
+            bool deleted = await groceryLogRepo.DeleteAllGroceryLogsWithLogIDAsync(log.LogID); //Delete all entries with this log
+            bool added = await groceryLogRepo.InsertAllGroceryLogsAsync(log.NumberOfGroceryModels, log.LogID); //Add all the new ones
 
             if (deleted && added)
                 return true; //If no problems, return true
@@ -178,7 +181,7 @@ namespace DiabetesContolApp.Service
         {
             LogModel newestLog = await logRepo.GetNewestLogAsync();
 
-            return await GetLogAsync(newestLog.LogID);
+            return await GetLogAsync(newestLog.LogID); //Gets the LogModel properly
         }
     }
 }

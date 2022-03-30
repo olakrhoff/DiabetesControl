@@ -30,7 +30,7 @@ namespace DiabetesContolApp.Service
         /// <returns>List of NumberOfGroceryModel with GroceryModels</returns>
         async public Task<List<NumberOfGroceryModel>> GetAllWithLogID(int logID)
         {
-            List<NumberOfGroceryModel> numberOfGroceries = await groceryLogRepo.GetAllWithLogID(logID);
+            List<NumberOfGroceryModel> numberOfGroceries = await groceryLogRepo.GetAllGroceryLogsWithLogID(logID);
 
             //TODO: If grocery is not found the Log might be corrupt, consider deleting the log in this case.
             foreach (NumberOfGroceryModel numberOfGrocery in numberOfGroceries)

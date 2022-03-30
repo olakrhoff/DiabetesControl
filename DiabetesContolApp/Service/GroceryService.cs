@@ -61,11 +61,11 @@ namespace DiabetesContolApp.Service
         /// <returns>True if deleted, else false</returns>
         async public Task<bool> DeleteGroceryAsync(int groceryID)
         {
-            List<GroceryLogModel> groceryLogsWithGroceryID = await groceryLogRepo.GetAllWithGroceryID(groceryID);
+            List<GroceryLogModel> groceryLogsWithGroceryID = await groceryLogRepo.GetAllGroceryLogsWithGroceryID(groceryID);
 
             List<int> logIDs = groceryLogsWithGroceryID.Select(log => log.Log.LogID).ToList();
 
-            await groceryLogRepo.DeleteAllWithGroceryIDAsync(groceryID); //Deletes all entries in cross table
+            await groceryLogRepo.DeleteAllGroceryLogsWithGroceryIDAsync(groceryID); //Deletes all entries in cross table
 
             await logRepo.DeleteAllLogsAsync(logIDs); //Deletes all logs
 
