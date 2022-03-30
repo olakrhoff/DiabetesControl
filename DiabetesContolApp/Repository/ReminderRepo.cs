@@ -25,7 +25,7 @@ namespace DiabetesContolApp.Repository
         /// If the remidner exists it returns the ReminderModel,
         /// if it doesn't it returns null.
         /// </returns>
-        async public Task<ReminderModel> GetAsync(int reminderID)
+        async public Task<ReminderModel> GetReminderAsync(int reminderID)
         {
             ReminderModelDAO reminderDAO = await reminderDatabase.GetReminderAsync(reminderID);
 
@@ -41,16 +41,44 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="reminder"></param>
         /// <returns>True if updated, else false.</returns>
-        async public Task<bool> UpdateAsync(ReminderModel reminder)
+        async public Task<bool> UpdateReminderAsync(ReminderModel reminder)
         {
             return await reminderDatabase.UpdateReminderAsync(new(reminder)) > 0;
+        }
+
+        /// <summary>
+        /// Converts ReminderModel to DAO and deletes it
+        /// in the database.
+        /// </summary>
+        /// <param name="reminderID"></param>
+        /// <returns>False if error occurs, else true</returns>
+        async public Task<bool> DeleteReminderAsync(int reminderID)
+        {
+            return await reminderDatabase.DeleteReminderAsync(reminderID) >= 0;
+        }
+
+        /// <summary>
+        /// Gets all ReminderDAOs and converts them
+        /// into ReminderModels.
+        /// </summary>
+        /// <returns>List of ReminderModels, might be empty.</returns>
+        async public Task<List<ReminderModel>> GetAllRemindersAsync()
+        {
+            List<ReminderModelDAO> reminderDAOs = await reminderDatabase.GetAllRemindersAsync();
+
+            List<ReminderModel> reminders = new();
+
+            foreach (ReminderModelDAO reminderDAO in reminderDAOs)
+                reminders.Add(new(reminderDAO));
+
+            return reminders;
         }
 
         /// <summary>
         /// Gets all RemidnerDAOs which are unhandled,
         /// converts them into ReminderModels.
         /// </summary>
-        /// <returns>List of ReminderModels which are unhandled</returns>
+        /// <returns>List of ReminderModels which are unhandled, might be empty</returns>
         async public Task<List<ReminderModel>> GetAllUnhandledRemindersAsync()
         {
             List<ReminderModelDAO> unhandledReminderDAOs = await reminderDatabase.GetAllUnhandledRemindersAsync();
@@ -71,7 +99,7 @@ namespace DiabetesContolApp.Repository
         /// Return the ID of the newly added Reminder.
         /// If error returns -1.
         /// </returns>
-        async public Task<int> InsertAsync(ReminderModel newReminder)
+        async public Task<int> InsertReminderAsync(ReminderModel newReminder)
         {
             if (await reminderDatabase.InsertReminderAsync(new(newReminder)) == 0)
                 return -1;

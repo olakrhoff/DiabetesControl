@@ -53,6 +53,18 @@ namespace DiabetesContolApp.Persistence
             }
         }
 
+        /// <summary>
+        /// Gets all ReminderDAOs.
+        /// </summary>
+        /// <returns>List of all ReminderDAOs, might be empty.</returns>
+        async public Task<List<ReminderModelDAO>> GetAllRemindersAsync()
+        {
+            List<ReminderModelDAO> reminderDAOs = await connection.Table<ReminderModelDAO>().ToListAsync();
+            if (reminderDAOs == null)
+                return new();
+            return reminderDAOs;
+        }
+
         /*
         /// <summary>
         /// This method loops through all reminders,
@@ -142,10 +154,19 @@ namespace DiabetesContolApp.Persistence
         /// Task for async.
         ///
         /// int for the number of rows delete, in the reminder table.
+        /// If an error occurs it returns -1.
         /// </returns>
         async public Task<int> DeleteReminderAsync(int reminderID)
         {
-            return await connection.DeleteAsync<ReminderModelDAO>(reminderID);
+            try
+            {
+                return await connection.DeleteAsync<ReminderModelDAO>(reminderID);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return -1;
+            }
         }
 
         public override string HeaderForCSVFile()

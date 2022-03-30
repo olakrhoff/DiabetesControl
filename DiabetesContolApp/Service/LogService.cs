@@ -34,7 +34,7 @@ namespace DiabetesContolApp.Service
             {
                 newLog.Reminder = new();
 
-                int reminderID = await reminderRepo.InsertAsync(newLog.Reminder);
+                int reminderID = await reminderRepo.InsertReminderAsync(newLog.Reminder);
                 if (reminderID == -1)
                     return false; //An error occured while creating the remidner
                 newLog.Reminder.ReminderID = reminderID;
@@ -141,7 +141,7 @@ namespace DiabetesContolApp.Service
             if (log == null)
                 return null;
             log.DayProfile = await dayProfileRepo.GetAsync(log.DayProfile.DayProfileID);
-            log.Reminder = await reminderRepo.GetAsync(log.Reminder.ReminderID);
+            log.Reminder = await reminderRepo.GetReminderAsync(log.Reminder.ReminderID);
             //log.NumberOfGroceryModels = await groceryLogRepo.GetAllWithLogID(log.LogID);
             log.NumberOfGroceryModels = await groceryLogService.GetAllWithLogID(log.LogID);
 
