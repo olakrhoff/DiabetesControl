@@ -20,7 +20,7 @@ namespace DiabetesContolApp.Repository
         /// Gets all the groceryDAOs and converts them into GroceryModels
         /// </summary>
         /// <returns>List of GroceryModels.</returns>
-        async public Task<List<GroceryModel>> GetAllAsync()
+        async public Task<List<GroceryModel>> GetAllGroceriesAsync()
         {
             List<GroceryModelDAO> groceriesDAO = await groceryDatabase.GetGroceriesAsync();
 
@@ -38,7 +38,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="groceryID"></param>
         /// <returns>The GroceryModel with the given ID, null if not found</returns>
-        async public Task<GroceryModel> GetAsync(int groceryID)
+        async public Task<GroceryModel> GetGroceryAsync(int groceryID)
         {
             GroceryModelDAO groceryDAO = await groceryDatabase.GetGroceryAsync(groceryID);
             if (groceryDAO == null)
@@ -53,7 +53,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="grocery"></param>
         /// <returns>True if updated, else false.</returns>
-        async public Task<bool> UpdateAsync(GroceryModel grocery)
+        async public Task<bool> UpdateGroceryAsync(GroceryModel grocery)
         {
             return await groceryDatabase.UpdateGroceryAsync(new(grocery)) > 0;
         }
@@ -64,7 +64,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="groceryID"></param>
         /// <returns>True if delete, else false</returns>
-        async public Task<bool> DeleteAsync(int groceryID)
+        async public Task<bool> DeleteGroceryAsync(int groceryID)
         {
             return await groceryDatabase.DeleteGroceryAsync(groceryID) > 0;
         }
@@ -75,7 +75,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="newGrocery"></param>
         /// <returns>True if it was inserted, else false</returns>
-        async public Task<bool> InsertAsync(GroceryModel newGrocery)
+        async public Task<bool> InsertGroceryAsync(GroceryModel newGrocery)
         {
             GroceryModelDAO groceryDAO = new(newGrocery);
 
