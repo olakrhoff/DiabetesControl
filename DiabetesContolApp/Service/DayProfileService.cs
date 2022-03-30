@@ -69,7 +69,7 @@ namespace DiabetesContolApp.Service
         /// Gets the DayProfileModel with the given ID.
         /// </summary>
         /// <param name="dayProfileID"></param>
-        /// <returns>DayProfileModel with giveen ID or null if not found.</returns>
+        /// <returns>DayProfileModel with given ID or null if not found.</returns>
         async public Task<DayProfileModel> GetDayProfileAsync(int dayProfileID)
         {
             return await dayProfileRepo.GetDayProfileAsync(dayProfileID);
