@@ -31,7 +31,7 @@ namespace DiabetesContolApp.Views
 
         protected override async void OnAppearing()
         {
-            List<DayProfileModel> dayProfiles = await dayProfileService.GetDayProfilesAsync();
+            List<DayProfileModel> dayProfiles = await dayProfileService.GetAllDayProfilesAsync();
             dayProfiles.Sort(); //Sort the elements
 
             DayProfiles = new ObservableCollection<DayProfileModel>(dayProfiles);

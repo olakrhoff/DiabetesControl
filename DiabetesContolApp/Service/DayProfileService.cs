@@ -15,6 +15,7 @@ namespace DiabetesContolApp.Service
     public class DayProfileService
     {
         private DayProfileRepo dayProfileRepo = new();
+
         private LogService logService = new();
 
         public DayProfileService()
@@ -25,9 +26,9 @@ namespace DiabetesContolApp.Service
         /// Gets all DAyProfileModels.
         /// </summary>
         /// <returns>List of DayProfiles.</returns>
-        async public Task<List<DayProfileModel>> GetDayProfilesAsync()
+        async public Task<List<DayProfileModel>> GetAllDayProfilesAsync()
         {
-            return await dayProfileRepo.GetAllAsync();
+            return await dayProfileRepo.GetAllDayProfilesAsync();
         }
 
         /// <summary>
@@ -37,7 +38,7 @@ namespace DiabetesContolApp.Service
         /// <returns>True if inserted, else false</returns>
         async public Task<bool> InsertDayProfileAsync(DayProfileModel newDayProfile)
         {
-            return await dayProfileRepo.InsertAsync(newDayProfile);
+            return await dayProfileRepo.InsertDayProfileAsync(newDayProfile);
         }
 
         /// <summary>
@@ -47,7 +48,7 @@ namespace DiabetesContolApp.Service
         /// <returns>True if updated, else false.</returns>
         async public Task<bool> UpdateDayProfileAsync(DayProfileModel dayProfile)
         {
-            return await dayProfileRepo.UpdateAsync(dayProfile);
+            return await dayProfileRepo.UpdateDayProfileAsync(dayProfile);
         }
 
         /// <summary>
@@ -61,7 +62,7 @@ namespace DiabetesContolApp.Service
             //Delete all log using this day profile
             await logService.DeleteAllWithDayProfileIDAsync(dayProfileID);
 
-            return await dayProfileRepo.DeleteAsync(dayProfileID);
+            return await dayProfileRepo.DeleteDayProfileAsync(dayProfileID);
         }
 
         /// <summary>
@@ -71,7 +72,7 @@ namespace DiabetesContolApp.Service
         /// <returns>DayProfileModel with giveen ID or null if not found.</returns>
         async public Task<DayProfileModel> GetDayProfileAsync(int dayProfileID)
         {
-            return await dayProfileRepo.GetAsync(dayProfileID);
+            return await dayProfileRepo.GetDayProfileAsync(dayProfileID);
         }
     }
 }

@@ -166,7 +166,7 @@ namespace DiabetesContolApp.Service
             LogModel log = await logRepo.GetLogAsync(logID);
             if (log == null)
                 return null;
-            log.DayProfile = await dayProfileRepo.GetAsync(log.DayProfile.DayProfileID);
+            log.DayProfile = await dayProfileRepo.GetDayProfileAsync(log.DayProfile.DayProfileID);
             log.Reminder = await reminderRepo.GetReminderAsync(log.Reminder.ReminderID);
 
             List<GroceryLogModel> groceryLogs = await groceryLogRepo.GetAllGroceryLogsWithLogID(log.LogID);

@@ -21,7 +21,7 @@ namespace DiabetesContolApp.Repository
         /// to DayProfileModels.
         /// </summary>
         /// <returns>List of DayProfileModels.</returns>
-        async public Task<List<DayProfileModel>> GetAllAsync()
+        async public Task<List<DayProfileModel>> GetAllDayProfilesAsync()
         {
             List<DayProfileModelDAO> dayProfilesDAO = await dayProfileDatabase.GetDayProfilesAsync();
 
@@ -39,7 +39,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="dayProfile"></param>
         /// <returns>True if inserted, else false.</returns>
-        async public Task<bool> UpdateAsync(DayProfileModel dayProfile)
+        async public Task<bool> UpdateDayProfileAsync(DayProfileModel dayProfile)
         {
             return await dayProfileDatabase.UpdateDayProfileAsync(new(dayProfile)) > 0;
         }
@@ -50,7 +50,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="dayProfileID"></param>
         /// <returns>True if deleted, else false.</returns>
-        async public Task<bool> DeleteAsync(int dayProfileID)
+        async public Task<bool> DeleteDayProfileAsync(int dayProfileID)
         {
             return await dayProfileDatabase.DeleteDayProfileAsync(dayProfileID) > 0;
         }
@@ -60,7 +60,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="newDayProfile"></param>
         /// <returns>True if inserted, else false.</returns>
-        async public Task<bool> InsertAsync(DayProfileModel newDayProfile)
+        async public Task<bool> InsertDayProfileAsync(DayProfileModel newDayProfile)
         {
             DayProfileModelDAO dayProfileDAO = new(newDayProfile);
 
@@ -72,7 +72,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="dayProfileID"></param>
         /// <returns>Returns null if DAO wasn't found, else the new Model with the given ID.</returns>
-        async public Task<DayProfileModel> GetAsync(int dayProfileID)
+        async public Task<DayProfileModel> GetDayProfileAsync(int dayProfileID)
         {
             DayProfileModelDAO dayProfileDAO = await dayProfileDatabase.GetDayProfileAsync(dayProfileID);
 
