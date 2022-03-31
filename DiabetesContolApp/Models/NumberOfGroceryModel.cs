@@ -11,7 +11,7 @@ namespace DiabetesContolApp.Models
 
         private uint _numberOfGrocery = 0;
         public GroceryModel Grocery { get; set; }
-        public float InsulinForGroceries { get; set; }
+        public float InsulinForGroceries { get; set; } //Insulin given for the groceries
 
         public NumberOfGroceryModel(uint number, GroceryModel grocery, float insulinForGroceries)
         {

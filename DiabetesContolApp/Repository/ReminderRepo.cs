@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using System.Linq;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.DAO;
@@ -33,6 +34,22 @@ namespace DiabetesContolApp.Repository
                 return null;
 
             return new(reminderDAO);
+        }
+
+        /// <summary>
+        /// Gets the reminder with the highest DateTimeValue.
+        /// </summary>
+        /// <returns>ReminderModel with highest ID, might be null if no reminders exist.</returns>
+        async public Task<ReminderModel> GetNewestReminder()
+        {
+            List<ReminderModelDAO> reminderDAOs = await reminderDatabase.GetAllRemindersAsync();
+
+            if (reminderDAOs.Count == 0)
+                return null;
+
+            reminderDAOs.Sort();
+
+            return await GetReminderAsync(reminderDAOs[reminderDAOs.Count - 1].ReminderID);
         }
 
         /// <summary>
@@ -95,19 +112,10 @@ namespace DiabetesContolApp.Repository
         /// Converts ReminderModel to DAO and inserts it into database.
         /// </summary>
         /// <param name="newReminder"></param>
-        /// <returns>
-        /// Return the ID of the newly added Reminder.
-        /// If error returns -1.
-        /// </returns>
-        async public Task<int> InsertReminderAsync(ReminderModel newReminder)
+        /// <returns>bool, true if inserted, else false</returns>
+        async public Task<bool> InsertReminderAsync(ReminderModel newReminder)
         {
-            if (await reminderDatabase.InsertReminderAsync(new(newReminder)) == 0)
-                return -1;
-
-            ReminderModelDAO newestRemidnerDAO = await reminderDatabase.GetNewestReminderAsync();
-            if (newestRemidnerDAO == null)
-                return -1;
-            return newestRemidnerDAO.ReminderID;
+            return await reminderDatabase.InsertReminderAsync(new(newReminder)) > 0;
         }
     }
 }

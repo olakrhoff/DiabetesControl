@@ -13,7 +13,19 @@ namespace DiabetesContolApp.Views
 {
     public partial class LogDetailPage : ContentPage
     {
-        public LogModel Log { get; set; }
+        private LogModel _log = new();
+        public LogModel Log
+        {
+            get
+            {
+                return _log;
+            }
+
+            set
+            {
+                _log = value;
+            }
+        }
         public event EventHandler<LogModel> LogSaved;
         public event EventHandler<LogModel> LogAdded;
 
@@ -114,9 +126,9 @@ namespace DiabetesContolApp.Views
             Log.NumberOfGroceryModels = NumberOfGrocerySummary.ToList();
 
             //Calcualte the estimated insulin
-            float insulinEsitmate = Helper.CalculateInsulin(Log.GlucoseAtMeal, Log.NumberOfGroceryModels, Log.DayProfile);
+            Helper.CalculateInsulin(ref _log);
 
-            Log.InsulinEstimate = insulinEsitmate;
+            Log = _log;
 
             if (Log.LogID == -1)
                 LogAdded?.Invoke(this, Log);

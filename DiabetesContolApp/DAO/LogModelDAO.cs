@@ -127,7 +127,8 @@ namespace DiabetesContolApp.DAO
                 GlucoseAtMeal.ToString("0.00", CultureInfo.InvariantCulture) + "," +
                 GlucoseAfterMeal?.ToString("0.00", CultureInfo.InvariantCulture) + "," +
                 InsulinEstimate.ToString("0.00", CultureInfo.InvariantCulture) + "," +
-                InsulinFromUser.ToString("0.00", CultureInfo.InvariantCulture) + "\n";
+                InsulinFromUser.ToString("0.00", CultureInfo.InvariantCulture) + "," +
+                CorrectionInsulin.ToString("0.00", CultureInfo.InvariantCulture) + "\n";
         }
     }
 }

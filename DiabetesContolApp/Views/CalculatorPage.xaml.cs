@@ -18,8 +18,7 @@ namespace DiabetesContolApp.Views
 
         public ObservableCollection<DayProfileModel> DayProfiles { get; set; }
         public ObservableCollection<NumberOfGroceryModel> NumberOfGroceriesSummary { get; set; }
-        private float? _insulinEstimate;
-        private ReminderModel _reminder;
+        private LogModel _tempLog = new();
 
         private DayProfileService dayProfileService = new();
         private LogService logService = new();
@@ -63,7 +62,7 @@ namespace DiabetesContolApp.Views
             if (isOverlapping)
                 glucose.Text = previousLog.DayProfile.TargetGlucoseValue.ToString();
 
-            _reminder = isOverlapping ? previousLog.Reminder : null;
+            _tempLog.Reminder = isOverlapping ? previousLog.Reminder : null;
         }
 
         private DayProfileModel GetDayProfileByTime()
@@ -114,15 +113,19 @@ namespace DiabetesContolApp.Views
 
             if (Helper.ConvertToFloat(glucose.Text, out float glucoseFloat))
             {
+                DayProfileModel dayProfile = pickerDayprofiles.SelectedItem as DayProfileModel;
+
+                _tempLog.GlucoseAtMeal = glucoseFloat;
+                _tempLog.DayProfile = dayProfile;
+                if (NumberOfGroceriesSummary != null)
+                    _tempLog.NumberOfGroceryModels = NumberOfGroceriesSummary.ToList();
 
                 //Data is valid, continue with calculations
-                DayProfileModel dayProfile = pickerDayprofiles.SelectedItem as DayProfileModel;
-                float totalInsulin = Helper.CalculateInsulin(glucoseFloat, NumberOfGroceriesSummary?.ToList(), dayProfile);
+                Helper.CalculateInsulin(ref _tempLog);
 
-                insulinEstimate.Text = String.Format("{0:F1}", totalInsulin);
+                insulinEstimate.Text = String.Format("{0:F1}", _tempLog.InsulinEstimate);
                 insulinEstimate.IsVisible = true;
                 logInsulinButton.IsEnabled = true;
-                _insulinEstimate = totalInsulin;
             }
             else
             {
@@ -134,21 +137,15 @@ namespace DiabetesContolApp.Views
         async void LogInsulinClicked(System.Object sender, System.EventArgs e)
         {
             if (!await VaildateCalculatorData() ||
-                _insulinEstimate == null ||
-                !Helper.ConvertToFloat(insulinEstimate.Text, out float insulinFromUserFloat) ||
-                !Helper.ConvertToFloat(glucose.Text, out float glucoseAtMealFloat))
+                _tempLog.InsulinEstimate < 0 ||
+                !Helper.ConvertToFloat(insulinEstimate.Text, out float insulinFromUserFloat))
                 return;
 
-            LogModel newLogEntry = new(pickerDayprofiles.SelectedItem as DayProfileModel,
-                _reminder,
-                DateTime.Now,
-                (float)_insulinEstimate,
-                insulinFromUserFloat,
-                glucoseAtMealFloat,
-                NumberOfGroceriesSummary?.ToList());
-            newLogEntry.Reminder = _reminder;
+            _tempLog.InsulinFromUser = insulinFromUserFloat;
+            _tempLog.DateTimeValue = DateTime.Now;
 
-            await logService.InsertLogAsync(newLogEntry);
+            if (!await logService.InsertLogAsync(_tempLog))
+                await DisplayAlert("Error", "Something went wrong when added the new log.", "OK");
 
             ClearCalculatorData();
             SetOverlappingMeals(false, null); //Enable the glucose entry
@@ -182,10 +179,7 @@ namespace DiabetesContolApp.Views
                 propertiesChanged = true;
                 string result = await DisplayPromptAsync("We don't have your insulin-carbs-ratio", "How many units of insulin did you set yesterday?", keyboard: Keyboard.Numeric);
                 if (Helper.ConvertToFloat(result, out float resultFloat))
-                {
                     globalVariables.InsulinToCarbohydratesRatio = Helper.Calculate500Rule(resultFloat);
-                    //await AverageTDDDatabase.GetInstance().InsertAverageTDD(new(resultFloat));
-                }
             }
             if (globalVariables.InsulinToGlucoseRatio == -1.0f)
             {

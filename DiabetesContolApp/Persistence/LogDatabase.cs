@@ -163,7 +163,7 @@ namespace DiabetesContolApp.Persistence
 
         public override string HeaderForCSVFile()
         {
-            return "LogID,DayProfileID,ReminderID,DateTimeValue,GlucoseAtMeal,GlucoseAfterMeal,InsulinEstimate,InsulinFromUser\n";
+            return "LogID,DayProfileID,ReminderID,DateTimeValue,GlucoseAtMeal,GlucoseAfterMeal,InsulinEstimate,InsulinFromUser,CorrectionInsulin\n";
         }
 
         public override async Task<List<IModelDAO>> GetAllAsync()

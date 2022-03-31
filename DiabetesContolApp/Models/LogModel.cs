@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Globalization;
-using System.Runtime.CompilerServices;
+
 using DiabetesContolApp.DAO;
 
 namespace DiabetesContolApp.Models
 {
-    public class LogModel : /*INotifyPropertyChanged,*/ IComparable<LogModel>, IEquatable<LogModel>, IModel
+    public class LogModel : /*INotifyPropertyChanged,*/ IComparable<LogModel>, IEquatable<LogModel>
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -24,15 +23,13 @@ namespace DiabetesContolApp.Models
         public LogModel()
         {
             LogID = -1;
-            DayProfile = new();
-            Reminder = new();
+            NumberOfGroceryModels = new();
+            DateTimeValue = DateTime.Now;
         }
 
         public LogModel(int logID)
         {
             LogID = logID;
-            DayProfile = new();
-            Reminder = new();
         }
 
         public LogModel(LogModelDAO logDAO)
@@ -145,18 +142,5 @@ namespace DiabetesContolApp.Models
                 //If value is not greater than 0 or is the same, we don't want to set it
             }
         }
-
-        public string ToStringCSV()
-        {
-            return LogID + "," +
-                DayProfile.DayProfileID + "," +
-                Reminder.ReminderID + "," +
-                DateTimeValue.ToString("yyyy/MM/dd HH:mm") + "," +
-                GlucoseAtMeal.ToString("0.00", CultureInfo.InvariantCulture) + "," +
-                GlucoseAfterMeal?.ToString("0.00", CultureInfo.InvariantCulture) + "," +
-                InsulinEstimate.ToString("0.00", CultureInfo.InvariantCulture) + "," +
-                InsulinFromUser.ToString("0.00", CultureInfo.InvariantCulture) + "\n";
-        }
-
     }
 }
