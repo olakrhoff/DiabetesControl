@@ -140,7 +140,7 @@ namespace DiabetesContolApp.Models
 
         public double GetTotalGlucoseError()
         {
-
+            return 0;
         }
 
         public string ToStringCSV()
