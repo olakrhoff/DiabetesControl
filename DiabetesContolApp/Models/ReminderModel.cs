@@ -4,33 +4,26 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using SQLite;
 
 using DiabetesContolApp.GlobalLogic;
-using DiabetesContolApp.Persistence;
+using DiabetesContolApp.DAO;
 
-using SQLiteNetExtensions.Attributes;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
 namespace DiabetesContolApp.Models
 {
-    [Table("Reminder")]
-    public class ReminderModel : INotifyPropertyChanged, IComparable<ReminderModel>, IEquatable<ReminderModel>, IModel
+    public class ReminderModel : IComparable<ReminderModel>, IEquatable<ReminderModel>, IModel//, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
         //The number of hours the reminder is sat to wait
         public static int TIME_TO_WAIT = 3;
 
-        [PrimaryKey, AutoIncrement]
         public int ReminderID { get; set; }
-        [NotNull]
         public long DateTimeLong { get; set; } //When to remind the user
         public float? GlucoseAfterMeal { get; set; }
-        [OneToMany]
         public List<LogModel> Logs { get; set; }
-
         public bool IsHandled { get; set; }
 
         public ReminderModel()
@@ -39,6 +32,23 @@ namespace DiabetesContolApp.Models
             DateTimeLong = DateTime.Now.AddHours(TIME_TO_WAIT).ToBinary();
             IsHandled = false;
             Logs = new();
+        }
+
+        public ReminderModel(int reminderID)
+        {
+            ReminderID = reminderID;
+            DateTimeLong = DateTime.Now.AddHours(TIME_TO_WAIT).ToBinary();
+            IsHandled = false;
+            Logs = new();
+        }
+
+        public ReminderModel(ReminderModelDAO reminderDAO)
+        {
+            ReminderID = reminderDAO.ReminderID;
+            DateTimeValue = reminderDAO.DateTimeValue;
+            GlucoseAfterMeal = reminderDAO.GlucoseAfterMeal;
+            Logs = new();
+            IsHandled = reminderDAO.IsHandled;
         }
 
         /// <summary>
@@ -64,11 +74,7 @@ namespace DiabetesContolApp.Models
             {
                 GlucoseAfterMeal = -1.0f; //Indicates invalid data
 
-                (await LogDatabase.GetInstance().GetLogsWithReminderAsync(ReminderID)).ForEach(async log =>
-                {
-                    log.GlucoseAfterMeal = -1.0f; //Set it invald.
-                    await LogDatabase.GetInstance().UpdateLogAsync(log);
-                });
+                Logs.ForEach(log => log.GlucoseAfterMeal = -1.0f); //Set all data to be invalid.
 
                 IsHandled = true;
 
@@ -87,10 +93,11 @@ namespace DiabetesContolApp.Models
             return true;
         }
 
+        /*
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        }*/
 
         /// <summary>
         /// Updates the time the reminder is finnished to
@@ -101,6 +108,10 @@ namespace DiabetesContolApp.Models
             DateTimeValue = DateTime.Now.AddHours(TIME_TO_WAIT);
         }
 
+        /// <summary>
+        /// Checks if the reminder is ready to be handled
+        /// </summary>
+        /// <returns>Returns true if the reminder doesn't overlap with the current time within TIME_TO_WAIT hours, else false </returns>
         public bool ReadyToHandle()
         {
             return DateTime.Now > DateTimeValue;
@@ -116,7 +127,6 @@ namespace DiabetesContolApp.Models
             return DateTimeValue.Equals(other.DateTimeValue);
         }
 
-        [Ignore]
         public DateTime DateTimeValue
         {
             get
@@ -129,7 +139,7 @@ namespace DiabetesContolApp.Models
                 if (value.ToBinary() != this.DateTimeLong)
                 {
                     this.DateTimeLong = value.ToBinary();
-                    OnPropertyChanged();
+                    //OnPropertyChanged();
                 }
                 //If it is equal to the previous value there is no need to update it
             }
@@ -137,9 +147,9 @@ namespace DiabetesContolApp.Models
 
         public string ToStringCSV()
         {
-            return ReminderID + ", " +
-                DateTimeValue.ToString("yyyy/MM/dd HH:mm") + ", " +
-                GlucoseAfterMeal + ", " +
+            return ReminderID + "," +
+                DateTimeValue.ToString("yyyy/MM/dd HH:mm") + "," +
+                GlucoseAfterMeal + "," +
                 IsHandled + "\n";
         }
     }

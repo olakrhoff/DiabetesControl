@@ -1,66 +1,57 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
+using System.Globalization;
 
-using DiabetesContolApp.DAO;
+using DiabetesContolApp.Models;
 
+using SQLite;
 
-namespace DiabetesContolApp.Models
+namespace DiabetesContolApp.DAO
 {
-    public class GroceryModel : IEquatable<GroceryModel>, IComparable<GroceryModel>, IModel//, INotifyPropertyChanged
+    [Table("Grocery")]
+    public class GroceryModelDAO : IEquatable<GroceryModelDAO>, IComparable<GroceryModelDAO>, IModelDAO
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
+        [PrimaryKey, AutoIncrement]
+        public int GroceryID { get; set; }
 
         private string _name;
         private string _brandName;
-        private float _carbScalar;
 
-        public int GroceryID { get; set; }
+        [NotNull]
         public float CarbsPer100Grams { get; set; }
+        [NotNull]
         public string NameOfPortion { get; set; }
+        [NotNull]
         public float GramsPerPortion { get; set; }
 
-        public GroceryModel()
+        private float _carbScalar;
+
+        public GroceryModelDAO()
         {
-            GroceryID = -1; //This will indicate that the Grocery is not yet added to the database
-            this._carbScalar = 1.0f; //This is the default of the scalar, when it is one it has no effect on the calculations
+            GroceryID = -1;
         }
 
-        public GroceryModel(int groceryID)
+        public GroceryModelDAO(GroceryModel grocery)
         {
-            GroceryID = groceryID; //This will indicate that the Grocery is not yet added to the database
-            this._carbScalar = 1.0f; //This is the default of the scalar, when it is one it has no effect on the calculations
+            GroceryID = grocery.GroceryID;
+            CarbsPer100Grams = grocery.CarbsPer100Grams;
+            NameOfPortion = grocery.NameOfPortion;
+            GramsPerPortion = grocery.GramsPerPortion;
+            Name = grocery.Name;
+            BrandName = grocery.BrandName;
+            CarbScalar = grocery.CarbScalar;
         }
 
-        public GroceryModel(GroceryModelDAO groceryDAO)
-        {
-            GroceryID = groceryDAO.GroceryID;
-            CarbsPer100Grams = groceryDAO.CarbsPer100Grams;
-            NameOfPortion = groceryDAO.NameOfPortion;
-            GramsPerPortion = groceryDAO.GramsPerPortion;
-            Name = groceryDAO.Name;
-            BrandName = groceryDAO.BrandName;
-            CarbScalar = groceryDAO.CarbScalar;
-        }
-
-        /*
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }*/
-
-        public bool Equals(GroceryModel other)
+        public bool Equals(GroceryModelDAO other)
         {
             return this.GroceryID.Equals(other.GroceryID);
         }
 
-        public int CompareTo(GroceryModel other)
+        public int CompareTo(GroceryModelDAO other)
         {
             return this.Name.CompareTo(other.Name);
         }
 
+        [NotNull, MaxLength(255)]
         public string Name
         {
             get
@@ -79,16 +70,15 @@ namespace DiabetesContolApp.Models
                 }
                 catch (ArgumentOutOfRangeException aoore)
                 {
-                    Debug.WriteLine(aoore.StackTrace);
+                    //If an error occurs, we simply do not set the value
                     return;
                 }
 
                 this._name = value;
-                //OnPropertyChanged();
             }
         }
 
-
+        [MaxLength(255)]
         public string BrandName
         {
             get
@@ -107,16 +97,15 @@ namespace DiabetesContolApp.Models
                 }
                 catch (ArgumentOutOfRangeException aoore)
                 {
-                    Debug.WriteLine(aoore.StackTrace);
+                    //If an error occurs, we simply do not set the value
                     return;
                 }
 
                 this._brandName = value;
-                //OnPropertyChanged();
             }
         }
 
-
+        [NotNull]
         public float CarbScalar
         {
             get
@@ -135,12 +124,11 @@ namespace DiabetesContolApp.Models
                 }
                 catch (ArgumentOutOfRangeException aoore)
                 {
-                    Debug.WriteLine(aoore.StackTrace);
+                    //If an error occurs, we simply do not set the value
                     return;
                 }
 
                 this._carbScalar = value;
-                //OnPropertyChanged();
             }
         }
 
@@ -149,10 +137,12 @@ namespace DiabetesContolApp.Models
             return GroceryID + "," +
                 Name + "," +
                 BrandName + "," +
-                CarbsPer100Grams + "," +
+                CarbsPer100Grams.ToString("0.00", CultureInfo.InvariantCulture) + "," +
                 NameOfPortion + "," +
-                GramsPerPortion + "," +
-                CarbScalar + "\n";
+                GramsPerPortion.ToString("0.00", CultureInfo.InvariantCulture) + "," +
+                CarbScalar.ToString("0.00", CultureInfo.InvariantCulture) + "\n";
         }
+
+
     }
 }

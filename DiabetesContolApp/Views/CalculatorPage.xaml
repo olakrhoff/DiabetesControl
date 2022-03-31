@@ -22,7 +22,7 @@
                    Margin="0, 50, 0, 0"
                    Style="{StaticResource entries}"
                    Keyboard="Numeric"
-                   Focused="GlucoseLabelFocused"/>
+                   Focused="GlucoseEntryFocused"/>
             <Label x:Name="overlappingMealLabel"
                    Text="Meal is overlapping with previous one"
                    TextColor="Orange"

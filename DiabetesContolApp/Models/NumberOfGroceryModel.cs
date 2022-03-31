@@ -9,19 +9,40 @@ namespace DiabetesContolApp.Models
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private uint _numberOfGrocery;
+        private uint _numberOfGrocery = 0;
         public GroceryModel Grocery { get; set; }
+        public float InsulinForGroceries { get; set; }
 
-        public NumberOfGroceryModel(uint number, GroceryModel grocery)
+        public NumberOfGroceryModel(uint number, GroceryModel grocery, float insulinForGroceries)
         {
             NumberOfGrocery = number;
             Grocery = grocery;
+            InsulinForGroceries = insulinForGroceries;
         }
 
+        public NumberOfGroceryModel(GroceryLogModel groceryLog)
+        {
+            NumberOfGrocery = groceryLog.NumberOfGrocery;
+            Grocery = groceryLog.Grocery;
+            InsulinForGroceries = groceryLog.InsulinForGrocery;
+        }
+
+        /// <summary>
+        /// This is used to create a dummy object for the
+        /// listing of groceries in the calculator
+        /// </summary>
+        /// <param name="grocery"></param>
         public NumberOfGroceryModel(GroceryModel grocery)
         {
             NumberOfGrocery = 0;
             Grocery = grocery;
+            InsulinForGroceries = 0.0f;
+        }
+
+
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public uint NumberOfGrocery
@@ -38,18 +59,19 @@ namespace DiabetesContolApp.Models
             }
         }
 
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
 
-
+        /// <summary>
+        /// Turns a list of GroceryModels into a
+        /// list of NumberOfGroceryModel
+        /// </summary>
+        /// <param name="groceries"></param>
+        /// <returns>The list of NumberOfGroceryModels</returns>
         static public List<NumberOfGroceryModel> GetNumberOfGroceries(List<GroceryModel> groceries)
         {
             List<NumberOfGroceryModel> temp = new();
 
             foreach (GroceryModel grocery in groceries)
-                temp.Add(new NumberOfGroceryModel(0, grocery));
+                temp.Add(new NumberOfGroceryModel(grocery));
 
             return temp;
         }

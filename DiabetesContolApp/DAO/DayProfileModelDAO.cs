@@ -1,66 +1,56 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 
-using DiabetesContolApp.DAO;
+using DiabetesContolApp.Models;
 
+using SQLite;
 
-namespace DiabetesContolApp.Models
+namespace DiabetesContolApp.DAO
 {
-    public class DayProfileModel : IComparable<DayProfileModel>, IEquatable<DayProfileModel>, IModel//, INotifyPropertyChanged
+    [Table("DayProfile")]
+    public class DayProfileModelDAO : IComparable<DayProfileModelDAO>, IEquatable<DayProfileModelDAO>, IModelDAO
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
+        [PrimaryKey, AutoIncrement]
+        public int DayProfileID { get; set; }
 
         private string _name;
         private long _startTime;
         private float _carbScalar;
         private float _glucoseScalar;
 
-        public int DayProfileID { get; set; }
+        [NotNull]
         public float TargetGlucoseValue { get; set; }
 
-        public DayProfileModel()
+        public DayProfileModelDAO()
         {
             DayProfileID = -1;
         }
 
-        public DayProfileModel(int dayProfileID)
+        public DayProfileModelDAO(DayProfileModel dayProfile)
         {
-            DayProfileID = dayProfileID;
+            DayProfileID = dayProfile.DayProfileID;
+            Name = dayProfile.Name;
+            StartTime = dayProfile.StartTime;
+            CarbScalar = dayProfile.CarbScalar;
+            GlucoseScalar = dayProfile.GlucoseScalar;
+            TargetGlucoseValue = dayProfile.TargetGlucoseValue;
         }
 
-        public DayProfileModel(DayProfileModelDAO dayProfileDAO)
-        {
-            DayProfileID = dayProfileDAO.DayProfileID;
-            Name = dayProfileDAO.Name;
-            StartTime = dayProfileDAO.StartTime;
-            CarbScalar = dayProfileDAO.CarbScalar;
-            GlucoseScalar = dayProfileDAO.GlucoseScalar;
-            TargetGlucoseValue = dayProfileDAO.TargetGlucoseValue;
-        }
-
-        /*
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }*/
-
-        public int CompareTo(DayProfileModel other)
+        public int CompareTo(DayProfileModelDAO other)
         {
             if (other == null)
                 return 1;
             return this.StartTime.CompareTo(other.StartTime);
         }
 
-        public bool Equals(DayProfileModel other)
+        public bool Equals(DayProfileModelDAO other)
         {
             if (other == null)
                 return false;
             return this.DayProfileID.Equals(other.DayProfileID);
         }
 
+        [NotNull, MaxLength(255)]
         public string Name
         {
             get
@@ -84,10 +74,10 @@ namespace DiabetesContolApp.Models
                 }
 
                 this._name = value;
-                //OnPropertyChanged();
             }
         }
 
+        [NotNull]
         public DateTime StartTime
         {
             get
@@ -100,12 +90,12 @@ namespace DiabetesContolApp.Models
                 if (value.ToBinary() != this._startTime)
                 {
                     this._startTime = value.ToBinary();
-                    //OnPropertyChanged();
                 }
                 //If it is equal to the previous value there is no need to update it
             }
         }
 
+        [NotNull]
         public float CarbScalar
         {
             get
@@ -129,10 +119,10 @@ namespace DiabetesContolApp.Models
                 }
 
                 this._carbScalar = value;
-                //OnPropertyChanged();
             }
         }
 
+        [NotNull]
         public float GlucoseScalar
         {
             get
@@ -156,7 +146,6 @@ namespace DiabetesContolApp.Models
                 }
 
                 this._glucoseScalar = value;
-                //OnPropertyChanged();
             }
         }
 

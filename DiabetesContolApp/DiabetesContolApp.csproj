@@ -26,11 +26,17 @@
     <None Remove="sqlite-net-pcl" />
     <None Remove="GlobalLogic\" />
     <None Remove="SQLiteNetExtensions" />
+    <None Remove="dao\" />
+    <None Remove="Repository\" />
+    <None Remove="Service\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Views\" />
     <Folder Include="Models\" />
     <Folder Include="GlobalLogic\" />
+    <Folder Include="DAO\" />
+    <Folder Include="Repository\" />
+    <Folder Include="Service\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Views\MainTabbedPage.xaml.cs">
