@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.Repository;
-using System.Diagnostics;
+using DiabetesContolApp.GlobalLogic;
 
 namespace DiabetesContolApp.Service
 {
@@ -19,7 +20,6 @@ namespace DiabetesContolApp.Service
         private GroceryLogRepo groceryLogRepo = new();
         private ReminderRepo reminderRepo = new();
         private DayProfileRepo dayProfileRepo = new();
-        private GroceryRepo groceryRepo = new();
 
         public LogService()
         {
@@ -37,7 +37,8 @@ namespace DiabetesContolApp.Service
             {
                 newLog.Reminder = new();
 
-                int reminderID = await reminderRepo.InsertReminderAsync(newLog.Reminder);
+                ReminderService reminderService = new();
+                int reminderID = await reminderService.InsertReminderAsync(newLog.Reminder); //Call to service to get ID
                 if (reminderID == -1)
                     return false; //An error occured while creating the remidner
                 newLog.Reminder.ReminderID = reminderID;
@@ -160,7 +161,14 @@ namespace DiabetesContolApp.Service
         /// <returns>List of LogModels with the given Reminder ID, might be empty</returns>
         async public Task<List<LogModel>> GetAllLogsWithReminderIDAsync(int reminderID)
         {
-            return await logRepo.GetAllLogsWithReminderIDAsync(reminderID);
+            List<LogModel> logsWithReminderID = await logRepo.GetAllLogsWithReminderIDAsync(reminderID);
+
+            for (int i = 0; i < logsWithReminderID.Count; ++i)
+                logsWithReminderID[i] = await GetLogAsync(logsWithReminderID[i].LogID); //Gets the LogModels properly
+
+            logsWithReminderID = logsWithReminderID.FindAll(log => log != null); //Remove all null values, if any
+
+            return logsWithReminderID;
         }
 
         /// <summary>
@@ -184,21 +192,49 @@ namespace DiabetesContolApp.Service
 
             if (log.DayProfile == null || log.Reminder == null) //If Dayprofile or Reminder doesn't exist Log is corrupt
             {
+                //To avoid recursion on the delete call, since delete calls this method,
+                //we remove the error for now, by adding a dayprofile and a reminder,
+                //then after the delete call is finsihed, we delete these again.
+
+                DayProfileService dayProfileService = new();
+                int fakeDayProfileID = await dayProfileService.InsertDayProfileAsync(new());
+
+                ReminderService reminderService = new();
+                int fakeReminderID = await reminderService.InsertReminderAsync(new());
+
+                log.DayProfile = await dayProfileRepo.GetDayProfileAsync(fakeDayProfileID);
+                log.Reminder = await reminderRepo.GetReminderAsync(fakeReminderID);
+
+                await logRepo.UpdateLogAsync(log);
+
                 await DeleteLogAsync(log.LogID); //Deletes it, because it is corrupt
+
+                await dayProfileRepo.DeleteDayProfileAsync(fakeDayProfileID); //We know this hasn't been connected to anything else, therefore a repo-delete is safe
+
+                //This call is made in the DeleteLogAsync-call as well, but for safty it is here as well
+                await reminderRepo.DeleteReminderAsync(fakeReminderID); //We know this hasn't been connected to anything else, therefore a repo-delete is safe
+
                 return null;
             }
 
-            List<GroceryLogModel> groceryLogs = await groceryLogRepo.GetAllGroceryLogsWithLogID(log.LogID);
+            GroceryLogService groceryLogService = new();
+            //Get all NumberOfGrocery with Grocery objects attached
+            log.NumberOfGroceryModels = await groceryLogService.GetAllGroceryLogsAsNumberOfGroceryWithLogID(log.LogID);
 
-            List<NumberOfGroceryModel> numberOfGroceries = new();
 
-            foreach (GroceryLogModel groceryLog in groceryLogs)
-                numberOfGroceries.Add(new(groceryLog));
+            //TODO: ---------- TEMP ---------- 
 
-            log.NumberOfGroceryModels = numberOfGroceries;
+            if ((log.DayProfile.TargetGlucoseValue != log.GlucoseAtMeal && log.CorrectionInsulin == 0) ||
+                log.NumberOfGroceryModels != null && log.NumberOfGroceryModels.Count != 0 && log.NumberOfGroceryModels[0].InsulinForGroceries == 0)
+            {
+                //Update old Logs
+                Helper.CalculateInsulin(ref log);
+                log.Reminder.IsHandled = log.Reminder.IsHandled;
 
-            foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceryModels)
-                numberOfGrocery.Grocery = await groceryRepo.GetGroceryAsync(numberOfGrocery.Grocery.GroceryID); //Gets the Groceries in the NumberOfGroceries in the log
+                await UpdateLogAsync(log);
+            }
+
+            //TODO: ---------- TEMP ---------- 
 
             return log;
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using System.Linq;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.DAO;
@@ -23,7 +24,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>List of DayProfileModels.</returns>
         async public Task<List<DayProfileModel>> GetAllDayProfilesAsync()
         {
-            List<DayProfileModelDAO> dayProfilesDAO = await dayProfileDatabase.GetDayProfilesAsync();
+            List<DayProfileModelDAO> dayProfilesDAO = await dayProfileDatabase.GetAllDayProfilesAsync();
 
             List<DayProfileModel> dayProfiles = new();
 
@@ -31,6 +32,22 @@ namespace DiabetesContolApp.Repository
                 dayProfiles.Add(new(dayProfileDAO));
 
             return dayProfiles;
+        }
+
+        /// <summary>
+        /// Gets the DayProfile with the highest ID.
+        /// </summary>
+        /// <returns>DayProfileModel with the highest ID, null if no DayProfiles exists</returns>
+        async public Task<DayProfileModel> GetNewestDayProfileAsync()
+        {
+            List<DayProfileModelDAO> dayProfileDAOs = await dayProfileDatabase.GetAllDayProfilesAsync();
+
+            if (dayProfileDAOs.Count == 0)
+                return null;
+
+            int newestDayProfileDAOID = dayProfileDAOs.Max(dayProfileDAO => dayProfileDAO.DayProfileID);
+
+            return await GetDayProfileAsync(newestDayProfileDAOID);
         }
 
         /// <summary>
@@ -59,7 +76,7 @@ namespace DiabetesContolApp.Repository
         /// Converts DayProfile to DAO and inserts into database.
         /// </summary>
         /// <param name="newDayProfile"></param>
-        /// <returns>True if inserted, else false.</returns>
+        /// <returns>bool, true if inserted, else false</returns>
         async public Task<bool> InsertDayProfileAsync(DayProfileModel newDayProfile)
         {
             DayProfileModelDAO dayProfileDAO = new(newDayProfile);

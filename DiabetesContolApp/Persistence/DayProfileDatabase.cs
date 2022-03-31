@@ -48,7 +48,7 @@ namespace DiabetesContolApp.Persistence
         /// Gets all DayProfilesDAOs.
         /// </summary>
         /// <returns>Returns a list of DayProfileDAOs.</returns>
-        async public Task<List<DayProfileModelDAO>> GetDayProfilesAsync()
+        async public Task<List<DayProfileModelDAO>> GetAllDayProfilesAsync()
         {
             return await connection.Table<DayProfileModelDAO>().ToListAsync();
         }

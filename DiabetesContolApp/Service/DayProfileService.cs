@@ -16,8 +16,6 @@ namespace DiabetesContolApp.Service
     {
         private DayProfileRepo dayProfileRepo = new();
 
-        private LogService logService = new();
-
         public DayProfileService()
         {
         }
@@ -28,17 +26,32 @@ namespace DiabetesContolApp.Service
         /// <returns>List of DayProfiles.</returns>
         async public Task<List<DayProfileModel>> GetAllDayProfilesAsync()
         {
-            return await dayProfileRepo.GetAllDayProfilesAsync();
+            List<DayProfileModel> dayProfiles = await dayProfileRepo.GetAllDayProfilesAsync();
+
+            for (int i = 0; i < dayProfiles.Count; ++i)
+                dayProfiles[i] = await GetDayProfileAsync(dayProfiles[i].DayProfileID);
+
+            dayProfiles = dayProfiles.FindAll(dayProfile => dayProfile != null);
+
+            return dayProfiles;
         }
 
         /// <summary>
         /// Inserts a new DayProfileModel into the database.
         /// </summary>
         /// <param name="newDayProfile"></param>
-        /// <returns>True if inserted, else false</returns>
-        async public Task<bool> InsertDayProfileAsync(DayProfileModel newDayProfile)
+        /// <returns>ID of new DayProfile, -1 if an error occured.</returns>
+        async public Task<int> InsertDayProfileAsync(DayProfileModel newDayProfile)
         {
-            return await dayProfileRepo.InsertDayProfileAsync(newDayProfile);
+            if (!await dayProfileRepo.InsertDayProfileAsync(newDayProfile))
+                return -1;
+
+            DayProfileModel newestDayProfile = await dayProfileRepo.GetNewestDayProfileAsync();
+
+            if (newestDayProfile == null)
+                return -1;
+
+            return newestDayProfile.DayProfileID;
         }
 
         /// <summary>
@@ -59,6 +72,7 @@ namespace DiabetesContolApp.Service
         /// <returns>False if an error, else true</returns>
         async public Task<bool> DeleteDayProfileAsync(int dayProfileID)
         {
+            LogService logService = new();
             //Delete all log using this day profile
             await logService.DeleteAllWithDayProfileIDAsync(dayProfileID);
 
@@ -72,7 +86,15 @@ namespace DiabetesContolApp.Service
         /// <returns>DayProfileModel with given ID or null if not found.</returns>
         async public Task<DayProfileModel> GetDayProfileAsync(int dayProfileID)
         {
-            return await dayProfileRepo.GetDayProfileAsync(dayProfileID);
+            DayProfileModel dayProfile = await dayProfileRepo.GetDayProfileAsync(dayProfileID);
+
+            if (dayProfile.TargetGlucoseValue <= 0.0f) //This indicates an illegal value, might have been used as a temp value
+            {
+                await DeleteDayProfileAsync(dayProfile.DayProfileID);
+                return null;
+            }
+
+            return dayProfile;
         }
     }
 }

@@ -28,7 +28,7 @@ namespace DiabetesContolApp.Service
         /// fills them out in with GroceryModels.
         /// </summary>
         /// <param name="logID"></param>
-        /// <returns>List of NumberOfGroceryModel with GroceryModels</returns>
+        /// <returns>List of NumberOfGroceryModel with GroceryModels, might be empty.</returns>
         async public Task<List<NumberOfGroceryModel>> GetAllGroceryLogsAsNumberOfGroceryWithLogID(int logID)
         {
             //List<NumberOfGroceryModel> numberOfGroceries = await groceryLogRepo.GetAllGroceryLogsWithLogID(logID);

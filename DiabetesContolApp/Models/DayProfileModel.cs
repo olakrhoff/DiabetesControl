@@ -13,7 +13,7 @@ namespace DiabetesContolApp.Models
         public event PropertyChangedEventHandler PropertyChanged;
 
 
-        private string _name;
+        private string _name = "";
         private long _startTime;
         private float _carbScalar;
         private float _glucoseScalar;

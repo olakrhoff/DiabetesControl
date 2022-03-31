@@ -22,6 +22,24 @@ namespace DiabetesContolApp.Service
         }
 
         /// <summary>
+        /// Inserts the new Reminder into the database.
+        /// </summary>
+        /// <param name="newReminder"></param>
+        /// <returns>
+        /// int, the ID of the newly added
+        /// Reminder, -1 if an error occured.
+        /// </returns>
+        async public Task<int> InsertReminderAsync(ReminderModel newReminder)
+        {
+            if (!await reminderRepo.InsertReminderAsync(newReminder))
+                return -1;
+
+            ReminderModel newestReminder = await reminderRepo.GetNewestReminder();
+
+            return newestReminder.ReminderID;
+        }
+
+        /// <summary>
         /// Gets the ReminderModel with the given ID.
         /// Then it adds the Logs to it.
         /// </summary>
@@ -45,6 +63,14 @@ namespace DiabetesContolApp.Service
         /// </summary>
         async public void HandleRemindersAsync()
         {
+            List<ReminderModel> reminders = await GetAllRemindersAsync();
+
+            reminders.ForEach(async r =>
+            {
+                if (r.Logs.Count == 0)
+                    await DeleteReminderAsync(r.ReminderID);
+            });
+
             List<ReminderModel> unhandledReminders = await GetAllUnhandledRemindersAsync();
 
             foreach (ReminderModel reminder in unhandledReminders)
@@ -97,6 +123,16 @@ namespace DiabetesContolApp.Service
                 reminders[i] = await GetReminderAsync(reminders[i].ReminderID); //Get reminder with Logs
 
             return reminders;
+        }
+
+        /// <summary>
+        /// Deletes the Remdiner with the given ID.
+        /// </summary>
+        /// <param name="reminderID"></param>
+        /// <returns>False if error occurs, else true</returns>
+        async public Task<bool> DeleteReminderAsync(int reminderID)
+        {
+            return await reminderRepo.DeleteReminderAsync(reminderID);
         }
     }
 }
