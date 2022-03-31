@@ -140,24 +140,15 @@ namespace DiabetesContolApp.Views
         {
             if (!await VaildateCalculatorData() ||
                 _tempLog.InsulinEstimate < 0 ||
-                _reminder == null ||
                 !Helper.ConvertToFloat(insulinEstimate.Text, out float insulinFromUserFloat))
                 return;
-            /*
-            LogModel newLogEntry = new(pickerDayprofiles.SelectedItem as DayProfileModel,
-                _reminder,
-                DateTime.Now,
-                (float)_insulinEstimate,
-                insulinFromUserFloat,
-                _tempLog.GlucoseAtMeal,
-                _tempLog.NumberOfGroceryModels);
-            newLogEntry.Reminder = _reminder;
-            */
+
             _tempLog.InsulinFromUser = insulinFromUserFloat;
             _tempLog.Reminder = _reminder;
             _tempLog.DateTimeValue = DateTime.Now;
 
-            await logService.InsertLogAsync(_tempLog);
+            if (!await logService.InsertLogAsync(_tempLog))
+                await DisplayAlert("Error", "Something went wrong when added the new log.", "OK");
 
             ClearCalculatorData();
             SetOverlappingMeals(false, null); //Enable the glucose entry

@@ -43,6 +43,16 @@ namespace DiabetesContolApp.Service
                     return false; //An error occured while creating the remidner
                 newLog.Reminder.ReminderID = reminderID;
             }
+            else
+            {
+                ReminderModel reminder = await reminderRepo.GetReminderAsync(newLog.Reminder.ReminderID);
+                if (reminder == null)
+                    return false;
+
+                DayProfileModel dayProfile = await dayProfileRepo.GetDayProfileAsync(newLog.DayProfile.DayProfileID);
+                if (dayProfile == null)
+                    return false;
+            }
 
             int logID = await logRepo.InsertLogAsync(newLog); //Insert new Log
             if (logID == -1)
