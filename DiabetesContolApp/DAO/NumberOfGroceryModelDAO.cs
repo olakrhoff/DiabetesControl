@@ -1,22 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 namespace DiabetesContolApp.DAO
 {
-    public class NumberOfGroceryModelDAO : IEquatable<NumberOfGroceryModelDAO>, IComparable<NumberOfGroceryModelDAO>, INotifyPropertyChanged
+    public class NumberOfGroceryModelDAO : IEquatable<NumberOfGroceryModelDAO>, IComparable<NumberOfGroceryModelDAO>
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
         private uint _numberOfGrocery;
         public GroceryModelDAO Grocery { get; set; }
-
-        public NumberOfGroceryModelDAO(uint number, GroceryModelDAO grocery)
-        {
-            NumberOfGrocery = number;
-            Grocery = grocery;
-        }
 
         public NumberOfGroceryModelDAO(GroceryModelDAO grocery)
         {
@@ -34,24 +23,7 @@ namespace DiabetesContolApp.DAO
             set
             {
                 this._numberOfGrocery = value;
-                OnPropertyChanged();
             }
-        }
-
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-
-        static public List<NumberOfGroceryModelDAO> GetNumberOfGroceries(List<GroceryModelDAO> groceries)
-        {
-            List<NumberOfGroceryModelDAO> temp = new();
-
-            foreach (GroceryModelDAO grocery in groceries)
-                temp.Add(new NumberOfGroceryModelDAO(0, grocery));
-
-            return temp;
         }
 
         public bool Equals(NumberOfGroceryModelDAO other)

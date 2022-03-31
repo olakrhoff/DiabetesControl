@@ -1,7 +1,5 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 
 using DiabetesContolApp.Models;
 
@@ -12,8 +10,6 @@ namespace DiabetesContolApp.DAO
     [Table("DayProfile")]
     public class DayProfileModelDAO : IComparable<DayProfileModelDAO>, IEquatable<DayProfileModelDAO>, IModelDAO
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
         [PrimaryKey, AutoIncrement]
         public int DayProfileID { get; set; }
 
@@ -27,6 +23,7 @@ namespace DiabetesContolApp.DAO
 
         public DayProfileModelDAO()
         {
+            DayProfileID = -1;
         }
 
         public DayProfileModelDAO(DayProfileModel dayProfile)
@@ -37,12 +34,6 @@ namespace DiabetesContolApp.DAO
             CarbScalar = dayProfile.CarbScalar;
             GlucoseScalar = dayProfile.GlucoseScalar;
             TargetGlucoseValue = dayProfile.TargetGlucoseValue;
-        }
-
-
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public int CompareTo(DayProfileModelDAO other)
@@ -83,7 +74,6 @@ namespace DiabetesContolApp.DAO
                 }
 
                 this._name = value;
-                OnPropertyChanged();
             }
         }
 
@@ -100,7 +90,6 @@ namespace DiabetesContolApp.DAO
                 if (value.ToBinary() != this._startTime)
                 {
                     this._startTime = value.ToBinary();
-                    OnPropertyChanged();
                 }
                 //If it is equal to the previous value there is no need to update it
             }
@@ -130,7 +119,6 @@ namespace DiabetesContolApp.DAO
                 }
 
                 this._carbScalar = value;
-                OnPropertyChanged();
             }
         }
 
@@ -158,7 +146,6 @@ namespace DiabetesContolApp.DAO
                 }
 
                 this._glucoseScalar = value;
-                OnPropertyChanged();
             }
         }
 

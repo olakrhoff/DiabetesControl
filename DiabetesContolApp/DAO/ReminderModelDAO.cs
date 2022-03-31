@@ -1,26 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
+using System.Globalization;
 
-using DiabetesContolApp.GlobalLogic;
-using DiabetesContolApp.Persistence;
 using DiabetesContolApp.Models;
 
 using SQLite;
-using SQLiteNetExtensions.Attributes;
-using Xamarin.Forms;
-using System.Globalization;
 
 namespace DiabetesContolApp.DAO
 {
     [Table("Reminder")]
-    public class ReminderModelDAO : INotifyPropertyChanged, IComparable<ReminderModelDAO>, IEquatable<ReminderModelDAO>, IModelDAO
+    public class ReminderModelDAO : IComparable<ReminderModelDAO>, IEquatable<ReminderModelDAO>, IModelDAO
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
         //The number of hours the reminder is sat to wait
         public static int TIME_TO_WAIT = 3;
 
@@ -34,8 +23,6 @@ namespace DiabetesContolApp.DAO
         public ReminderModelDAO()
         {
             ReminderID = -1;
-            DateTimeLong = DateTime.Now.AddHours(TIME_TO_WAIT).ToBinary();
-            IsHandled = false;
         }
 
         public ReminderModelDAO(ReminderModel reminder)
@@ -45,72 +32,6 @@ namespace DiabetesContolApp.DAO
             DateTimeValue = reminder.DateTimeValue;
             GlucoseAfterMeal = reminder.GlucoseAfterMeal;
             IsHandled = reminder.IsHandled;
-        }
-
-        /// <summary>
-        /// Method checks if the reminder is to be handled, this means
-        /// that the "timer" has gone. If so it collects the glucose value
-        /// at the spesified time from the user. Then it runs the statistics
-        /// for all involved groceries and day profiles.
-        /// </summary>
-        /// <returns>
-        /// true if reminder was handled, else false
-        /// </returns>
-        async public Task<bool> Handle()
-        {
-            if (DateTimeValue > DateTime.Now)
-                return false; //The reminder is not ready to be handled
-
-            if (!await Application.Current.MainPage.DisplayAlert("Glucose after meal", "Want to enter gluocse now?", "OK", "Later"))
-                return false;
-            string userInput = await Application.Current.MainPage.DisplayPromptAsync("Glucose after meal", $"What was your glucose at {DateTimeValue.ToString("H:mm")}", "Confirm", "Currupt", keyboard: Keyboard.Numeric);
-
-            //if userInput is null, currupt was clicked
-            if (userInput == null)
-            {
-                GlucoseAfterMeal = -1.0f; //Indicates invalid data
-
-                (await LogDatabase.GetInstance().GetLogsWithReminderIDAsync(ReminderID)).ForEach(async log =>
-                {
-                    log.GlucoseAfterMeal = -1.0f; //Set it invald.
-                    await LogDatabase.GetInstance().UpdateLogAsync(log);
-                });
-
-                IsHandled = true;
-
-                return true;
-            }
-
-            if (Helper.ConvertToFloat(userInput, out float glucoseAfterMeal))
-            {
-                GlucoseAfterMeal = glucoseAfterMeal;
-                IsHandled = true;
-            }
-
-
-            //TODO: Call statistical algorithm on involved logs.
-
-
-            return true;
-        }
-
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        /// <summary>
-        /// Updates the time the reminder is finnished to
-        /// TIME_TO_WAIT number of hours from current time.
-        /// </summary>
-        public void UpdateDateTime()
-        {
-            DateTimeValue = DateTime.Now.AddHours(TIME_TO_WAIT);
-        }
-
-        public bool ReadyToHandle()
-        {
-            return DateTime.Now > DateTimeValue;
         }
 
         public int CompareTo(ReminderModelDAO other)
@@ -136,7 +57,6 @@ namespace DiabetesContolApp.DAO
                 if (value.ToBinary() != this.DateTimeLong)
                 {
                     this.DateTimeLong = value.ToBinary();
-                    OnPropertyChanged();
                 }
                 //If it is equal to the previous value there is no need to update it
             }

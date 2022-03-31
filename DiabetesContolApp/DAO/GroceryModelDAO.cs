@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 
 using DiabetesContolApp.Models;
 
@@ -11,10 +8,8 @@ using SQLite;
 namespace DiabetesContolApp.DAO
 {
     [Table("Grocery")]
-    public class GroceryModelDAO : INotifyPropertyChanged, IEquatable<GroceryModelDAO>, IComparable<GroceryModelDAO>, IModelDAO
+    public class GroceryModelDAO : IEquatable<GroceryModelDAO>, IComparable<GroceryModelDAO>, IModelDAO
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
         [PrimaryKey, AutoIncrement]
         public int GroceryID { get; set; }
 
@@ -32,8 +27,7 @@ namespace DiabetesContolApp.DAO
 
         public GroceryModelDAO()
         {
-            GroceryID = -1; //This will indicate that the Grocery is not yet added to the database
-            this._carbScalar = 1.0f; //This is the default of the scalar, when it is one it has no effect on the calculations
+            GroceryID = -1;
         }
 
         public GroceryModelDAO(GroceryModel grocery)
@@ -45,12 +39,6 @@ namespace DiabetesContolApp.DAO
             Name = grocery.Name;
             BrandName = grocery.BrandName;
             CarbScalar = grocery.CarbScalar;
-        }
-
-
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public bool Equals(GroceryModelDAO other)
@@ -87,7 +75,6 @@ namespace DiabetesContolApp.DAO
                 }
 
                 this._name = value;
-                OnPropertyChanged();
             }
         }
 
@@ -115,7 +102,6 @@ namespace DiabetesContolApp.DAO
                 }
 
                 this._brandName = value;
-                OnPropertyChanged();
             }
         }
 
@@ -143,7 +129,6 @@ namespace DiabetesContolApp.DAO
                 }
 
                 this._carbScalar = value;
-                OnPropertyChanged();
             }
         }
 

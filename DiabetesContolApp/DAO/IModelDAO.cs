@@ -1,5 +1,4 @@
-﻿using System;
-namespace DiabetesContolApp.DAO
+﻿namespace DiabetesContolApp.DAO
 {
     public interface IModelDAO
     {

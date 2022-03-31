@@ -1,19 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
-using System.Runtime.CompilerServices;
+
 using DiabetesContolApp.Models;
+
 using SQLite;
 using SQLiteNetExtensions.Attributes;
 
 namespace DiabetesContolApp.DAO
 {
     [Table("Log")]
-    public class LogModelDAO : INotifyPropertyChanged, IComparable<LogModelDAO>, IEquatable<LogModelDAO>, IModelDAO
+    public class LogModelDAO : IComparable<LogModelDAO>, IEquatable<LogModelDAO>, IModelDAO
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
         private float _insulinEstimate = -1.0f;
         private float _insulinFromUser = -1.0f;
 
@@ -30,25 +27,10 @@ namespace DiabetesContolApp.DAO
         public float? GlucoseAfterMeal { get; set; }
         public float CorrectionInsulin { get; set; }
 
-
         public LogModelDAO()
         {
             LogID = -1;
-            DayProfileID = -1;
-            ReminderID = -1;
         }
-        /*
-        public LogModelDAO(int dayProfileID, DateTime dateTime, float insulinEstimate, float insulinFromUser, float glucoseAtMeal, List<NumberOfGroceryModelDAO> numberOfGroceries, float? glucoseAfterMeal = null)
-        {
-            LogID = -1;
-            ReminderID = -1;
-            DayProfileID = dayProfileID;
-            DateTimeValue = dateTime;
-            InsulinEstimate = insulinEstimate;
-            InsulinFromUser = insulinFromUser;
-            GlucoseAtMeal = glucoseAtMeal;
-            GlucoseAfterMeal = glucoseAfterMeal;
-        }*/
 
         public LogModelDAO(LogModel newLog)
         {
@@ -61,11 +43,6 @@ namespace DiabetesContolApp.DAO
             InsulinEstimate = newLog.InsulinEstimate;
             InsulinFromUser = newLog.InsulinFromUser;
             CorrectionInsulin = newLog.CorrectionInsulin;
-        }
-
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public int CompareTo(LogModelDAO other)
@@ -91,7 +68,6 @@ namespace DiabetesContolApp.DAO
                 if (value.ToBinary() != this.DateTimeLong)
                 {
                     this.DateTimeLong = value.ToBinary();
-                    OnPropertyChanged();
                 }
                 //If it is equal to the previous value there is no need to update it
             }
@@ -119,7 +95,6 @@ namespace DiabetesContolApp.DAO
                 if (value >= 0.0f && value != this._insulinEstimate)
                 {
                     this._insulinEstimate = value;
-                    OnPropertyChanged();
                 }
                 //If value is not greater than 0 or is the same, we don't wnat to set it
             }
@@ -138,7 +113,6 @@ namespace DiabetesContolApp.DAO
                 if (value >= 0.0f && value != this._insulinFromUser)
                 {
                     this._insulinFromUser = value;
-                    OnPropertyChanged();
                 }
                 //If value is not greater than 0 or is the same, we don't want to set it
             }

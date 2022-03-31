@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 using DiabetesContolApp.Models;
 
 using SQLite;
@@ -34,40 +32,6 @@ namespace DiabetesContolApp.DAO
             NumberOfGrocery = groceryLog.NumberOfGrocery;
             InsulinForGrocery = groceryLog.InsulinForGrocery;
         }
-
-        public GroceryLogModelDAO(int groceryID, int logID, uint numberOfGrocery, float insulinForGrocery)
-        {
-            GroceryLogID = -1;
-            GroceryID = groceryID;
-            LogID = logID;
-            NumberOfGrocery = numberOfGrocery;
-            InsulinForGrocery = insulinForGrocery;
-        }
-        /*
-        static public List<GroceryLogModelDAO> GetGroceryLogs(List<NumberOfGroceryModelDAO> numberOfGroceries, int logID)
-        {
-            List<GroceryLogModelDAO> groceryLogs = new();
-
-            if (numberOfGroceries != null)
-                foreach (NumberOfGroceryModelDAO numberOfGrocery in numberOfGroceries)
-                    groceryLogs.Add(new(numberOfGrocery.Grocery.GroceryID, logID, numberOfGrocery.NumberOfGrocery));
-
-            return groceryLogs;
-        }*/
-        /*
-        static public List<NumberOfGroceryModelDAO> GetNumberOfGroceries(List<GroceryLogModelDAO> groceryLogs)
-        {
-            List<NumberOfGroceryModelDAO> numberOfGroceries = new();
-
-            foreach (GroceryLogModelDAO groceryLog in groceryLogs)
-            {
-                var tempNumberOfGrocery = new NumberOfGroceryModelDAO(groceryLog.NumberOfGrocery, new GroceryModelDAO());
-                tempNumberOfGrocery.Grocery.GroceryID = groceryLog.GroceryID;
-                numberOfGroceries.Add(tempNumberOfGrocery);
-            }
-
-            return numberOfGroceries;
-        }*/
 
         public string ToStringCSV()
         {
