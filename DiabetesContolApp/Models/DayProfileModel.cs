@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 
 using DiabetesContolApp.DAO;
@@ -164,9 +165,9 @@ namespace DiabetesContolApp.Models
             return DayProfileID + "," +
                 Name + "," +
                 StartTime.ToString("HH:mm") + "," +
-                CarbScalar + "," +
-                GlucoseScalar + "," +
-                TargetGlucoseValue + "\n";
+                CarbScalar.ToString("0.00", CultureInfo.InvariantCulture) + "," +
+                GlucoseScalar.ToString("0.00", CultureInfo.InvariantCulture) + "," +
+                TargetGlucoseValue.ToString("0.00", CultureInfo.InvariantCulture) + "\n";
         }
     }
 }

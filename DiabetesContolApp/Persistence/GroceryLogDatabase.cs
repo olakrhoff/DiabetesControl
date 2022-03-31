@@ -20,23 +20,13 @@ namespace DiabetesContolApp.Persistence
             return instance == null ? new GroceryLogDatabase() : instance;
         }
 
-        public override string HeaderForCSVFile()
-        {
-            return "GroceryLogID, GroceryID, LogID, NumberOfGrocery\n";
-        }
-
-        async public override Task<List<IModelDAO>> GetAllAsync()
-        {
-            return new(await connection.Table<GroceryLogModelDAO>().ToListAsync());
-        }
-
         /// <summary>
         /// Insert all elements in the list into the database. If there is a problem
         /// it undo the adding and no elements will be added.
         /// </summary>
         /// <param name="groceryLogs"></param>
         /// <returns>int, the number of rows inserted, if an error occurs, then zero is added</returns>
-        async public Task<int> InsertAllAsync(List<GroceryLogModelDAO> groceryLogs)
+        async public Task<int> InsertAllGroceryLogsAsync(List<GroceryLogModelDAO> groceryLogs)
         {
             int rowsAdded = await connection.InsertAllAsync(groceryLogs);
 
@@ -60,7 +50,7 @@ namespace DiabetesContolApp.Persistence
         /// </summary>
         /// <param name="logID"></param>
         /// <returns>int, the number of rows deleted, -1 if an error occurs.</returns>
-        async public Task<int> DeleteAllWithLogIDAsync(int logID)
+        async public Task<int> DeleteAllGroceryLogsWithLogIDAsync(int logID)
         {
             try
             {
@@ -85,7 +75,7 @@ namespace DiabetesContolApp.Persistence
         /// </summary>
         /// <param name="groceryID"></param>
         /// <returns>int, the number of rows deleted, -1 if an error occurs.</returns>
-        async public Task<int> DeleteAllWithGroceryIDAsync(int groceryID)
+        async public Task<int> DeleteAllGroceryLogsWithGroceryIDAsync(int groceryID)
         {
             try
             {
@@ -110,7 +100,7 @@ namespace DiabetesContolApp.Persistence
         /// </summary>
         /// <param name="groceryID"></param>
         /// <returns>List of GroceryLogModelDAOs with the given Grocery ID.</returns>
-        async public Task<List<GroceryLogModelDAO>> GetAllWithGroceryID(int groceryID)
+        async public Task<List<GroceryLogModelDAO>> GetAllGroceryLogsWithGroceryID(int groceryID)
         {
             List<GroceryLogModelDAO> groceryLogDAOsWithGroceryID = await connection.Table<GroceryLogModelDAO>().Where(groceryLogDAO => groceryLogDAO.GroceryID == groceryID).ToListAsync();
             if (groceryLogDAOsWithGroceryID == null)
@@ -123,12 +113,22 @@ namespace DiabetesContolApp.Persistence
         /// </summary>
         /// <param name="logID"></param>
         /// <returns>If no elements was found return empty list, else list of elements found</returns>
-        async public Task<List<GroceryLogModelDAO>> GetAllWithLogID(int logID)
+        async public Task<List<GroceryLogModelDAO>> GetAllGroceryLogsWithLogID(int logID)
         {
             List<GroceryLogModelDAO> groceryLogDAOsWithLogID = await connection.Table<GroceryLogModelDAO>().Where(groceryLogDAO => groceryLogDAO.LogID == logID).ToListAsync();
             if (groceryLogDAOsWithLogID == null)
                 return new List<GroceryLogModelDAO>();
             return groceryLogDAOsWithLogID;
+        }
+
+        public override string HeaderForCSVFile()
+        {
+            return "GroceryLogID,GroceryID,LogID,NumberOfGrocery,InsulinForGrocery\n";
+        }
+
+        async public override Task<List<IModelDAO>> GetAllAsync()
+        {
+            return new(await connection.Table<GroceryLogModelDAO>().ToListAsync());
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Globalization;
 using DiabetesContolApp.Models;
 
 using SQLite;
@@ -74,7 +74,8 @@ namespace DiabetesContolApp.DAO
             return GroceryLogID + "," +
                 GroceryID + "," +
                 LogID + "," +
-                NumberOfGrocery + "\n";
+                NumberOfGrocery + "," +
+                InsulinForGrocery.ToString("0.00", CultureInfo.InvariantCulture) + "\n";
         }
     }
 

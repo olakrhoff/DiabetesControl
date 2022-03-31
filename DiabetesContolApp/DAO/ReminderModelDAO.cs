@@ -12,6 +12,7 @@ using DiabetesContolApp.Models;
 using SQLite;
 using SQLiteNetExtensions.Attributes;
 using Xamarin.Forms;
+using System.Globalization;
 
 namespace DiabetesContolApp.DAO
 {
@@ -143,9 +144,9 @@ namespace DiabetesContolApp.DAO
 
         public string ToStringCSV()
         {
-            return ReminderID + ", " +
-                DateTimeValue.ToString("yyyy/MM/dd HH:mm") + ", " +
-                GlucoseAfterMeal + ", " +
+            return ReminderID + "," +
+                DateTimeValue.ToString("yyyy/MM/dd HH:mm") + "," +
+                GlucoseAfterMeal?.ToString("0.00", CultureInfo.InvariantCulture) + "," +
                 IsHandled + "\n";
         }
     }

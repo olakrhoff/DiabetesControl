@@ -99,6 +99,7 @@ namespace DiabetesContolApp.Service
                     await groceryLogRepo.DeleteAllGroceryLogsWithLogIDAsync(log.LogID);
                     await logRepo.DeleteLogAsync(log.LogID);
                 }
+                await reminderRepo.DeleteReminderAsync(currentLog.Reminder.ReminderID);
             }
             catch (Exception e)
             {
@@ -165,11 +166,13 @@ namespace DiabetesContolApp.Service
         /// <summary>
         /// Gets the LogModel with the given ID, if it exists.
         /// Then it adds the corresponding DayProfile, Reminder and Groceries.
+        ///
+        /// If the Log is corrupt, missing critical data, it will be deleted.
         /// </summary>
         /// <param name="logID"></param>
         /// <returns>
         /// The LogModel with DayProfile, Reminder and Groceries added.
-        /// If no LogModel with this ID exists it returns null.
+        /// If no LogModel with this ID exists, or if it was corrupt, it returns null.
         /// </returns>
         async public Task<LogModel> GetLogAsync(int logID)
         {
@@ -178,6 +181,12 @@ namespace DiabetesContolApp.Service
                 return null;
             log.DayProfile = await dayProfileRepo.GetDayProfileAsync(log.DayProfile.DayProfileID);
             log.Reminder = await reminderRepo.GetReminderAsync(log.Reminder.ReminderID);
+
+            if (log.DayProfile == null || log.Reminder == null) //If Dayprofile or Reminder doesn't exist Log is corrupt
+            {
+                await DeleteLogAsync(log.LogID); //Deletes it, because it is corrupt
+                return null;
+            }
 
             List<GroceryLogModel> groceryLogs = await groceryLogRepo.GetAllGroceryLogsWithLogID(log.LogID);
 

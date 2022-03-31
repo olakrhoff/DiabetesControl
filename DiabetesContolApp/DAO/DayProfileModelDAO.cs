@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 
 using DiabetesContolApp.Models;
@@ -163,7 +164,12 @@ namespace DiabetesContolApp.DAO
 
         public string ToStringCSV()
         {
-            return DayProfileID + ", " + Name + ", " + StartTime.ToString("HH:mm") + ", " + CarbScalar + ", " + GlucoseScalar + ", " + TargetGlucoseValue + "\n";
+            return DayProfileID + "," +
+                Name + "," +
+                StartTime.ToString("HH:mm") + "," +
+                CarbScalar.ToString("0.00", CultureInfo.InvariantCulture) + "," +
+                GlucoseScalar.ToString("0.00", CultureInfo.InvariantCulture) + "," +
+                TargetGlucoseValue.ToString("0.00", CultureInfo.InvariantCulture) + "\n";
         }
     }
 }

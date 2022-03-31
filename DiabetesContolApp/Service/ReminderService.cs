@@ -86,12 +86,17 @@ namespace DiabetesContolApp.Service
         }
 
         /// <summary>
-        /// Gets all ReminderModels.
+        /// Gets all ReminderModels then adds all LogModels to them.
         /// </summary>
         /// <returns>List of ReminderModels, might be empty.</returns>
         async public Task<List<ReminderModel>> GetAllRemindersAsync()
         {
-            return await reminderRepo.GetAllRemindersAsync();
+            List<ReminderModel> reminders = await reminderRepo.GetAllRemindersAsync();
+
+            for (int i = 0; i < reminders.Count; ++i)
+                reminders[i] = await GetReminderAsync(reminders[i].ReminderID); //Get reminder with Logs
+
+            return reminders;
         }
     }
 }

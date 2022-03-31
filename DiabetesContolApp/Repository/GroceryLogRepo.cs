@@ -32,7 +32,7 @@ namespace DiabetesContolApp.Repository
             foreach (GroceryLogModel groceryLog in groceryLogs)
                 groceryLogDAOs.Add(new(groceryLog));
 
-            int rowsAdded = await groceryLogDatabase.InsertAllAsync(groceryLogDAOs);
+            int rowsAdded = await groceryLogDatabase.InsertAllGroceryLogsAsync(groceryLogDAOs);
 
             if (rowsAdded == groceryLogs.Count)
                 return true; //All elements was added
@@ -50,7 +50,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>Return false if an error occurs, else true.</returns>
         async public Task<bool> DeleteAllGroceryLogsWithLogIDAsync(int logID)
         {
-            if (await groceryLogDatabase.DeleteAllWithLogIDAsync(logID) >= 0)
+            if (await groceryLogDatabase.DeleteAllGroceryLogsWithLogIDAsync(logID) >= 0)
                 return true;
             return false;
         }
@@ -62,7 +62,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>Returns false if an error occurs, else true.</returns>
         async public Task<bool> DeleteAllGroceryLogsWithGroceryIDAsync(int groceryID)
         {
-            if (await groceryLogDatabase.DeleteAllWithGroceryIDAsync(groceryID) >= 0)
+            if (await groceryLogDatabase.DeleteAllGroceryLogsWithGroceryIDAsync(groceryID) >= 0)
                 return true;
             return false;
         }
@@ -75,7 +75,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>List of GroceryLogModels.</returns>
         async public Task<List<GroceryLogModel>> GetAllGroceryLogsWithGroceryID(int groceryID)
         {
-            List<GroceryLogModelDAO> groceryLogsDAO = await groceryLogDatabase.GetAllWithGroceryID(groceryID);
+            List<GroceryLogModelDAO> groceryLogsDAO = await groceryLogDatabase.GetAllGroceryLogsWithGroceryID(groceryID);
 
             List<GroceryLogModel> groceryLogs = new();
 
@@ -93,7 +93,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>Return list of GroceryLogModel, might be empty.</returns>
         async public Task<List<GroceryLogModel>> GetAllGroceryLogsWithLogID(int logID)
         {
-            List<GroceryLogModelDAO> groceryLogDAOs = await groceryLogDatabase.GetAllWithLogID(logID);
+            List<GroceryLogModelDAO> groceryLogDAOs = await groceryLogDatabase.GetAllGroceryLogsWithLogID(logID);
 
             List<GroceryLogModel> groceryLogs = new();
 

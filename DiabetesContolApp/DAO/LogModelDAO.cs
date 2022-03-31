@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using DiabetesContolApp.Models;
 using SQLite;
@@ -145,13 +146,14 @@ namespace DiabetesContolApp.DAO
 
         public string ToStringCSV()
         {
-            return LogID + ", " +
-                DayProfileID + ", " +
-                ReminderID + ", " +
-                DateTimeValue.ToString("yyyy/MM/dd HH:mm") + ", " +
-                GlucoseAtMeal + ", " +
-                GlucoseAfterMeal + "\n";
+            return LogID + "," +
+                DayProfileID + "," +
+                ReminderID + "," +
+                DateTimeValue.ToString("yyyy/MM/dd HH:mm") + "," +
+                GlucoseAtMeal.ToString("0.00", CultureInfo.InvariantCulture) + "," +
+                GlucoseAfterMeal?.ToString("0.00", CultureInfo.InvariantCulture) + "," +
+                InsulinEstimate.ToString("0.00", CultureInfo.InvariantCulture) + "," +
+                InsulinFromUser.ToString("0.00", CultureInfo.InvariantCulture) + "\n";
         }
-
     }
 }

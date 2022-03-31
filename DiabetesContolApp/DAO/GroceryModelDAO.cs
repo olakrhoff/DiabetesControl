@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 
 using DiabetesContolApp.Models;
@@ -148,7 +149,15 @@ namespace DiabetesContolApp.DAO
 
         public string ToStringCSV()
         {
-            return GroceryID + ", " + Name + ", " + BrandName + ", " + CarbsPer100Grams + ", " + NameOfPortion + ", " + GramsPerPortion + ", " + CarbScalar + "\n";
+            return GroceryID + "," +
+                Name + "," +
+                BrandName + "," +
+                CarbsPer100Grams.ToString("0.00", CultureInfo.InvariantCulture) + "," +
+                NameOfPortion + "," +
+                GramsPerPortion.ToString("0.00", CultureInfo.InvariantCulture) + "," +
+                CarbScalar.ToString("0.00", CultureInfo.InvariantCulture) + "\n";
         }
+
+
     }
 }
