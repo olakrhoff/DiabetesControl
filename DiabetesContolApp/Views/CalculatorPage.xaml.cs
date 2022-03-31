@@ -20,6 +20,7 @@ namespace DiabetesContolApp.Views
         public ObservableCollection<NumberOfGroceryModel> NumberOfGroceriesSummary { get; set; }
         private float? _insulinEstimate;
         private ReminderModel _reminder;
+        private LogModel _tempLog = new();
 
         private DayProfileService dayProfileService = new();
         private LogService logService = new();
@@ -114,15 +115,19 @@ namespace DiabetesContolApp.Views
 
             if (Helper.ConvertToFloat(glucose.Text, out float glucoseFloat))
             {
+                DayProfileModel dayProfile = pickerDayprofiles.SelectedItem as DayProfileModel;
+
+                _tempLog.GlucoseAtMeal = glucoseFloat;
+                _tempLog.DayProfile = dayProfile;
+                if (NumberOfGroceriesSummary != null)
+                    _tempLog.NumberOfGroceryModels = NumberOfGroceriesSummary.ToList();
 
                 //Data is valid, continue with calculations
-                DayProfileModel dayProfile = pickerDayprofiles.SelectedItem as DayProfileModel;
-                float totalInsulin = Helper.CalculateInsulin(glucoseFloat, NumberOfGroceriesSummary?.ToList(), dayProfile);
+                Helper.CalculateInsulin(ref _tempLog);
 
-                insulinEstimate.Text = String.Format("{0:F1}", totalInsulin);
+                insulinEstimate.Text = String.Format("{0:F1}", _tempLog.InsulinEstimate);
                 insulinEstimate.IsVisible = true;
                 logInsulinButton.IsEnabled = true;
-                _insulinEstimate = totalInsulin;
             }
             else
             {
@@ -134,21 +139,25 @@ namespace DiabetesContolApp.Views
         async void LogInsulinClicked(System.Object sender, System.EventArgs e)
         {
             if (!await VaildateCalculatorData() ||
-                _insulinEstimate == null ||
-                !Helper.ConvertToFloat(insulinEstimate.Text, out float insulinFromUserFloat) ||
-                !Helper.ConvertToFloat(glucose.Text, out float glucoseAtMealFloat))
+                _tempLog.InsulinEstimate < 0 ||
+                _reminder == null ||
+                !Helper.ConvertToFloat(insulinEstimate.Text, out float insulinFromUserFloat))
                 return;
-
+            /*
             LogModel newLogEntry = new(pickerDayprofiles.SelectedItem as DayProfileModel,
                 _reminder,
                 DateTime.Now,
                 (float)_insulinEstimate,
                 insulinFromUserFloat,
-                glucoseAtMealFloat,
-                NumberOfGroceriesSummary?.ToList());
+                _tempLog.GlucoseAtMeal,
+                _tempLog.NumberOfGroceryModels);
             newLogEntry.Reminder = _reminder;
+            */
+            _tempLog.InsulinFromUser = insulinFromUserFloat;
+            _tempLog.Reminder = _reminder;
+            _tempLog.DateTimeValue = DateTime.Now;
 
-            await logService.InsertLogAsync(newLogEntry);
+            await logService.InsertLogAsync(_tempLog);
 
             ClearCalculatorData();
             SetOverlappingMeals(false, null); //Enable the glucose entry

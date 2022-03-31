@@ -170,9 +170,8 @@ namespace DiabetesContolApp.GlobalLogic
                 float carbsPerBread = numberOfGrocery.Grocery.CarbsPer100Grams * numberOfGrocery.Grocery.GramsPerPortion * numberOfGrocery.Grocery.CarbScalar;
 
                 Application app = Application.Current as App;
-                List<NumberOfGroceryModel> breadList = new();
-                breadList.Add(numberOfGrocery);
-                float breadInsulin = CalculateInsulin(dayProfile.TargetGlucoseValue, breadList, dayProfile);
+
+                float breadInsulin = numberOfGrocery.InsulinForGroceries;
 
                 float gluoseErrorForBreadPerBread = gluoseError * (breadInsulin / log.InsulinEstimate) / numberOfGrocery.NumberOfGrocery;
 
@@ -213,51 +212,48 @@ namespace DiabetesContolApp.GlobalLogic
             return new(list);
         }
 
-        /*
-         * This method calculates the amout of insulin the user needs
-         * based on what the glucose, food and time of day
-         * 
-         * Params: float (glucose): the glucose of the user,
-         *         List<NumberOfGroceryModel> (numberOfGroceryList): The list of what groceries are to be eaten
-         *         and the respective number of portions.
-         *         DayprofileModel (dayProfile): The dayprofile holds the info of scalars based on the time of day
-         *         both for glucose and carbs.
-         *         
-         * Return: float, the total amount of insulin to be given by the user.
-         */
-        public static float CalculateInsulin(float glucose, List<NumberOfGroceryModel> numberOfGroceryList, DayProfileModel dayProfile)
+        //public static float CalculateInsulin(float glucose, List<NumberOfGroceryModel> numberOfGroceryList, DayProfileModel dayProfile)
+        /// <summary>
+        /// This method calculates the amout of insulin the user needs
+        /// based on what the glucose, food and time of day
+        /// </summary>
+        /// <param name="log"></param>
+        /// <returns>void</returns>
+        public static void CalculateInsulin(ref LogModel log)
         {
             App globalVariables = Application.Current as App;
 
-            float insulinForFood = GetCarbsFromFood(numberOfGroceryList) * dayProfile.CarbScalar / globalVariables.InsulinToCarbohydratesRatio;
+            //float insulinForFood = GetCarbsFromFood(log.NumberOfGroceryModels) * log.DayProfile.CarbScalar / globalVariables.InsulinToCarbohydratesRatio;
+            float insulinForFood = GetInsulinForGroceries(log.NumberOfGroceryModels, log.DayProfile.CarbScalar, globalVariables.InsulinToCarbohydratesRatio).Sum(numberOfGrocery => numberOfGrocery.InsulinForGroceries);
 
-            float insulinForCorrection = (glucose - dayProfile.TargetGlucoseValue) * dayProfile.GlucoseScalar / globalVariables.InsulinToGlucoseRatio;
+            float insulinForCorrection = (log.GlucoseAtMeal - log.DayProfile.TargetGlucoseValue) * log.DayProfile.GlucoseScalar / globalVariables.InsulinToGlucoseRatio;
 
             //If it is a pure correction dose, no food (carbs)
             if (insulinForFood == 0)
                 insulinForCorrection *= globalVariables.InsulinOnlyCorrectionScalar;
 
-            return insulinForFood + insulinForCorrection; //Total insulin
+            log.CorrectionInsulin = insulinForCorrection;
+            log.InsulinEstimate = insulinForFood + insulinForCorrection; //Total insulin
         }
 
-        /*
-         * This method gets all the total amout of carbs (times the respective scalars)
-         * and returns it.
-         * 
-         * Parmas: List<NumberOfGroceryModel>, the list of Groceries and the respective
-         * number of portions.
-         * 
-         * Return: float, the total number of carbs in the list, with scaling
-         */
-        private static float GetCarbsFromFood(List<NumberOfGroceryModel> numberOfGroceryList)
+        /// <summary>
+        /// Goes through all NumberOfGroceries and adds the amount
+        /// of insulin based on the DayProfile carbs scalar and
+        /// insulin to carbs ratio given.
+        /// </summary>
+        /// <param name="numberOfGroceries"></param>
+        /// <param name="dayProfileCarbScalar"></param>
+        /// <param name="insulinToCarbohydratesRatio"></param>
+        /// <returns>List of NumberOfGroceryModels, with InsulinForGroceries filled out.</returns>
+        private static List<NumberOfGroceryModel> GetInsulinForGroceries(List<NumberOfGroceryModel> numberOfGroceries, float dayProfileCarbScalar, float insulinToCarbohydratesRatio)
         {
-            float totalCarbs = 0.0f;
+            numberOfGroceries.ForEach(numberOfGrocery =>
+            {
+                float carbsForGroceries = numberOfGrocery.NumberOfGrocery * numberOfGrocery.Grocery.GramsPerPortion * (numberOfGrocery.Grocery.CarbsPer100Grams / 100) * numberOfGrocery.Grocery.CarbScalar;
+                numberOfGrocery.InsulinForGroceries = carbsForGroceries * dayProfileCarbScalar / insulinToCarbohydratesRatio;
+            });
 
-            if (numberOfGroceryList != null)
-                foreach (NumberOfGroceryModel numberOfGrocery in numberOfGroceryList)
-                    totalCarbs += numberOfGrocery.NumberOfGrocery * numberOfGrocery.Grocery.GramsPerPortion * (numberOfGrocery.Grocery.CarbsPer100Grams / 100) * numberOfGrocery.Grocery.CarbScalar;
-
-            return totalCarbs;
+            return numberOfGroceries;
         }
 
 
