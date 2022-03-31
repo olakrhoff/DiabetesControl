@@ -26,8 +26,11 @@ namespace DiabetesContolApp.Service
         }
 
         /// <summary>
-        /// Tells the logRepo to insert the log. Then tells the
-        /// groceryLogRepo to insert all the cross table entries.
+        /// Checks if the log has a Reminder, if not it adds a new one.
+        /// Then it checks if the Reminder and DayProfile attached
+        /// exisits, if so it continues. The new Log is inserted into
+        /// the database, then all GroceryLog entries in the cross table
+        /// are inserted into the database.
         /// </summary>
         /// <param name="newLog"></param>
         /// <returns>true if log was inserted, else false</returns>

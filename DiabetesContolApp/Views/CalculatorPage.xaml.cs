@@ -18,8 +18,6 @@ namespace DiabetesContolApp.Views
 
         public ObservableCollection<DayProfileModel> DayProfiles { get; set; }
         public ObservableCollection<NumberOfGroceryModel> NumberOfGroceriesSummary { get; set; }
-        private float? _insulinEstimate;
-        private ReminderModel _reminder;
         private LogModel _tempLog = new();
 
         private DayProfileService dayProfileService = new();
@@ -64,7 +62,7 @@ namespace DiabetesContolApp.Views
             if (isOverlapping)
                 glucose.Text = previousLog.DayProfile.TargetGlucoseValue.ToString();
 
-            _reminder = isOverlapping ? previousLog.Reminder : null;
+            _tempLog.Reminder = isOverlapping ? previousLog.Reminder : null;
         }
 
         private DayProfileModel GetDayProfileByTime()
@@ -144,7 +142,6 @@ namespace DiabetesContolApp.Views
                 return;
 
             _tempLog.InsulinFromUser = insulinFromUserFloat;
-            _tempLog.Reminder = _reminder;
             _tempLog.DateTimeValue = DateTime.Now;
 
             if (!await logService.InsertLogAsync(_tempLog))
@@ -182,10 +179,7 @@ namespace DiabetesContolApp.Views
                 propertiesChanged = true;
                 string result = await DisplayPromptAsync("We don't have your insulin-carbs-ratio", "How many units of insulin did you set yesterday?", keyboard: Keyboard.Numeric);
                 if (Helper.ConvertToFloat(result, out float resultFloat))
-                {
                     globalVariables.InsulinToCarbohydratesRatio = Helper.Calculate500Rule(resultFloat);
-                    //await AverageTDDDatabase.GetInstance().InsertAverageTDD(new(resultFloat));
-                }
             }
             if (globalVariables.InsulinToGlucoseRatio == -1.0f)
             {
