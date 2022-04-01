@@ -1,11 +1,12 @@
 ﻿using System;
-using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
+using System.Collections.Generic;
 
 using DiabetesContolApp.Views;
-using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Service;
 using DiabetesContolApp.Models;
-using System.Collections.Generic;
+
+using Xamarin.Forms;
+using Xamarin.Forms.Xaml;
 
 namespace DiabetesContolApp
 {
@@ -159,7 +160,8 @@ namespace DiabetesContolApp
         /// </summary>
         private void CheckReminders()
         {
-            ReminderDatabase.GetInstance().HandleReminders();
+            ReminderService reminderService = new();
+            reminderService.HandleRemindersAsync();
         }
     }
 }

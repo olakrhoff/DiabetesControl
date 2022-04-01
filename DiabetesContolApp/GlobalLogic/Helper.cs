@@ -2,14 +2,16 @@
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using System.IO;
+using System.Globalization;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.Persistence;
+using DiabetesContolApp.DAO;
+using DiabetesContolApp.Service;
 
 using Xamarin.Forms;
-using System.Threading.Tasks;
 using Xamarin.Essentials;
-using System.IO;
 
 namespace DiabetesContolApp.GlobalLogic
 {
@@ -103,27 +105,89 @@ namespace DiabetesContolApp.GlobalLogic
             string groceryLogPath = Path.Combine(FileSystem.CacheDirectory, data);
             WriteDatabaseToCSVFile(groceryLogPath, GroceryLogDatabase.GetInstance());
 
-            //Write average TDD to file
-            data = "averageTDDData.csv";
-            string averageTDDPath = Path.Combine(FileSystem.CacheDirectory, data);
-            WriteDatabaseToCSVFile(averageTDDPath, AverageTDDDatabase.GetInstance());
 
+            //TODO: TEMP
+            data = "breadData.csv";
+            string breadDataPath = Path.Combine(FileSystem.CacheDirectory, data);
+            //WriteBreadToCSVFile(breadDataPath);
 
             return new List<ShareFile> { new ShareFile(groceryFilePath),
                 new ShareFile(dayProfileFilePath),
                 new ShareFile(reminderPath),
                 new ShareFile(logPath),
                 new ShareFile(groceryLogPath),
-                new ShareFile(averageTDDPath)
+                new ShareFile(breadDataPath)
             };
+        }
+
+        async private static void WriteBreadToCSVFile(string filePath)
+        {
+            ReminderService reminderService = new();
+            LogService logService = new();
+
+            List<LogModel> logs = new();
+
+            List<ReminderModel> reminders = await reminderService.GetAllRemindersAsync();
+
+            reminders = reminders.Where(remidner => remidner.IsHandled && remidner.GlucoseAfterMeal > 0).ToList();
+
+            foreach (ReminderModel reminder in reminders)
+            {
+                List<LogModel> logsWithReminderID = await logService.GetAllLogsWithReminderIDAsync(reminder.ReminderID);
+                double totalInsulin = logsWithReminderID.Sum(log => log.InsulinEstimate);
+                double glucoseError = (float)reminder.GlucoseAfterMeal - logsWithReminderID[logsWithReminderID.Count - 1].DayProfile.TargetGlucoseValue;
+
+                foreach (LogModel log in logsWithReminderID)
+                {
+                    float targetGlucose = log.DayProfile.TargetGlucoseValue;
+                    log.GlucoseAfterMeal = (float)(targetGlucose + glucoseError * (log.InsulinEstimate / totalInsulin));
+                }
+                logs.AddRange(logsWithReminderID);
+            }
+
+            string output = "TimeStamp,GlucoseErrorForBreadPerBread\n";
+
+            //Get all log with bread
+            logs = logs.Where(log =>
+            {
+                foreach (NumberOfGroceryModel g in log.NumberOfGroceryModels)
+                    if (g.Grocery.Name == "Brød")
+                        return true;
+                return false;
+            }).ToList();
+
+            //Find fault for bread per log
+            foreach (LogModel log in logs)
+            {
+                if (log.GlucoseAfterMeal == null || log.GlucoseAfterMeal == -1.0f)
+                    continue; //Not ready or corrupt data.
+
+                DayProfileModel dayProfile = log.DayProfile;
+                float targetGlucose = dayProfile.TargetGlucoseValue;
+                float gluoseError = (float)log.GlucoseAfterMeal - targetGlucose;
+
+                NumberOfGroceryModel numberOfGrocery = log.NumberOfGroceryModels.Find(log => log.Grocery.Name == "Brød");
+                float carbsPerBread = numberOfGrocery.Grocery.CarbsPer100Grams * numberOfGrocery.Grocery.GramsPerPortion * numberOfGrocery.Grocery.CarbScalar;
+
+                Application app = Application.Current as App;
+
+                float breadInsulin = numberOfGrocery.InsulinForGroceries;
+
+                float gluoseErrorForBreadPerBread = gluoseError * (breadInsulin / log.InsulinEstimate) / numberOfGrocery.NumberOfGrocery;
+
+                output += log.DateTimeValue.ToString("yyyy/MM/dd HH:mm") + "," + gluoseErrorForBreadPerBread.ToString("0.00", CultureInfo.InvariantCulture) + "\n";
+            }
+            //Write timestamp and fault to file
+
+            File.WriteAllText(filePath, output);
         }
 
         async private static void WriteDatabaseToCSVFile(string filePath, ModelDatabaseAbstract databaseConnection)
         {
             string output = "";
 
-            List<IModel> models = await databaseConnection.GetAllAsync();
-
+            List<DAO.IModelDAO> models = await databaseConnection.GetAllAsync();
+            //TODO: THIS SHOULD USE THE SERVICE
             output += databaseConnection.HeaderForCSVFile();
             models.ForEach(model => output += model.ToStringCSV());
 
@@ -148,51 +212,48 @@ namespace DiabetesContolApp.GlobalLogic
             return new(list);
         }
 
-        /*
-         * This method calculates the amout of insulin the user needs
-         * based on what the glucose, food and time of day
-         * 
-         * Params: float (glucose): the glucose of the user,
-         *         List<NumberOfGroceryModel> (numberOfGroceryList): The list of what groceries are to be eaten
-         *         and the respective number of portions.
-         *         DayprofileModel (dayProfile): The dayprofile holds the info of scalars based on the time of day
-         *         both for glucose and carbs.
-         *         
-         * Return: float, the total amount of insulin to be given by the user.
-         */
-        public static float CalculateInsulin(float glucose, List<NumberOfGroceryModel> numberOfGroceryList, DayProfileModel dayProfile)
+        //public static float CalculateInsulin(float glucose, List<NumberOfGroceryModel> numberOfGroceryList, DayProfileModel dayProfile)
+        /// <summary>
+        /// This method calculates the amout of insulin the user needs
+        /// based on what the glucose, food and time of day
+        /// </summary>
+        /// <param name="log"></param>
+        /// <returns>void</returns>
+        public static void CalculateInsulin(ref LogModel log)
         {
             App globalVariables = Application.Current as App;
 
-            float insulinForFood = GetCarbsFromFood(numberOfGroceryList) * dayProfile.CarbScalar / globalVariables.InsulinToCarbohydratesRatio;
+            //float insulinForFood = GetCarbsFromFood(log.NumberOfGroceryModels) * log.DayProfile.CarbScalar / globalVariables.InsulinToCarbohydratesRatio;
+            float insulinForFood = GetInsulinForGroceries(log.NumberOfGroceryModels, log.DayProfile.CarbScalar, globalVariables.InsulinToCarbohydratesRatio).Sum(numberOfGrocery => numberOfGrocery.InsulinForGroceries);
 
-            float insulinForCorrection = (glucose - dayProfile.TargetGlucoseValue) * dayProfile.GlucoseScalar / globalVariables.InsulinToGlucoseRatio;
+            float insulinForCorrection = (log.GlucoseAtMeal - log.DayProfile.TargetGlucoseValue) * log.DayProfile.GlucoseScalar / globalVariables.InsulinToGlucoseRatio;
 
             //If it is a pure correction dose, no food (carbs)
             if (insulinForFood == 0)
                 insulinForCorrection *= globalVariables.InsulinOnlyCorrectionScalar;
 
-            return insulinForFood + insulinForCorrection; //Total insulin
+            log.CorrectionInsulin = insulinForCorrection;
+            log.InsulinEstimate = insulinForFood + insulinForCorrection; //Total insulin
         }
 
-        /*
-         * This method gets all the total amout of carbs (times the respective scalars)
-         * and returns it.
-         * 
-         * Parmas: List<NumberOfGroceryModel>, the list of Groceries and the respective
-         * number of portions.
-         * 
-         * Return: float, the total number of carbs in the list, with scaling
-         */
-        private static float GetCarbsFromFood(List<NumberOfGroceryModel> numberOfGroceryList)
+        /// <summary>
+        /// Goes through all NumberOfGroceries and adds the amount
+        /// of insulin based on the DayProfile carbs scalar and
+        /// insulin to carbs ratio given.
+        /// </summary>
+        /// <param name="numberOfGroceries"></param>
+        /// <param name="dayProfileCarbScalar"></param>
+        /// <param name="insulinToCarbohydratesRatio"></param>
+        /// <returns>List of NumberOfGroceryModels, with InsulinForGroceries filled out.</returns>
+        private static List<NumberOfGroceryModel> GetInsulinForGroceries(List<NumberOfGroceryModel> numberOfGroceries, float dayProfileCarbScalar, float insulinToCarbohydratesRatio)
         {
-            float totalCarbs = 0.0f;
+            numberOfGroceries.ForEach(numberOfGrocery =>
+            {
+                float carbsForGroceries = numberOfGrocery.NumberOfGrocery * numberOfGrocery.Grocery.GramsPerPortion * (numberOfGrocery.Grocery.CarbsPer100Grams / 100) * numberOfGrocery.Grocery.CarbScalar;
+                numberOfGrocery.InsulinForGroceries = carbsForGroceries * dayProfileCarbScalar / insulinToCarbohydratesRatio;
+            });
 
-            if (numberOfGroceryList != null)
-                foreach (NumberOfGroceryModel numberOfGrocery in numberOfGroceryList)
-                    totalCarbs += numberOfGrocery.NumberOfGrocery * numberOfGrocery.Grocery.GramsPerPortion * (numberOfGrocery.Grocery.CarbsPer100Grams / 100) * numberOfGrocery.Grocery.CarbScalar;
-
-            return totalCarbs;
+            return numberOfGroceries;
         }
 
 

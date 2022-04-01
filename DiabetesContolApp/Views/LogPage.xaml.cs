@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 using DiabetesContolApp.Models;
-using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Service;
 using DiabetesContolApp.GlobalLogic;
 
 using Xamarin.Forms;
@@ -14,8 +14,9 @@ namespace DiabetesContolApp.Views
     public partial class LogPage : ContentPage
     {
         public ObservableCollection<LogModel> Logs { get; set; }
-        LogDatabase logDatabase = LogDatabase.GetInstance();
         DateTime localDate = DateTime.Now;
+
+        private LogService logService = new();
 
         private string dateString
         {
@@ -45,7 +46,7 @@ namespace DiabetesContolApp.Views
 
         async private void GetLogsForDate()
         {
-            var logs = await logDatabase.GetLogsAsync(localDate);
+            var logs = await logService.GetLogsOnDateAsync(localDate);
             logs.Sort();
             logs.Reverse();
             Logs = new(logs);
@@ -61,7 +62,7 @@ namespace DiabetesContolApp.Views
 
             page.LogSaved += async (source, args) =>
             {
-                await logDatabase.UpdateLogAsync(args);
+                await logService.UpdateLogAsync(args);
             };
 
             await Navigation.PushAsync(page);
@@ -75,7 +76,7 @@ namespace DiabetesContolApp.Views
 
             page.LogAdded += async (source, args) =>
             {
-                await logDatabase.InsertLogAsync(args);
+                await logService.InsertLogAsync(args);
             };
 
             await Navigation.PushAsync(page);
@@ -85,7 +86,7 @@ namespace DiabetesContolApp.Views
         {
             var log = (sender as MenuItem).CommandParameter as LogModel;
 
-            await logDatabase.DeleteLogAsync(log.LogID);
+            await logService.DeleteLogAsync(log.LogID);
             Logs.Remove(log);
         }
 

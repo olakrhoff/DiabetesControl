@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 using DiabetesContolApp.Models;
-using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Service;
 
 using SQLite;
 
@@ -17,7 +17,7 @@ namespace DiabetesContolApp.Views
     {
         public ObservableCollection<DayProfileModel> DayProfiles { get; set; }
 
-        private DayProfileDatabase dayProfileDatabase = DayProfileDatabase.GetInstance();
+        private DayProfileService dayProfileService = new();
 
         public DayProfilePage()
         {
@@ -26,7 +26,7 @@ namespace DiabetesContolApp.Views
 
         protected override async void OnAppearing()
         {
-            var dayProfiles = await dayProfileDatabase.GetDayProfilesAsync();
+            var dayProfiles = await dayProfileService.GetAllDayProfilesAsync();
             dayProfiles.Sort();
             DayProfiles = new ObservableCollection<DayProfileModel>(dayProfiles);
             dayProfilesList.ItemsSource = DayProfiles;
@@ -48,7 +48,7 @@ namespace DiabetesContolApp.Views
 
             page.DayProfileAdded += async (source, args) =>
                 {
-                    await dayProfileDatabase.InsertDayProfileAsync(args);
+                    await dayProfileService.InsertDayProfileAsync(args);
                 };
 
             await Navigation.PushAsync(page);
@@ -66,7 +66,7 @@ namespace DiabetesContolApp.Views
 
             page.DayProfileSaved += async (source, args) =>
             {
-                await dayProfileDatabase.UpdateDayProfileAsync(args);
+                await dayProfileService.UpdateDayProfileAsync(args);
             };
 
             await Navigation.PushAsync(page);
@@ -78,7 +78,7 @@ namespace DiabetesContolApp.Views
             if (await DisplayAlert("Deleting", $"Are you sure you want to delete {dayProfile.Name}?", "Delete", "Cancel"))
             {
                 DayProfiles.Remove(dayProfile);
-                await dayProfileDatabase.DeleteDayProfileAsync(dayProfile);
+                await dayProfileService.DeleteDayProfileAsync(dayProfile.DayProfileID);
             }
         }
     }
