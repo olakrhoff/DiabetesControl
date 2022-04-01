@@ -26,14 +26,14 @@ namespace DiabetesContolApp.GlobalLogic
          * Returns true if format is correct, then convert the string to a float and store it in float_val.
          * 
          */
-        static public bool ConvertToFloat(string string_val, out float float_val)
+        static public bool ConvertToFloat(string stringValue, out float floatValue)
         {
-            float_val = 0.0f; //This is just a temp value, if the convertion is successful the value will be changed
-            if (string_val == null)
+            floatValue = 0.0f; //This is just a temp value, if the convertion is successful the value will be changed
+            if (stringValue == null)
                 return false;
             char[] seperators = { ',', '.' };
 
-            ushort counter = (ushort)string_val.Count(count => (count == seperators[0] || count == seperators[1]));
+            ushort counter = (ushort)stringValue.Count(count => (count == seperators[0] || count == seperators[1]));
 
             if (counter > 1)
                 return false;
@@ -43,26 +43,26 @@ namespace DiabetesContolApp.GlobalLogic
             {
                 //The string has only one comma or dot in it
                 int choosenSeperator;
-                if (string_val.Contains(seperators[0]))
+                if (stringValue.Contains(seperators[0]))
                     choosenSeperator = 0;
                 else
                     choosenSeperator = 1;
 
                 //Check that the number seperator is in a valid place
-                var seperatorIndex = string_val.IndexOf(seperators[choosenSeperator]);
-                if (seperatorIndex == 0 || seperatorIndex == string_val.Length - 1)
+                var seperatorIndex = stringValue.IndexOf(seperators[choosenSeperator]);
+                if (seperatorIndex == 0 || seperatorIndex == stringValue.Length - 1)
                     return false; //Not a valid placment of the seperator
 
                 //If the seperator doesn't match the current culture, then swap it with the other correct one
                 if (System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalSeparator != seperators[choosenSeperator].ToString())
-                    string_val = string_val.Replace(seperators[choosenSeperator], System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalSeparator[0]);
+                    stringValue = stringValue.Replace(seperators[choosenSeperator], System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalSeparator[0]);
             }
 
 
             //Try to convert the string to float
             try
             {
-                float_val = Convert.ToSingle(string_val);
+                floatValue = Convert.ToSingle(stringValue);
             }
             catch (FormatException fe)
             {
@@ -256,49 +256,49 @@ namespace DiabetesContolApp.GlobalLogic
             return numberOfGroceries;
         }
 
-
-        /*
-         * IMPORTANT: insulin here is always rapid insulin
-         * 
-         * This method uses the 500-rule to calculate
-         * the sensitivity for carbohydrates. This gives the
-         * sensitivity as grams of carbs per unit of insulin.
-         * 
-         * E.g. a TDD = 50 gives a sensitivity og 500/50 = 10
-         * this means that if one eat 10 grams og carbs, one unit of
-         * rapid insulin is needed to counteract it.
-         * The insulin is then calculated later by taking the total
-         * grams of carbs divided by the sensitivty.
-         * 
-         * Parmas: float (averageTDD), this is the average Total Daily Dose
-         * of rapid insulin in the last seven (valid) days.
-         * 
-         * Return: float, the sensitivioty in grams of carbs per unit of insulin.
-         */
+        /// <summary>
+        /// IMPORTANT: insulin here is always rapid insulin
+        /// 
+        /// This method uses the 500-rule to calculate
+        /// the sensitivity for carbohydrates.This gives the
+        /// sensitivity as grams of carbs per unit of insulin.
+        /// 
+        /// E.g. a TDD = 50 gives a sensitivity og 500/50 = 10
+        /// this means that if one eat 10 grams og carbs, one unit of
+        /// rapid insulin is needed to counteract it.
+        /// The insulin is then calculated later by taking the total
+        /// grams of carbs divided by the sensitivty.
+        ///
+        /// </summary>
+        /// <param name="averageTDD">
+        /// float (averageTDD), this is the average Total Daily Dose
+        /// of rapid insulin in the last seven(valid) days.
+        /// </param>
+        /// <returns>float, the sensitivity in grams of carbs per unit of insulin.</returns>
         public static float Calculate500Rule(float averageTDD)
         {
             return 500 / averageTDD;
         }
 
-
-        /*
-         * IMPORTANT: insulin here is always rapid insulin
-         * 
-         * This method uses the 100-rule to calculate
-         * the sensitivity for glucose correction. This gives the
-         * sensitivity as glucose (mmol/L) changed per unit of insulin.
-         * 
-         * E.g. a TDD = 50 gives a sensitivity og 100/50 = 2
-         * this means that if one sat one unit of insulin the glucose
-         * would go down by two (e.g. 7,8 mmol/L => 5,8 mmol/L).
-         * The insulin is then calculated later by taking the total
-         * wanted change in glucose divided by the sensitivty. 
-         * 
-         * Parmas: float (averageTDD), this is the average Total Daily Dose
-         * of rapid insulin in the last seven (valid) days.
-         * 
-         * Return: float, the sensitivioty in glucose (mmol/L) changed per unit of insulin.
-         */
+        /// <summary>
+        /// IMPORTANT: insulin here is always rapid insulin
+        ///
+        /// This method uses the 100-rule to calculate
+        /// the sensitivity for glucose correction.This gives the
+        /// sensitivity as glucose (mmol/L) changed per unit of insulin.
+        ///
+        /// E.g. a TDD = 50 gives a sensitivity og 100/50 = 2
+        /// this means that if one sat one unit of insulin the glucose
+        /// would go down by two(e.g. 7,8 mmol/L => 5,8 mmol/L).
+        /// The insulin is then calculated later by taking the total
+        /// wanted change in glucose divided by the sensitivty.
+        /// 
+        /// </summary>
+        /// <param name="averageTDD">
+        /// float (averageTDD), this is the average Total Daily Dose
+        /// of rapid insulin in the last seven(valid) days.
+        /// </param>
+        /// <returns>float, the sensitivity in glucose (mmol/L) changed per unit of insulin.</returns>
         public static float Calculate100Rule(float averageTDD)
         {
             return 100 / averageTDD;
