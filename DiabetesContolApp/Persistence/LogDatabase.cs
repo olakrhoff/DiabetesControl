@@ -54,9 +54,9 @@ namespace DiabetesContolApp.Persistence
         /// </summary>
         /// <param name="lastUpdate"></param>
         /// <returns>List of logs after given time, if none were found, list is empty.</returns>
-        async public Task<List<LogModel>> GetAllLogsAfterAsync(DateTime lastUpdate)
+        async public Task<List<LogModelDAO>> GetAllLogsAfterDateAsync(DateTime date)
         {
-            List<LogModel> logs = await connection.Table<LogModel>().Where(log => log.DateTimeValue.CompareTo(lastUpdate) > 0).ToListAsync();
+            List<LogModelDAO> logs = await connection.Table<LogModelDAO>().Where(logDAO => logDAO.DateTimeValue.CompareTo(date) > 0).ToListAsync();
 
             if (logs == null)
                 return new();

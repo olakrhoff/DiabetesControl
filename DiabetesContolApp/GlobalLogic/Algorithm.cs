@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 
-using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Service;
 using DiabetesContolApp.Models;
 
 using MathNet.Numerics;
@@ -20,7 +20,9 @@ namespace DiabetesContolApp.GlobalLogic
 
         async public static void RunStatisticsOnReminder(int reminderID)
         {
-            ReminderModel reminder = await ReminderDatabase.GetInstance().GetReminderAsync(reminderID);
+            //ReminderModel reminder = await ReminderDatabase.GetInstance().GetReminderAsync(reminderID);
+            ReminderService reminderService = new();
+            ReminderModel reminder = await reminderService.GetReminderAsync(reminderID);
             if (reminder == null)
                 return;
 
@@ -40,7 +42,7 @@ namespace DiabetesContolApp.GlobalLogic
         {
             foreach (LogModel log in logs)
             {
-                UpdateDayProfileScalar(log.DayProfileID);
+                UpdateDayProfileScalar(log.DayProfile.DayProfileID);
                 UpdateCorrectionInsulinScalar();
                 foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceryModels)
                     UpdateGroceryScalar(numberOfGrocery.Grocery.GroceryID);
@@ -57,8 +59,8 @@ namespace DiabetesContolApp.GlobalLogic
         async private static void UpdateCorrectionInsulinScalar()
         {
             DateTime lastUpdate = DateTime.Now; //TODO: Update this to get when the last scalar update for the correction dose was made
-
-            List<LogModel> logs = await LogDatabase.GetInstance().GetAllLogsAfterAsync(lastUpdate);
+            LogService logService = new();
+            List<LogModel> logs = await logService.GetAllLogsAfterDateAsync(lastUpdate);
 
             List<DataPoint> dataPoints = new();
             foreach (LogModel log in logs)
@@ -94,15 +96,17 @@ namespace DiabetesContolApp.GlobalLogic
 
             //double totalGlucoseError = (float)log.GlucoseAfterMeal - await GetTargetGlucoseForLog(log);
 
-            double totalGlucoseError = log.GetTotalGlucoseError();
+            //TODO: Continue
+            //double totalGlucoseError = log.GetTotalGlucoseError();
 
             //double glucoseErrorForCorrection = totalGlucoseError * (log.CorrectionDose / log.InsulinEstimate);
             //double glucoseErrorPerUnitOfCorrectionInsulin = glucoseErrorForCorrection / log.CorrectionDose;
 
             //This is per unit of insulin so it is easier to compare bigger and smaller doses.
-            double glucoseErrorPerUnitOfCorrectionInsulin = totalGlucoseError / log.InsulinEstimate;
+            //double glucoseErrorPerUnitOfCorrectionInsulin = totalGlucoseError / log.InsulinEstimate;
 
-            return new DataPoint(true, log.DateTimeValue, glucoseErrorPerUnitOfCorrectionInsulin);
+            //return new DataPoint(true, log.DateTimeValue, glucoseErrorPerUnitOfCorrectionInsulin);
+            return new(); //TODO: Temp
         }
 
         /// <summary>
@@ -114,7 +118,9 @@ namespace DiabetesContolApp.GlobalLogic
         /// <param name="dayProfileID"></param>
         async private static void UpdateDayProfileScalar(int dayProfileID)
         {
-            List<LogModel> logsWithDayProfileID = (await LogDatabase.GetInstance().GetLogsAsync()).Where(log => log.DayProfileID == dayProfileID).ToList();
+            LogService logService = new();
+            //List<LogModel> logsWithDayProfileID = (await logService.GetAllLogsAsync()).Where(log => log.DayProfileID == dayProfileID).ToList();
+            List<LogModel> logsWithDayProfileID = await logService.GetAllLogsWithDayProfileIDAsync(dayProfileID);
 
             //TODO: Only get logs after the newest scalar update for this day profile
 
@@ -122,7 +128,7 @@ namespace DiabetesContolApp.GlobalLogic
             List<DataPoint> dataPoints = new();
             foreach (LogModel log in logsWithDayProfileID)
             {
-                DataPoint dataPoint = await GetDataPointForDayProfile(log);
+                DataPoint dataPoint = GetDataPointForDayProfile(log);
                 if (dataPoint.IsValid)
                     dataPoints.Add(dataPoint); //Add data points to the list
             }
@@ -141,12 +147,13 @@ namespace DiabetesContolApp.GlobalLogic
 
                 double newScalar = (totalInsulinGivenAvg + extraInsulin) / totalInsulinGivenAvg;
 
+                DayProfileService dayProfileService = new();
                 //TODO: Update the scalar database
-                DayProfileModel dayProfile = await DayProfileDatabase.GetInstance().GetDayProfileAsync(dayProfileID);
+                DayProfileModel dayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
                 dayProfile.CarbScalar = (float)newScalar;
                 dayProfile.GlucoseScalar = (float)newScalar;
 
-                await DayProfileDatabase.GetInstance().UpdateDayProfileAsync(dayProfile);
+                await dayProfileService.UpdateDayProfileAsync(dayProfile);
             }
         }
 
@@ -198,11 +205,14 @@ namespace DiabetesContolApp.GlobalLogic
         /// </summary>
         /// <param name="log"></param>
         /// <returns></returns>
-        async private static Task<DataPoint> GetDataPointForDayProfile(LogModel log)
+        private static DataPoint GetDataPointForDayProfile(LogModel log)
         {
+            if (log.DayProfile == null || log.DayProfile.DayProfileID < 0)
+                throw new ArgumentException("Log must contain a valid DayProfile.");
             if (log.GlucoseAfterMeal == null)
-                return new DataPoint(false, DateTime.Now, -1.0f);
-            return new DataPoint(true, log.DateTimeValue, (float)log.GlucoseAfterMeal - await GetTargetGlucoseForLog(log));
+                throw new ArgumentNullException("Log must have a valid GlucoseAfterMeal value to generate a data point.");
+
+            return new DataPoint(true, log.DateTimeValue, (float)log.GlucoseAfterMeal - log.DayProfile.TargetGlucoseValue);
         }
 
         private static void UpdateGroceryScalar(int groceryID)
@@ -225,12 +235,17 @@ namespace DiabetesContolApp.GlobalLogic
             var totalInsulinGiven = reminder.Logs.Sum(log => Math.Abs(log.InsulinEstimate)); //Total insulin from all logs estimate
             if (totalInsulinGiven == 0)
                 totalInsulinGiven = 1; //This is to avoid edge case of division by zero
-            var lastTargetGlucoseValue = await GetTargetGlucoseForLog(reminder.Logs[reminder.Logs.Count - 1]);
-            var glucoseError = reminder.GlucoseAfterMeal - lastTargetGlucoseValue; //Total error in glucose
+
+            LogService logService = new();
+            for (int i = 0; i < reminder.Logs.Count; ++i)
+                reminder.Logs[i] = await logService.GetLogAsync(reminder.Logs[i].LogID);
+
+            float lastTargetGlucoseValue = reminder.Logs[reminder.Logs.Count - 1].DayProfile.TargetGlucoseValue;
+            float glucoseError = (float)reminder.GlucoseAfterMeal - lastTargetGlucoseValue; //Total error in glucose
 
             foreach (LogModel log in reminder.Logs) //TODO: Check if there is any log in this variable
             {
-                var targetGlucoseForLog = await GetTargetGlucoseForLog(log); //Get the target glucose value
+                var targetGlucoseForLog = log.DayProfile.TargetGlucoseValue; //Get the target glucose value
 
                 //We partiton the glucose difference based on the percentage of the insulin estimate
                 //from one log to the total insulin given within the reminder.
@@ -255,24 +270,11 @@ namespace DiabetesContolApp.GlobalLogic
                 var glucoseErrorAdjusted = glucoseDifferencePartitioned - (log.InsulinEstimate - log.InsulinFromUser) * globalVariables.InsulinToGlucoseRatio;
 
                 log.GlucoseAfterMeal = glucoseErrorAdjusted;
-                await LogDatabase.GetInstance().UpdateLogAsync(log);
+
+                await logService.UpdateLogAsync(log);
             }
 
             return reminder.Logs;
-        }
-
-        /// <summary>
-        /// Helper method to get the target glucose
-        /// value of a day profile connected to a log
-        /// </summary>
-        /// <param name="log"></param>
-        /// <returns>
-        /// float, the target glucose from the day profile
-        /// with the cooresponding ID from the log.
-        /// </returns>
-        async private static Task<float> GetTargetGlucoseForLog(LogModel log)
-        {
-            return (await DayProfileDatabase.GetInstance().GetDayProfileAsync(log.DayProfileID)).TargetGlucoseValue; //Target glucose of the log
         }
     }
 

@@ -78,6 +78,16 @@ namespace DiabetesContolApp.Service
         }
 
         /// <summary>
+        /// Gets all log after a given date.
+        /// </summary>
+        /// <param name="lastUpdate"></param>
+        /// <returns>List of LogModels after a given date, might be empty.</returns>
+        async public Task<List<LogModel>> GetAllLogsAfterDateAsync(DateTime date)
+        {
+            return await logRepo.GetAllLogsAfterDateAsync(date);
+        }
+
+        /// <summary>
         /// Deletes all the logs with the given IDs.
         /// </summary>
         /// <param name="logIDs"></param>
@@ -182,6 +192,23 @@ namespace DiabetesContolApp.Service
             logsWithReminderID = logsWithReminderID.FindAll(log => log != null); //Remove all null values, if any
 
             return logsWithReminderID;
+        }
+
+        /// <summary>
+        /// Gets all LogModels with the given DayProfile ID.
+        /// </summary>
+        /// <param name="dayProfileID"></param>
+        /// <returns>List of LogModels with given DayProfile ID, might be empty.</returns>
+        async public Task<List<LogModel>> GetAllLogsWithDayProfileIDAsync(int dayProfileID)
+        {
+            List<LogModel> logsWithDayProfileID = await logRepo.GetAllLogsWithDayProfileIDAsync(dayProfileID);
+
+            for (int i = 0; i < logsWithDayProfileID.Count; ++i)
+                logsWithDayProfileID[i] = await GetLogAsync(logsWithDayProfileID[i].LogID); //Gets the LogModels properly
+
+            logsWithDayProfileID = logsWithDayProfileID.FindAll(log => log != null); //Remove all null values, if any
+
+            return logsWithDayProfileID;
         }
 
         /// <summary>

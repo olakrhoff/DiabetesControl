@@ -110,6 +110,26 @@ namespace DiabetesContolApp.Repository
         }
 
         /// <summary>
+        /// Gets all LogDAOs after a given date, converts them to
+        /// LogModels.
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns>List of LogModels after given date, might be empty</returns>
+        async public Task<List<LogModel>> GetAllLogsAfterDateAsync(DateTime date)
+        {
+            List<LogModelDAO> logDAOsAfterDate = await logDatabase.GetAllLogsAfterDateAsync(date);
+
+            List<LogModel> logsAfterDate = new();
+
+            foreach (LogModelDAO logDAO in logDAOsAfterDate)
+                logsAfterDate.Add(new(logDAO));
+
+            logsAfterDate = logsAfterDate.FindAll(log => log != null); //Filter out potential bad convertions
+
+            return logsAfterDate;
+        }
+
+        /// <summary>
         /// Deletes all Logs with matching the IDs in the list.
         /// </summary>
         /// <param name="logIDs"></param>
