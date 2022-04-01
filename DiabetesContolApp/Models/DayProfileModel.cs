@@ -8,15 +8,15 @@ using DiabetesContolApp.DAO;
 
 namespace DiabetesContolApp.Models
 {
-    public class DayProfileModel : IComparable<DayProfileModel>, IEquatable<DayProfileModel>, IModel//, INotifyPropertyChanged
+    public class DayProfileModel : IComparable<DayProfileModel>, IEquatable<DayProfileModel>, IModel, IScalarObject
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
-
         private string _name = "";
         private long _startTime;
         private float _carbScalar;
         private float _glucoseScalar;
+        private ScalarTypes scalarType = ScalarTypes.DAY_PROFILE_CARB;
+        private bool isScalarTypeValid = false;
+
 
         public int DayProfileID { get; set; }
         public float TargetGlucoseValue { get; set; }
@@ -40,12 +40,6 @@ namespace DiabetesContolApp.Models
             GlucoseScalar = dayProfileDAO.GlucoseScalar;
             TargetGlucoseValue = dayProfileDAO.TargetGlucoseValue;
         }
-
-        /*
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }*/
 
         public int CompareTo(DayProfileModel other)
         {
@@ -84,7 +78,6 @@ namespace DiabetesContolApp.Models
                 }
 
                 this._name = value;
-                //OnPropertyChanged();
             }
         }
 
@@ -100,7 +93,6 @@ namespace DiabetesContolApp.Models
                 if (value.ToBinary() != this._startTime)
                 {
                     this._startTime = value.ToBinary();
-                    //OnPropertyChanged();
                 }
                 //If it is equal to the previous value there is no need to update it
             }
@@ -129,7 +121,6 @@ namespace DiabetesContolApp.Models
                 }
 
                 this._carbScalar = value;
-                //OnPropertyChanged();
             }
         }
 
@@ -156,8 +147,37 @@ namespace DiabetesContolApp.Models
                 }
 
                 this._glucoseScalar = value;
-                //OnPropertyChanged();
             }
+        }
+
+        public void SetScalarTypeToCarbScalar()
+        {
+            scalarType = ScalarTypes.DAY_PROFILE_CARB;
+            isScalarTypeValid = true;
+        }
+
+        public void SetScalarTypeToGlucoseScalar()
+        {
+            scalarType = ScalarTypes.DAY_PROFILE_GLUCOSE;
+            isScalarTypeValid = true;
+        }
+
+        public ScalarTypes GetScalarType()
+        {
+            if (!isScalarTypeValid)
+                throw new AccessViolationException("The scalar type in DayProfile must be sat by one of the setter methods before use");
+            isScalarTypeValid = false;
+            return scalarType;
+        }
+
+        public int GetIDForScalarObject()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetIDForScalarObject(int objectID)
+        {
+            throw new NotImplementedException();
         }
 
         public string ToStringCSV()

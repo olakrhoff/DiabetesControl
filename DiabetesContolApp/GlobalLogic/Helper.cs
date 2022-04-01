@@ -150,7 +150,7 @@ namespace DiabetesContolApp.GlobalLogic
             //Get all log with bread
             logs = logs.Where(log =>
             {
-                foreach (NumberOfGroceryModel g in log.NumberOfGroceryModels)
+                foreach (NumberOfGroceryModel g in log.NumberOfGroceries)
                     if (g.Grocery.Name == "Brød")
                         return true;
                 return false;
@@ -166,7 +166,7 @@ namespace DiabetesContolApp.GlobalLogic
                 float targetGlucose = dayProfile.TargetGlucoseValue;
                 float gluoseError = (float)log.GlucoseAfterMeal - targetGlucose;
 
-                NumberOfGroceryModel numberOfGrocery = log.NumberOfGroceryModels.Find(log => log.Grocery.Name == "Brød");
+                NumberOfGroceryModel numberOfGrocery = log.NumberOfGroceries.Find(log => log.Grocery.Name == "Brød");
                 float carbsPerBread = numberOfGrocery.Grocery.CarbsPer100Grams * numberOfGrocery.Grocery.GramsPerPortion * numberOfGrocery.Grocery.CarbScalar;
 
                 Application app = Application.Current as App;
@@ -224,7 +224,7 @@ namespace DiabetesContolApp.GlobalLogic
             App globalVariables = Application.Current as App;
 
             //float insulinForFood = GetCarbsFromFood(log.NumberOfGroceryModels) * log.DayProfile.CarbScalar / globalVariables.InsulinToCarbohydratesRatio;
-            float insulinForFood = GetInsulinForGroceries(log.NumberOfGroceryModels, log.DayProfile.CarbScalar, globalVariables.InsulinToCarbohydratesRatio).Sum(numberOfGrocery => numberOfGrocery.InsulinForGroceries);
+            float insulinForFood = GetInsulinForGroceries(log.NumberOfGroceries, log.DayProfile.CarbScalar, globalVariables.InsulinToCarbohydratesRatio).Sum(numberOfGrocery => numberOfGrocery.InsulinForGroceries);
 
             float insulinForCorrection = (log.GlucoseAtMeal - log.DayProfile.TargetGlucoseValue) * log.DayProfile.GlucoseScalar / globalVariables.InsulinToGlucoseRatio;
 

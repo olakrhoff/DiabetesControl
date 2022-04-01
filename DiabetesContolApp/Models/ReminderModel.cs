@@ -144,6 +144,18 @@ namespace DiabetesContolApp.Models
             }
         }
 
+        /// <summary>
+		/// Used to see if the glucose after meal
+		/// value has been sat valid or not
+		/// </summary>
+		/// <returns></returns>
+        public bool IsGlucoseAfterMealValid()
+        {
+            if (GlucoseAfterMeal == null)
+                return false;
+            return true;
+        }
+
         public string ToStringCSV()
         {
             return ReminderID + "," +

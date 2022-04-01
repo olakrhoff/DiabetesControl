@@ -118,7 +118,7 @@ namespace DiabetesContolApp.Views
                 _tempLog.GlucoseAtMeal = glucoseFloat;
                 _tempLog.DayProfile = dayProfile;
                 if (NumberOfGroceriesSummary != null)
-                    _tempLog.NumberOfGroceryModels = NumberOfGroceriesSummary.ToList();
+                    _tempLog.NumberOfGroceries = NumberOfGroceriesSummary.ToList();
 
                 //Data is valid, continue with calculations
                 Helper.CalculateInsulin(ref _tempLog);

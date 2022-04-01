@@ -64,7 +64,7 @@ namespace DiabetesContolApp.Service
 
             List<GroceryLogModel> groceryLogs = new();
 
-            foreach (NumberOfGroceryModel numberOfGrocery in newLog.NumberOfGroceryModels)
+            foreach (NumberOfGroceryModel numberOfGrocery in newLog.NumberOfGroceries)
                 groceryLogs.Add(new(numberOfGrocery, newLog));
 
             if (!await groceryLogRepo.InsertAllGroceryLogsAsync(groceryLogs, logID)) //Insert all grocery-log-cross table entries
@@ -259,13 +259,13 @@ namespace DiabetesContolApp.Service
 
             GroceryLogService groceryLogService = new();
             //Get all NumberOfGrocery with Grocery objects attached
-            log.NumberOfGroceryModels = await groceryLogService.GetAllGroceryLogsAsNumberOfGroceryWithLogID(log.LogID);
+            log.NumberOfGroceries = await groceryLogService.GetAllGroceryLogsAsNumberOfGroceryWithLogID(log.LogID);
 
 
             //TODO: ---------- TEMP ---------- 
 
             if ((log.DayProfile.TargetGlucoseValue != log.GlucoseAtMeal && log.CorrectionInsulin == 0) ||
-                log.NumberOfGroceryModels != null && log.NumberOfGroceryModels.Count != 0 && log.NumberOfGroceryModels[0].InsulinForGroceries == 0)
+                log.NumberOfGroceries != null && log.NumberOfGroceries.Count != 0 && log.NumberOfGroceries[0].InsulinForGroceries == 0)
             {
                 //Update old Logs
                 Helper.CalculateInsulin(ref log);
@@ -293,7 +293,7 @@ namespace DiabetesContolApp.Service
 
             List<GroceryLogModel> groceryLogs = new();
 
-            foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceryModels)
+            foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceries)
                 groceryLogs.Add(new(numberOfGrocery, log));
 
             bool added = await groceryLogRepo.InsertAllGroceryLogsAsync(groceryLogs, log.LogID); //Add all the new ones

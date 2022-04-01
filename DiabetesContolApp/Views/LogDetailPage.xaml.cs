@@ -53,7 +53,7 @@ namespace DiabetesContolApp.Views
             {
                 timePickerTimeOfMeal.Time = log.DateTimeValue.TimeOfDay;
                 datePickerDateOfMeal.Date = log.DateTimeValue.Date;
-                NumberOfGrocerySummary = new(log.NumberOfGroceryModels);
+                NumberOfGrocerySummary = new(log.NumberOfGroceries);
             }
 
             groceriesAddedList.ItemsSource = NumberOfGrocerySummary;
@@ -123,7 +123,7 @@ namespace DiabetesContolApp.Views
             Log.InsulinFromUser = insulinFromUserFloat;
             Log.DayProfile.DayProfileID = (dayProfilePicker.SelectedItem as DayProfileModel).DayProfileID;
 
-            Log.NumberOfGroceryModels = NumberOfGrocerySummary.ToList();
+            Log.NumberOfGroceries = NumberOfGrocerySummary.ToList();
 
             //Calcualte the estimated insulin
             Helper.CalculateInsulin(ref _log);
