@@ -42,6 +42,44 @@ namespace DiabetesContolApp.Persistence
             }
         }
 
+        /// <summary>
+        /// Updates the ScalarDAO in the database.
+        /// </summary>
+        /// <param name="scalarDAO"></param>
+        /// <returns>int, number of rows updated. -1 if an error occured.</returns>
+        async public Task<int> UpdateScalarAsync(ScalarModelDAO scalarDAO)
+        {
+            try
+            {
+                return await connection.UpdateAsync(scalarDAO);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return -1;
+            }
+        }
+
+        /// <summary>
+        /// Get all DAOs with given type
+        /// from the database.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns>List og ScalarDAOs with given type.</returns>
+        async public Task<List<ScalarModelDAO>> GetAllScalarsOfType(int type)
+        {
+            try
+            {
+                List<ScalarModelDAO> scalarDAOs = await connection.Table<ScalarModelDAO>().Where(scalar => scalar.TypeOfScalar == type).ToListAsync();
+                return scalarDAOs;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return new();
+            }
+        }
+
         public override Task<List<IModelDAO>> GetAllAsync()
         {
             throw new NotImplementedException();
@@ -51,7 +89,5 @@ namespace DiabetesContolApp.Persistence
         {
             throw new NotImplementedException();
         }
-
-
     }
 }

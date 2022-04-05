@@ -1,5 +1,7 @@
 ﻿using System;
 
+using DiabetesContolApp.Models;
+
 using SQLite;
 
 namespace DiabetesContolApp.DAO
@@ -29,6 +31,15 @@ namespace DiabetesContolApp.DAO
             IDOfObject = -1;
             ScalarValue = -1.0f;
             DateTimeCreated = DateTime.Now;
+        }
+
+        public ScalarModelDAO(ScalarModel scalar)
+        {
+            ScalarID = scalar.ScalarID;
+            TypeOfScalar = (int)scalar.TypeOfScalar;
+            IDOfObject = scalar.ScalarObject.GetIDForScalarObject();
+            ScalarValue = scalar.ScalarValue;
+            DateTimeCreated = scalar.DateTimeCreated;
         }
 
         public ScalarModelDAO(int scalarID, int typeOfScalar, int iDOfType, float scalarValue, DateTime dateTimeCreated)

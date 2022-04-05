@@ -17,7 +17,7 @@ namespace DiabetesContolApp.GlobalLogic
     public static class Algorithm
     {
         private const int MINIMUM_OCCURENCES = 10;
-        private const double LOWER_BOUND_FOR_PREDICTION_INTERVALL = -1.0;
+        private const double LOWER_BOUND_FOR_PREDICTION_INTERVAL = -1.0;
 
 
         /// <summary>
@@ -77,9 +77,14 @@ namespace DiabetesContolApp.GlobalLogic
         /// </summary>
         async private static void UpdateCorrectionInsulinScalar()
         {
-            DateTime lastUpdate = DateTime.Now; //TODO: Update this to get when the last scalar update for the correction dose was made
+            ScalarService scalarService = new();
+
+            ScalarModel correctionScalar = await scalarService.GetNewestScalarOfScalarType(ScalarTypes.CORRECTION_INSULIN);
+
             LogService logService = new();
-            List<LogModel> logs = await logService.GetAllLogsAfterDateAsync(lastUpdate);
+            List<LogModel> logs = await logService.GetAllLogsAfterDateAsync(correctionScalar.DateTimeCreated);
+
+            logs = logs.FindAll(log => log.IsLogDataValid()); //Filter out corrupt data.
 
             List<DataPoint> dataPoints = new();
             foreach (LogModel log in logs)
@@ -93,7 +98,7 @@ namespace DiabetesContolApp.GlobalLogic
             {
                 var globalVariables = Application.Current as App; //Get access to properites in the App
 
-                double distance = GetGreatestSafeDistanceFromRegressionLine(dataPoints);
+                double distance = GetGreatestSafeDistanceFromWantedLine(dataPoints);
 
                 double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //Either what we were missing or gave to much
 
@@ -104,28 +109,42 @@ namespace DiabetesContolApp.GlobalLogic
         }
 
         /// <summary>
-        /// Gets the error per unit of insulin sat.
+        /// Gets the error per unit of insulin sat for correction.
         /// </summary>
         /// <param name="log"></param>
-        /// <returns>Data point with data, not valid if the log dosn't have a glucose after meal value</returns>
+        /// <returns>
+        /// Data point with data, not valid if the
+        /// log dosn't have a glucose after meal value
+        /// and other necessary data.
+        /// </returns>
         async private static Task<DataPoint> GetDataPointForCorrectionInsulin(LogModel log)
         {
-            if (log.GlucoseAfterMeal == null)
+            try
+            {
+                if (!log.IsLogDataValid())
+                    throw new ArgumentException("All log data must be valid for the log to be used in the method.");
+
+
+                //These next three lines explain the accual code-line under.
+                //double totalGlucoseError = log.GetTotalGlucoseError();
+                //double glucoseErrorForCorrection = totalGlucoseError * (log.CorrectionDose / log.InsulinEstimate);
+                //double glucoseErrorPerUnitOfCorrectionInsulin = glucoseErrorForCorrection / log.CorrectionDose;
+
+                //This is per unit of insulin so it is easier to compare bigger and smaller doses.
+                double glucoseErrorPerUnitOfCorrectionInsulin = log.GetGlucoseError() / log.InsulinEstimate;
+
+                return new DataPoint(true, log.DateTimeValue, glucoseErrorPerUnitOfCorrectionInsulin);
+            }
+            catch (ArgumentException ae)
+            {
+                Debug.WriteLine(ae.StackTrace);
                 return new DataPoint(false, DateTime.Now, -1.0f);
-
-            //double totalGlucoseError = (float)log.GlucoseAfterMeal - await GetTargetGlucoseForLog(log);
-
-            //TODO: Continue
-            //double totalGlucoseError = log.GetTotalGlucoseError();
-
-            //double glucoseErrorForCorrection = totalGlucoseError * (log.CorrectionDose / log.InsulinEstimate);
-            //double glucoseErrorPerUnitOfCorrectionInsulin = glucoseErrorForCorrection / log.CorrectionDose;
-
-            //This is per unit of insulin so it is easier to compare bigger and smaller doses.
-            //double glucoseErrorPerUnitOfCorrectionInsulin = totalGlucoseError / log.InsulinEstimate;
-
-            //return new DataPoint(true, log.DateTimeValue, glucoseErrorPerUnitOfCorrectionInsulin);
-            return new(); //TODO: Temp
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return new DataPoint(false, DateTime.Now, -1.0f);
+            }
         }
 
         /// <summary>
@@ -144,53 +163,106 @@ namespace DiabetesContolApp.GlobalLogic
             ScalarService scalarService = new();
             //Get datetime for when carb-scalar and glucose-scalar was last updated
             currentDayProfile.SetScalarTypeToCarbScalar();
-            ScalarModel carbScalar = await scalarService.GetNewestScalarForScalarObject(currentDayProfile);
+            ScalarModel carbScalar = await scalarService.GetNewestScalarForScalarObjectAsync(currentDayProfile);
             currentDayProfile.SetScalarTypeToGlucoseScalar();
-            ScalarModel glucoseScalar = await scalarService.GetNewestScalarForScalarObject(currentDayProfile);
-
-            //TODO: Continue implementation here
+            ScalarModel glucoseScalar = await scalarService.GetNewestScalarForScalarObjectAsync(currentDayProfile);
 
 
+
+            //Get all other log-entries with the same DayProfile
             LogService logService = new();
             List<LogModel> logsWithDayProfileID = await logService.GetAllLogsWithDayProfileIDAsync(dayProfileID);
 
+            //Filter out all invalid logs
             logsWithDayProfileID = logsWithDayProfileID.FindAll(log => log.IsLogDataValid());
 
-            //Create data points from logs
-            List<DataPoint> dataPointsForCarbScalar = new(), dataPointsForGlucoseScalar = new();
-            foreach (LogModel log in logsWithDayProfileID)
-            {
-                DataPoint dataPointForCarbScalar = GetDataPointForDayProfileCarbScalar(log), dataPointForGlucoseScalar = GetDataPointForDayProfileGlucoseScalar(log);
-                if (dataPointForCarbScalar.IsValid)
-                    dataPointsForCarbScalar.Add(dataPointForCarbScalar);
-                if (dataPointForGlucoseScalar.IsValid)
-                    dataPointsForGlucoseScalar.Add(dataPointForGlucoseScalar);
-            }
+            //Create list for carb-scalar
+            List<LogModel> logsForCarbScalar = logsWithDayProfileID.FindAll(log => log.DateTimeValue > carbScalar.DateTimeCreated);
+            //Create list for glucose-scalar
+            List<LogModel> logsForGlucoseScalar = logsWithDayProfileID.FindAll(log => log.DateTimeValue > glucoseScalar.DateTimeCreated);
+
+            //Create data points from logs for carb-scalar
+            List<DataPoint> dataPointsForCarbScalar = new();
+            if (logsForCarbScalar.Count >= MINIMUM_OCCURENCES) //If there is not enough data, don't waste time with this
+                foreach (LogModel log in logsForCarbScalar)
+                {
+                    DataPoint dataPointForCarbScalar = GetDataPointForDayProfileCarbScalar(log);
+                    if (dataPointForCarbScalar.IsValid)
+                        dataPointsForCarbScalar.Add(dataPointForCarbScalar);
+                }
+
+            //Create data points from logs for glucose-scalar
+            List<DataPoint> dataPointsForGlucoseScalar = new();
+            if (logsForGlucoseScalar.Count >= MINIMUM_OCCURENCES) //If there is not enough data, don't waste time with this
+                foreach (LogModel log in logsForGlucoseScalar)
+                {
+                    DataPoint dataPointForGlucoseScalar = GetDataPointForDayProfileGlucoseScalar(log);
+                    if (dataPointForGlucoseScalar.IsValid)
+                        dataPointsForGlucoseScalar.Add(dataPointForGlucoseScalar);
+                }
 
 
-            //Change scalar based on statistics
-
-            if (dataPointsForCarbScalar.Count >= MINIMUM_OCCURENCES) //Must have more than a given number of entries
+            //Change carb-scalar based on statistics
+            if (dataPointsForCarbScalar.Count >= MINIMUM_OCCURENCES) //Must have more than a given number of data points
             {
                 var globalVariables = Application.Current as App; //Get access to properites in the App
 
-                double distance = GetGreatestSafeDistanceFromRegressionLine(dataPointsForCarbScalar);
+                double distance = GetGreatestSafeDistanceFromWantedLine(dataPointsForCarbScalar);
 
-                double totalInsulinGivenAvg = logsWithDayProfileID.Sum(log => log.InsulinFromUser) / logsWithDayProfileID.Count; //Average insulin with this day profile
-                double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //Either what we were missing or gave to much
+                double insulinGivenOnAvgForCarbScalar = logsForCarbScalar.Sum(log => log.GetInsulinFromDayProfileCarbScalar()) / logsForCarbScalar.Count; //Average insulin with this day profiles carb-scalar
+                double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //How much insulin (either more or less) is needed to close the distance to the line
 
-                double newScalar = (totalInsulinGivenAvg + extraInsulin) / totalInsulinGivenAvg;
+                double newScalar = (insulinGivenOnAvgForCarbScalar + extraInsulin) / insulinGivenOnAvgForCarbScalar; //The new scalar to obtain the wanted values is calculated
 
-                //TODO: Update the scalar database
                 DayProfileModel dayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
                 dayProfile.CarbScalar = (float)newScalar;
+
+                await dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
+
+                carbScalar.ScalarValue = (float)newScalar;
+
+                await scalarService.UpdateScalarAsync(carbScalar); //Update the Scalar
+            }
+
+            //Change glucose-scalar based on statistics
+            if (dataPointsForGlucoseScalar.Count >= MINIMUM_OCCURENCES) //Must have more than a given number of data points
+            {
+                var globalVariables = Application.Current as App; //Get access to properites in the App
+
+                double distance = GetGreatestSafeDistanceFromWantedLine(dataPointsForGlucoseScalar);
+
+                double insulinGivenOnAvgForGlucoseScalar = logsForGlucoseScalar.Sum(log => log.GetInsulinFromDayProfileCarbScalar()) / logsForGlucoseScalar.Count; //Average insulin with this day profiles glucose-scalar
+                double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //How much insulin (either more or less) is needed to close the distance to the line
+
+                double newScalar = (insulinGivenOnAvgForGlucoseScalar + extraInsulin) / insulinGivenOnAvgForGlucoseScalar; //The new scalar to obtain the wanted values is calculated
+
+                DayProfileModel dayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
                 dayProfile.GlucoseScalar = (float)newScalar;
 
-                await dayProfileService.UpdateDayProfileAsync(dayProfile);
+                await dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
+
+                glucoseScalar.ScalarValue = (float)newScalar;
+
+                await scalarService.UpdateScalarAsync(glucoseScalar); //Update the Scalar
             }
         }
 
-        private static double GetGreatestSafeDistanceFromRegressionLine(List<DataPoint> dataPoints)
+        /// <summary>
+        /// Takes a regression line from the data points given.
+        /// It also finds the (95%) prediction interval for the data.
+        /// It then checks what the is the greatest safest distance
+        /// it can "move" the line to obtain the wanted line (y = 0)
+        /// and still have the lower bound of the prediction interval
+        /// be over the LOWER_BOUND_FOR_PREDICTION_INTERVAL
+        ///
+        /// IMPORTANT: Negative numbers are regarded as smaller
+        /// distances. So -5 will be smaller than 1. Negativ numbers indicate
+        /// that the line is to low, which is bad, since this makes it much more
+        /// likely for the user to get too low glucose levels.
+        /// </summary>
+        /// <param name="dataPoints"></param>
+        /// <returns>The greatest safest distance.</returns>
+        private static double GetGreatestSafeDistanceFromWantedLine(List<DataPoint> dataPoints)
         {
             List<double> xValues = new(), yValues = new();
 
@@ -209,7 +281,7 @@ namespace DiabetesContolApp.GlobalLogic
             double smallestDifferenceToXAxis = Math.Min(alphaAndBetaHat.Item1, alphaAndBetaHat.Item1 + alphaAndBetaHat.Item2 * xValues[xValues.Count - 1]);
 
             //Returns the smallest distance either between the regression line and the X-axis or the lower prediction line and the LOWER_BOUND_FOR_PREDICTION_INTERVALL
-            return Math.Min(smallestDifferenceToXAxis, predictionIntervallNextPoint.Item2 - LOWER_BOUND_FOR_PREDICTION_INTERVALL);
+            return Math.Min(smallestDifferenceToXAxis, predictionIntervallNextPoint.Item2 - LOWER_BOUND_FOR_PREDICTION_INTERVAL);
         }
 
         /// <summary>
