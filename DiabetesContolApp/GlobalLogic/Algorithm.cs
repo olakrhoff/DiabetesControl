@@ -77,34 +77,57 @@ namespace DiabetesContolApp.GlobalLogic
         /// </summary>
         async private static void UpdateCorrectionInsulinScalar()
         {
-            ScalarService scalarService = new();
-
-            ScalarModel correctionScalar = await scalarService.GetNewestScalarOfScalarType(ScalarTypes.CORRECTION_INSULIN);
-
-            LogService logService = new();
-            List<LogModel> logs = await logService.GetAllLogsAfterDateAsync(correctionScalar.DateTimeCreated);
-
-            logs = logs.FindAll(log => log.IsLogDataValid()); //Filter out corrupt data.
-
-            List<DataPoint> dataPoints = new();
-            foreach (LogModel log in logs)
+            try
             {
-                DataPoint dataPoint = await GetDataPointForCorrectionInsulin(log);
-                if (dataPoint.IsValid)
-                    dataPoints.Add(dataPoint);
+                ScalarService scalarService = new();
+
+                ScalarModel correctionScalar = await scalarService.GetNewestScalarOfScalarType(ScalarTypes.CORRECTION_INSULIN);
+
+                LogService logService = new();
+                List<LogModel> logsAfterDate = await logService.GetAllLogsAfterDateAsync(correctionScalar.DateTimeCreated);
+
+                logsAfterDate = logsAfterDate.FindAll(log => log.IsLogDataValid()); //Filter out corrupt data.
+
+                List<DataPoint> dataPoints = new();
+                if (logsAfterDate.Count >= MINIMUM_OCCURENCES) //Don't waste time here if there isn't enough data
+                    foreach (LogModel log in logsAfterDate)
+                    {
+                        DataPoint dataPoint = GetDataPointForCorrectionInsulin(log);
+                        if (dataPoint.IsValid)
+                            dataPoints.Add(dataPoint);
+                    }
+
+                if (dataPoints.Count >= MINIMUM_OCCURENCES)
+                {
+                    var globalVariables = Application.Current as App; //Get access to properites in the App
+
+                    double distance = GetGreatestSafeDistanceFromWantedLine(dataPoints);
+
+                    double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //Either what we were missing or gave to much
+
+                    //The statistics for correction insulin is adjusted to be per unit of insulin
+                    //so all we need is to add the "extra insulin per unit" to 1 to get the new
+                    //scalar value. This is equvilent to say the:
+                    //(avg. correction insulin + extra insulin) / avg. correction insulin
+                    //since we operate with "per unit" values the avg. correction insulin would be equal to 1.
+                    double newScalar = 1 + extraInsulin;
+
+                    globalVariables.InsulinToGlucoseRatio /= (float)newScalar; //Update the ratio
+
+                    correctionScalar.ScalarValue = (float)newScalar;
+
+                    await scalarService.UpdateScalarAsync(correctionScalar);
+                }
             }
-
-            if (dataPoints.Count >= MINIMUM_OCCURENCES)
+            catch (NullReferenceException nre)
             {
-                var globalVariables = Application.Current as App; //Get access to properites in the App
-
-                double distance = GetGreatestSafeDistanceFromWantedLine(dataPoints);
-
-                double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //Either what we were missing or gave to much
-
-                double newScalar = 1 + extraInsulin; //The statistics for correction insulin is adjusted to be per unit of insulin so all we need is this
-
-                //TODO: Update the scalar database
+                Debug.WriteLine(nre.StackTrace);
+                return;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return;
             }
         }
 
@@ -117,7 +140,7 @@ namespace DiabetesContolApp.GlobalLogic
         /// log dosn't have a glucose after meal value
         /// and other necessary data.
         /// </returns>
-        async private static Task<DataPoint> GetDataPointForCorrectionInsulin(LogModel log)
+        private static DataPoint GetDataPointForCorrectionInsulin(LogModel log)
         {
             try
             {
@@ -125,12 +148,10 @@ namespace DiabetesContolApp.GlobalLogic
                     throw new ArgumentException("All log data must be valid for the log to be used in the method.");
 
 
-                //These next three lines explain the accual code-line under.
-                //double totalGlucoseError = log.GetTotalGlucoseError();
-                //double glucoseErrorForCorrection = totalGlucoseError * (log.CorrectionDose / log.InsulinEstimate);
-                //double glucoseErrorPerUnitOfCorrectionInsulin = glucoseErrorForCorrection / log.CorrectionDose;
+                //These next two lines explain the actual code-line under.
+                //double glucoseErrorForCorrection = log.GetGlucoseError() * (log.CorrectionDose / log.InsulinEstimate); //Partition the glucose error
+                //double glucoseErrorPerUnitOfCorrectionInsulin = glucoseErrorForCorrection / log.CorrectionDose; //Adjust to error per unit of correction insulin 
 
-                //This is per unit of insulin so it is easier to compare bigger and smaller doses.
                 double glucoseErrorPerUnitOfCorrectionInsulin = log.GetGlucoseError() / log.InsulinEstimate;
 
                 return new DataPoint(true, log.DateTimeValue, glucoseErrorPerUnitOfCorrectionInsulin);
