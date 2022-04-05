@@ -73,5 +73,15 @@ namespace DiabetesContolApp.Service
 
             return await groceryRepo.DeleteGroceryAsync(groceryID);
         }
+
+        /// <summary>
+        /// Gets the Grocery with the given ID.
+        /// </summary>
+        /// <param name="groceryID"></param>
+        /// <returns>GroceryModel with the given ID, or null if not found.</returns>
+        async public Task<GroceryModel> GetGroceryAsync(int groceryID)
+        {
+            return await groceryRepo.GetGroceryAsync(groceryID);
+        }
     }
 }

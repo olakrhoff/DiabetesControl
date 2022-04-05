@@ -12,6 +12,7 @@ namespace DiabetesContolApp.Service
     {
         private ScalarRepo scalarRepo = new();
 
+
         /// <summary>
         /// Gets the newest scalar of the given an IScalarObject.
         /// </summary>

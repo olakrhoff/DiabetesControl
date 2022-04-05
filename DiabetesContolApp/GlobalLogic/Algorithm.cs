@@ -306,25 +306,6 @@ namespace DiabetesContolApp.GlobalLogic
         }
 
         /// <summary>
-        /// Data returned from UpdateScalar-method()
-        /// Updated is true if scalar can be changed.
-        /// Scalar holds value for the greates difference between
-        /// regression line and the wanted line, only
-        /// valid if Updated is true.
-        /// </summary>
-        struct ScalarUpdatedData
-        {
-            public bool Updated { get; set; }
-            public double Difference { get; set; }
-
-            public ScalarUpdatedData(bool updated, double difference)
-            {
-                Updated = updated;
-                Difference = difference;
-            }
-        }
-
-        /// <summary>
         /// Get a log, find the glucose error the
         /// log had, and creates a datapoint with the
         /// error and date time value for the contribution the
@@ -392,9 +373,93 @@ namespace DiabetesContolApp.GlobalLogic
             return new DataPoint(false, DateTime.Now, -1.0f);
         }
 
-        private static void UpdateGroceryScalar(int groceryID)
+
+        async private static void UpdateGroceryScalar(int groceryID)
         {
-            throw new NotImplementedException();
+            GroceryService groceryService = new();
+
+            GroceryModel currentGrocery = await groceryService.GetGroceryAsync(groceryID);
+
+            ScalarService scalarService = new();
+
+            ScalarModel groceryScalar = await scalarService.GetNewestScalarForScalarObjectAsync(currentGrocery);
+
+            LogService logService = new();
+
+            List<LogModel> logsAfterDate = await logService.GetAllLogsAfterDateAsync(groceryScalar.DateTimeCreated);
+
+            logsAfterDate = logsAfterDate.FindAll(log => log.IsLogDataValid()); //Filter out the currupt data
+
+            List<DataPoint> dataPointsForGrocery = new();
+            if (logsAfterDate.Count >= MINIMUM_OCCURENCES)
+                foreach (LogModel log in logsAfterDate)
+                {
+                    DataPoint newDataPoint = GetDataPointForGrocery(log, groceryID);
+                    if (newDataPoint.IsValid)
+                        dataPointsForGrocery.Add(newDataPoint);
+                }
+
+            if (dataPointsForGrocery.Count >= MINIMUM_OCCURENCES)
+            {
+                var globalVariables = Application.Current as App; //Get access to properites in the App
+
+                double distance = GetGreatestSafeDistanceFromWantedLine(dataPointsForGrocery);
+
+                double insulinPerPortionOfGrocery = logsAfterDate[0].GetInsulinPerPortionFromGroceryWithID(groceryID); //Insulin per portion
+                double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //How much insulin (either more or less) is needed to close the distance to the line
+
+                double scalingFactor = (insulinPerPortionOfGrocery + extraInsulin) / insulinPerPortionOfGrocery; //This is how much more insulin we need (in percentage)
+
+                currentGrocery.CarbScalar *= (float)scalingFactor; //Scale the current CarbScalar to make the proper adjustment
+
+                //Update the grocery
+                await groceryService.UpdateGroceryAsync(currentGrocery);
+
+                //Update the scalar
+                groceryScalar.ScalarValue = (float)currentGrocery.CarbScalar;
+
+                await scalarService.UpdateScalarAsync(groceryScalar); //Update the Scalar
+            }
+        }
+
+        /// <summary>
+        /// Gets the glucose error partitioned to the
+        /// grocery per portion of the grocery.
+        /// </summary>
+        /// <param name="log"></param>
+        /// <param name="groceryID"></param>
+        /// <returns>
+        /// DataPoint, holding the DateTime value of the log
+        /// and the glucose error per portion of the grocery
+        /// </returns>
+        private static DataPoint GetDataPointForGrocery(LogModel log, int groceryID)
+        {
+            try
+            {
+                if (!log.IsLogDataValid())
+                    throw new ArgumentException("All log entries must be valid for this method.");
+                if (groceryID < 0)
+                    throw new ArgumentOutOfRangeException("Grocery ID must be greater than one");
+
+                double groceryGlucoseError = log.GetGlucoseError() * (log.GetInsulinPerPortionFromGroceryWithID(groceryID) / log.InsulinEstimate);
+
+                return new(true, log.DateTimeValue, groceryGlucoseError);
+            }
+            catch (ArgumentOutOfRangeException aoore)
+            {
+                Debug.WriteLine(aoore.StackTrace);
+                return new(false, DateTime.Now, -1);
+            }
+            catch (ArgumentException ae)
+            {
+                Debug.WriteLine(ae.StackTrace);
+                return new(false, DateTime.Now, -1);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return new(false, DateTime.Now, -1);
+            }
         }
 
 

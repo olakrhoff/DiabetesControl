@@ -8,7 +8,7 @@ using DiabetesContolApp.DAO;
 
 namespace DiabetesContolApp.Models
 {
-    public class GroceryModel : IEquatable<GroceryModel>, IComparable<GroceryModel>, IModel//, INotifyPropertyChanged
+    public class GroceryModel : IEquatable<GroceryModel>, IComparable<GroceryModel>, IModel, IScalarObject
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -153,6 +153,21 @@ namespace DiabetesContolApp.Models
                 NameOfPortion + "," +
                 GramsPerPortion + "," +
                 CarbScalar + "\n";
+        }
+
+        public ScalarTypes GetScalarType()
+        {
+            return ScalarTypes.GROCERY;
+        }
+
+        public int GetIDForScalarObject()
+        {
+            return GroceryID;
+        }
+
+        public void SetIDForScalarObject(int objectID)
+        {
+            GroceryID = objectID;
         }
     }
 }

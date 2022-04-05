@@ -207,5 +207,32 @@ namespace DiabetesContolApp.Models
             return insulinForGlucose - insulinForGlucose / DayProfile.GlucoseScalar;
         }
 
+        /// <summary>
+        /// Gets the total insulin the grocery, with
+        /// the given ID, was at fault for.
+        /// </summary>
+        /// <param name="groceryID"></param>
+        /// <returns>float, the amount of insulin.</returns>
+        public float GetInsulinFromGroceryWithID(int groceryID)
+        {
+            foreach (NumberOfGroceryModel numberOfGrocery in NumberOfGroceries)
+                if (numberOfGrocery.Grocery.GroceryID == groceryID)
+                    return numberOfGrocery.InsulinForGroceries;
+            throw new ArgumentException("No grocery with given ID (" + groceryID + ") was found in the log");
+        }
+
+        /// <summary>
+        /// Gets the insulin per portion of a given grocery,
+        /// with the given ID.
+        /// </summary>
+        /// <param name="groceryID"></param>
+        /// <returns>float, the per portion amount for the given Grocery.</returns>
+        public float GetInsulinPerPortionFromGroceryWithID(int groceryID)
+        {
+            foreach (NumberOfGroceryModel numberOfGrocery in NumberOfGroceries)
+                if (numberOfGrocery.Grocery.GroceryID == groceryID)
+                    return numberOfGrocery.InsulinForGroceries / numberOfGrocery.NumberOfGrocery;
+            throw new ArgumentException("No grocery with given ID (" + groceryID + ") was found in the log");
+        }
     }
 }
