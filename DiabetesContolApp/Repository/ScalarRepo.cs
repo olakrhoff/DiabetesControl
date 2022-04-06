@@ -21,7 +21,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>List of ScalarModels with the given type and objectID, if might be empty.</returns>
         async public Task<List<ScalarModel>> GetAllScalarsOfTypeWithObjectID(ScalarTypes type, int objectID)
         {
-            List<ScalarModelDAO> scalarDAOs = await scalarDatabase.GetAllScalarsOfTypeWithObjectID((int)type, objectID);
+            List<ScalarModelDAO> scalarDAOs = await scalarDatabase.GetAllScalarsOfTypeWithObjectIDAsync((int)type, objectID);
 
             List<ScalarModel> scalars = new();
 
@@ -54,7 +54,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>List of ScalarModels, might be empty.</returns>
         async public Task<List<ScalarModel>> GetAllScalarsOfType(ScalarTypes type)
         {
-            List<ScalarModelDAO> scalarDAOs = await scalarDatabase.GetAllScalarsOfType((int)type);
+            List<ScalarModelDAO> scalarDAOs = await scalarDatabase.GetAllScalarsOfTypeAsync((int)type);
 
             List<ScalarModel> scalarsOfType = new();
 
@@ -64,6 +64,53 @@ namespace DiabetesContolApp.Repository
             scalarsOfType = scalarsOfType.FindAll(scalar => scalar != null); //Filter out corrupt data
 
             return scalarsOfType;
+        }
+
+        /// <summary>
+        /// Converts Scalar to DAO and inserts new Scalar into the database.
+        /// </summary>
+        /// <param name="newScalar"></param>
+        /// <returns></returns>
+        async public Task<bool> InsertScalarAsync(ScalarModel newScalar)
+        {
+            ScalarModelDAO newScalarDAO = new(newScalar);
+
+            if (newScalarDAO == null)
+                return false;
+
+            return await scalarDatabase.InsertScalarAsync(newScalarDAO) > 0;
+        }
+
+        /// <summary>
+        /// Gets the ScalarDAO with the given ID,
+        /// then converts it into a ScalarModel.
+        /// </summary>
+        /// <param name="scalarID"></param>
+        /// <returns>ScalarModel with given ID, might be null.</returns>
+        async public Task<ScalarModel> GetScalarAsync(int scalarID)
+        {
+            ScalarModelDAO scalarDAO = await scalarDatabase.GetScalarAsync(scalarID);
+
+            ScalarModel scalar = new(scalarDAO);
+
+            return scalar;
+        }
+
+        /// <summary>
+        /// Gets all scalarDAOs, then converts them
+        /// to ScalarModels.
+        /// </summary>
+        /// <returns>List of ScalarModels, might be empty.</returns>
+        async public Task<List<ScalarModel>> GetAllScalarsAsync()
+        {
+            List<ScalarModelDAO> scalarDAOs = await scalarDatabase.GetAllScalarsAsync();
+
+            List<ScalarModel> scalars = new();
+
+            foreach (ScalarModelDAO scalarDAO in scalarDAOs)
+                scalars.Add(new(scalarDAO));
+
+            return scalars;
         }
     }
 }

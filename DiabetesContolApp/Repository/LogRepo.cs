@@ -110,6 +110,22 @@ namespace DiabetesContolApp.Repository
         }
 
         /// <summary>
+        /// Gets all LogModelDAOs then converts them into LogModels.
+        /// </summary>
+        /// <returns>List of LogModels, might be empty.</returns>
+        async public Task<List<LogModel>> GetAllLogsAsync()
+        {
+            List<LogModelDAO> logDAOs = await logDatabase.GetAllLogsAsync();
+
+            List<LogModel> logs = new();
+
+            foreach (LogModelDAO logDAO in logDAOs)
+                logs.Add(new(logDAO));
+
+            return logs;
+        }
+
+        /// <summary>
         /// Gets all LogDAOs after a given date, converts them to
         /// LogModels.
         /// </summary>

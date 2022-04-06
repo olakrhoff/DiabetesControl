@@ -95,6 +95,22 @@ namespace DiabetesContolApp.Service
         }
 
         /// <summary>
+        /// Gets all logs.
+        /// </summary>
+        /// <returns>List of LogModels, might be empty.</returns>
+        async public Task<List<LogModel>> GetAllLogsAsync()
+        {
+            List<LogModel> logs = await logRepo.GetAllLogsAsync();
+
+            for (int i = 0; i < logs.Count; ++i)
+                logs[i] = await GetLogAsync(logs[i].LogID);
+
+            logs = logs.FindAll(log => log != null); //Filter out bad "gets"
+
+            return logs;
+        }
+
+        /// <summary>
         /// Deletes all the logs with the given IDs.
         /// </summary>
         /// <param name="logIDs"></param>

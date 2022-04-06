@@ -139,13 +139,38 @@ namespace DiabetesContolApp.Persistence
         }
 
         /// <summary>
+        /// Gets all LogDAOs from the database.
+        /// </summary>
+        /// <returns>List of LogDAOs, might be empty.</returns>
+        async public Task<List<LogModelDAO>> GetAllLogsAsync()
+        {
+            try
+            {
+                return await connection.Table<LogModelDAO>().ToListAsync();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return new();
+            }
+        }
+
+        /// <summary>
         /// Updates the given log by it's ID
         /// </summary>
         /// <param name="log"></param>
-        /// <returns>int, the number of rows updated</returns>
+        /// <returns>int, the number of rows updated, -1 if an error occured.</returns>
         async public Task<int> UpdateLogAsync(LogModelDAO log)
         {
-            return await connection.UpdateAsync(log);
+            try
+            {
+                return await connection.UpdateAsync(log);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return -1;
+            }
         }
 
         /// <summary>

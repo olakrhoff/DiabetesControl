@@ -172,12 +172,12 @@ namespace DiabetesContolApp.Models
 
         public int GetIDForScalarObject()
         {
-            throw new NotImplementedException();
+            return DayProfileID;
         }
 
         public void SetIDForScalarObject(int objectID)
         {
-            throw new NotImplementedException();
+            DayProfileID = objectID;
         }
 
         public string ToStringCSV()

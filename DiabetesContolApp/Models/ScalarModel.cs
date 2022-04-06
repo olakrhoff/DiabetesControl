@@ -8,15 +8,15 @@ namespace DiabetesContolApp.Models
     {
         public int ScalarID { get; set; }
         public ScalarTypes TypeOfScalar { get; set; }
-        public IScalarObject ScalarObject { get; set; }
+        public int ScalarObjectID { get; set; }
         public float ScalarValue { get; set; }
         public DateTime DateTimeCreated { get; set; }
 
-        public ScalarModel(int scalarID, ScalarTypes typeOfScalar, IScalarObject scalarType, float scalarValue, DateTime dateTimeCreated)
+        public ScalarModel(int scalarID, ScalarTypes scalarType, int scalarObjectID, float scalarValue, DateTime dateTimeCreated)
         {
             ScalarID = scalarID;
-            TypeOfScalar = typeOfScalar;
-            ScalarObject = scalarType;
+            TypeOfScalar = scalarType;
+            ScalarObjectID = scalarObjectID;
             ScalarValue = scalarValue;
             DateTimeCreated = dateTimeCreated;
         }
@@ -25,7 +25,7 @@ namespace DiabetesContolApp.Models
         {
             ScalarID = scalarDAO.ScalarID;
             TypeOfScalar = (ScalarTypes)scalarDAO.TypeOfScalar;
-            ScalarObject.SetIDForScalarObject(scalarDAO.IDOfObject);
+            ScalarObjectID = scalarDAO.ScalarObjectID;
             ScalarValue = scalarDAO.ScalarValue;
             DateTimeCreated = scalarDAO.DateTimeCreated;
         }

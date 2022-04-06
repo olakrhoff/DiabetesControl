@@ -25,6 +25,7 @@ namespace DiabetesContolApp.Persistence
             connection.CreateTableAsync<LogModelDAO>().Wait();
             //connection.DropTableAsync<GroceryLogModelDAO>().Wait();
             connection.CreateTableAsync<GroceryLogModelDAO>().Wait();
+            //connection.DropTableAsync<ScalarModelDAO>().Wait();
             connection.CreateTableAsync<ScalarModelDAO>().Wait();
         }
 

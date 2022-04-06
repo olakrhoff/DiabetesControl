@@ -18,7 +18,7 @@ namespace DiabetesContolApp.DAO
         [NotNull]
         public int TypeOfScalar { get; set; }
         [NotNull]
-        public int IDOfObject { get; set; }
+        public int ScalarObjectID { get; set; }
         [NotNull]
         public float ScalarValue { get; set; }
         [NotNull]
@@ -28,7 +28,7 @@ namespace DiabetesContolApp.DAO
         {
             ScalarID = -1;
             TypeOfScalar = -1;
-            IDOfObject = -1;
+            ScalarObjectID = -1;
             ScalarValue = -1.0f;
             DateTimeCreated = DateTime.Now;
         }
@@ -37,7 +37,7 @@ namespace DiabetesContolApp.DAO
         {
             ScalarID = scalar.ScalarID;
             TypeOfScalar = (int)scalar.TypeOfScalar;
-            IDOfObject = scalar.ScalarObject.GetIDForScalarObject();
+            ScalarObjectID = scalar.ScalarObjectID;
             ScalarValue = scalar.ScalarValue;
             DateTimeCreated = scalar.DateTimeCreated;
         }
@@ -46,7 +46,7 @@ namespace DiabetesContolApp.DAO
         {
             ScalarID = scalarID;
             TypeOfScalar = typeOfScalar;
-            IDOfObject = (int)iDOfType;
+            ScalarObjectID = (int)iDOfType;
             ScalarValue = scalarValue;
             DateTimeCreated = dateTimeCreated;
         }

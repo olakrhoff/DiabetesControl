@@ -90,7 +90,7 @@ namespace DiabetesContolApp.Models
                 }
             }
 
-            Algorithm.RunStatisticsOnReminder(ReminderID);
+            await Algorithm.RunStatisticsOnReminder(ReminderID);
 
             return true;
         }

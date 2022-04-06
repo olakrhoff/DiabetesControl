@@ -27,12 +27,13 @@ namespace DiabetesContolApp.GlobalLogic
         /// to the corresponding scalar, if so, it applies it.
         /// </summary>
         /// <param name="reminderID"></param>
-        async public static void RunStatisticsOnReminder(int reminderID)
+        /// <returns>True if done, false if error.</returns>
+        async public static Task<bool> RunStatisticsOnReminder(int reminderID)
         {
             ReminderService reminderService = new();
             ReminderModel reminder = await reminderService.GetReminderAsync(reminderID);
             if (reminder == null)
-                return;
+                return false;
 
 
             //Updates the logs to have all objects in them, since we will need them later
@@ -42,13 +43,13 @@ namespace DiabetesContolApp.GlobalLogic
 
             bool curruptLog = reminder.Logs.Exists(log => log == null); //Check if any of the logs wasn't found
             if (curruptLog || reminder.Logs.Count == 0)
-                return; //The data is corrupt, this should not happen, and can therfore not be processed
+                return false; //The data is corrupt, this should not happen, and can therfore not be processed
 
             //Do the partitioning from the Reminder to all the Logs
             List<LogModel> logs = await PartitionGlucoseErrorToLogs(reminder);
 
             //Check all elements in all Logs and update the respective scalar if possible
-            UpdateScalarValues(logs);
+            return await UpdateScalarValues(logs);
         }
 
         /// <summary>
@@ -56,15 +57,20 @@ namespace DiabetesContolApp.GlobalLogic
         /// all the groceries and day profiles in them.
         /// </summary>
         /// <param name="logs"></param>
-        private static void UpdateScalarValues(List<LogModel> logs)
+        /// <returns>True if no errors, else false.</returns>
+        async private static Task<bool> UpdateScalarValues(List<LogModel> logs)
         {
             foreach (LogModel log in logs)
             {
-                UpdateDayProfileScalars(log.DayProfile.DayProfileID);
-                UpdateCorrectionInsulinScalar();
+                if (!await UpdateDayProfileScalars(log.DayProfile.DayProfileID))
+                    return false;
+                if (!await UpdateCorrectionInsulinScalar())
+                    return false;
                 foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceries)
-                    UpdateGroceryScalar(numberOfGrocery.Grocery.GroceryID);
+                    if (!await UpdateGroceryScalar(numberOfGrocery.Grocery.GroceryID))
+                        return false;
             }
+            return true;
         }
 
         /// <summary>
@@ -74,13 +80,17 @@ namespace DiabetesContolApp.GlobalLogic
         /// of the error to the correction dose. These data points
         /// are used to statisticly get a safe new scalar.
         /// </summary>
-        async private static void UpdateCorrectionInsulinScalar()
+        /// <returns>True if no errors, else false.</returns>
+        async private static Task<bool> UpdateCorrectionInsulinScalar()
         {
             try
             {
                 ScalarService scalarService = new();
 
-                ScalarModel correctionScalar = await scalarService.GetNewestScalarOfScalarType(ScalarTypes.CORRECTION_INSULIN);
+                //TODO: TEMP
+                LogModel firstLog = (await new LogService().GetAllLogsAsync()).Min();
+                //TODO: TEMP
+                ScalarModel correctionScalar = await scalarService.GetNewestScalarForTypeWithObjectIDAsync(ScalarTypes.CORRECTION_INSULIN, -1, firstLog.DateTimeValue);
 
                 LogService logService = new();
                 List<LogModel> logsAfterDate = await logService.GetAllLogsAfterDateAsync(correctionScalar.DateTimeCreated);
@@ -117,16 +127,18 @@ namespace DiabetesContolApp.GlobalLogic
 
                     await scalarService.UpdateScalarAsync(correctionScalar);
                 }
+
+                return true;
             }
             catch (NullReferenceException nre)
             {
                 Debug.WriteLine(nre.StackTrace);
-                return;
+                return false;
             }
             catch (Exception e)
             {
                 Debug.WriteLine(e.StackTrace);
-                return;
+                return false;
             }
         }
 
@@ -175,99 +187,111 @@ namespace DiabetesContolApp.GlobalLogic
         /// the carbs-scalar and the glucose-scalar.
         /// </summary>
         /// <param name="dayProfileID"></param>
-        async private static void UpdateDayProfileScalars(int dayProfileID)
+        /// <returns>True if no errors, else false</returns>
+        async private static Task<bool> UpdateDayProfileScalars(int dayProfileID)
         {
-            Debug.WriteLine("Inside: UpdateDayProfileScalars");
-            DayProfileService dayProfileService = new();
-            Debug.WriteLine("POINT");
-            for (int i = 0; i < 100; ++i)
-                Debug.WriteLine("Line: " + i);
-            DayProfileModel currentDayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
-            Debug.WriteLine(currentDayProfile.ToStringCSV());
-            ScalarService scalarService = new();
-            //Get datetime for when carb-scalar and glucose-scalar was last updated
-            currentDayProfile.SetScalarTypeToCarbScalar();
-            ScalarModel carbScalar = await scalarService.GetNewestScalarForScalarObjectAsync(currentDayProfile);
-            currentDayProfile.SetScalarTypeToGlucoseScalar();
-            ScalarModel glucoseScalar = await scalarService.GetNewestScalarForScalarObjectAsync(currentDayProfile);
-
-
-
-            //Get all other log-entries with the same DayProfile
-            LogService logService = new();
-            List<LogModel> logsWithDayProfileID = await logService.GetAllLogsWithDayProfileIDAsync(dayProfileID);
-
-            //Filter out all invalid logs
-            logsWithDayProfileID = logsWithDayProfileID.FindAll(log => log.IsLogDataValid());
-
-            //Create list for carb-scalar
-            List<LogModel> logsForCarbScalar = logsWithDayProfileID.FindAll(log => log.DateTimeValue > carbScalar.DateTimeCreated);
-            //Create list for glucose-scalar
-            List<LogModel> logsForGlucoseScalar = logsWithDayProfileID.FindAll(log => log.DateTimeValue > glucoseScalar.DateTimeCreated);
-
-            //Create data points from logs for carb-scalar
-            List<DataPoint> dataPointsForCarbScalar = new();
-            if (logsForCarbScalar.Count >= MINIMUM_OCCURENCES) //If there is not enough data, don't waste time with this
-                foreach (LogModel log in logsForCarbScalar)
-                {
-                    DataPoint dataPointForCarbScalar = GetDataPointForDayProfileCarbScalar(log);
-                    if (dataPointForCarbScalar.IsValid)
-                        dataPointsForCarbScalar.Add(dataPointForCarbScalar);
-                }
-
-            //Create data points from logs for glucose-scalar
-            List<DataPoint> dataPointsForGlucoseScalar = new();
-            if (logsForGlucoseScalar.Count >= MINIMUM_OCCURENCES) //If there is not enough data, don't waste time with this
-                foreach (LogModel log in logsForGlucoseScalar)
-                {
-                    DataPoint dataPointForGlucoseScalar = GetDataPointForDayProfileGlucoseScalar(log);
-                    if (dataPointForGlucoseScalar.IsValid)
-                        dataPointsForGlucoseScalar.Add(dataPointForGlucoseScalar);
-                }
-
-
-            //Change carb-scalar based on statistics
-            if (dataPointsForCarbScalar.Count >= MINIMUM_OCCURENCES) //Must have more than a given number of data points
+            try
             {
-                var globalVariables = Application.Current as App; //Get access to properites in the App
+                DayProfileService dayProfileService = new();
+                DayProfileModel currentDayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
 
-                double distance = GetGreatestSafeDistanceFromWantedLine(dataPointsForCarbScalar);
+                ScalarService scalarService = new();
+                //Get datetime for when carb-scalar and glucose-scalar was last updated
+                //TODO: TEMP
+                LogModel firstLogWithDayProfile = (await new LogService().GetAllLogsWithDayProfileIDAsync(dayProfileID)).Min();
+                //TODO: TEMP
+                ScalarModel carbScalar = await scalarService.GetNewestScalarForTypeWithObjectIDAsync(ScalarTypes.DAY_PROFILE_CARB, currentDayProfile.DayProfileID, firstLogWithDayProfile.DateTimeValue);
+                ScalarModel glucoseScalar = await scalarService.GetNewestScalarForTypeWithObjectIDAsync(ScalarTypes.DAY_PROFILE_GLUCOSE, currentDayProfile.DayProfileID, firstLogWithDayProfile.DateTimeValue);
 
-                double insulinGivenOnAvgForCarbScalar = logsForCarbScalar.Sum(log => log.GetInsulinFromDayProfileCarbScalar()) / logsForCarbScalar.Count; //Average insulin with this day profiles carb-scalar
-                double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //How much insulin (either more or less) is needed to close the distance to the line
 
-                double scaleFactor = (insulinGivenOnAvgForCarbScalar + extraInsulin) / insulinGivenOnAvgForCarbScalar; //The scale factor to obtain the wanted values is calculated e.g. we need 1.2 times more insulin
 
-                DayProfileModel dayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
-                dayProfile.CarbScalar *= (float)scaleFactor;
+                //Get all other log-entries with the same DayProfile
+                LogService logService = new();
+                List<LogModel> logsWithDayProfileID = await logService.GetAllLogsWithDayProfileIDAsync(dayProfileID);
 
-                await dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
+                //Filter out all invalid logs
+                logsWithDayProfileID = logsWithDayProfileID.FindAll(log => log.IsLogDataValid());
 
-                carbScalar.ScalarValue = dayProfile.CarbScalar;
+                //Create list for carb-scalar
+                List<LogModel> logsForCarbScalar = logsWithDayProfileID.FindAll(log => log.DateTimeValue > carbScalar.DateTimeCreated);
+                //Create list for glucose-scalar
+                List<LogModel> logsForGlucoseScalar = logsWithDayProfileID.FindAll(log => log.DateTimeValue > glucoseScalar.DateTimeCreated);
 
-                await scalarService.UpdateScalarAsync(carbScalar); //Update the Scalar
+                //Create data points from logs for carb-scalar
+                List<DataPoint> dataPointsForCarbScalar = new();
+                if (logsForCarbScalar.Count >= MINIMUM_OCCURENCES) //If there is not enough data, don't waste time with this
+                    foreach (LogModel log in logsForCarbScalar)
+                    {
+                        DataPoint dataPointForCarbScalar = GetDataPointForDayProfileCarbScalar(log);
+                        if (dataPointForCarbScalar.IsValid)
+                            dataPointsForCarbScalar.Add(dataPointForCarbScalar);
+                    }
+
+                //Create data points from logs for glucose-scalar
+                List<DataPoint> dataPointsForGlucoseScalar = new();
+                if (logsForGlucoseScalar.Count >= MINIMUM_OCCURENCES) //If there is not enough data, don't waste time with this
+                    foreach (LogModel log in logsForGlucoseScalar)
+                    {
+                        DataPoint dataPointForGlucoseScalar = GetDataPointForDayProfileGlucoseScalar(log);
+                        if (dataPointForGlucoseScalar.IsValid)
+                            dataPointsForGlucoseScalar.Add(dataPointForGlucoseScalar);
+                    }
+
+
+                //Change carb-scalar based on statistics
+                if (dataPointsForCarbScalar.Count >= MINIMUM_OCCURENCES) //Must have more than a given number of data points
+                {
+                    var globalVariables = Application.Current as App; //Get access to properites in the App
+
+                    double distance = GetGreatestSafeDistanceFromWantedLine(dataPointsForCarbScalar);
+
+                    double insulinGivenOnAvgForCarbScalar = logsForCarbScalar.Sum(log => log.GetInsulinFromDayProfileCarbScalar()) / logsForCarbScalar.Count; //Average insulin with this day profiles carb-scalar
+                    double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //How much insulin (either more or less) is needed to close the distance to the line
+
+                    double scaleFactor = (insulinGivenOnAvgForCarbScalar + extraInsulin) / insulinGivenOnAvgForCarbScalar; //The scale factor to obtain the wanted values is calculated e.g. we need 1.2 times more insulin
+
+                    DayProfileModel dayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
+                    dayProfile.CarbScalar *= (float)scaleFactor;
+
+                    await dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
+
+                    carbScalar.ScalarValue = dayProfile.CarbScalar;
+
+                    await scalarService.UpdateScalarAsync(carbScalar); //Update the Scalar
+                }
+
+                //Change glucose-scalar based on statistics
+                if (dataPointsForGlucoseScalar.Count >= MINIMUM_OCCURENCES) //Must have more than a given number of data points
+                {
+                    var globalVariables = Application.Current as App; //Get access to properites in the App
+
+                    double distance = GetGreatestSafeDistanceFromWantedLine(dataPointsForGlucoseScalar);
+
+                    double insulinGivenOnAvgForGlucoseScalar = logsForGlucoseScalar.Sum(log => log.GetInsulinFromDayProfileCarbScalar()) / logsForGlucoseScalar.Count; //Average insulin with this day profiles glucose-scalar
+                    double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //How much insulin (either more or less) is needed to close the distance to the line
+
+                    double scaleFactor = (insulinGivenOnAvgForGlucoseScalar + extraInsulin) / insulinGivenOnAvgForGlucoseScalar; //The scale factor to obtain the wanted values is calculated e.g. we need 1.2 times more insulin
+
+                    DayProfileModel dayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
+                    dayProfile.GlucoseScalar *= (float)scaleFactor;
+
+                    await dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
+
+                    glucoseScalar.ScalarValue = (float)scaleFactor;
+
+                    await scalarService.UpdateScalarAsync(glucoseScalar); //Update the Scalar
+                }
+                return true;
             }
-
-            //Change glucose-scalar based on statistics
-            if (dataPointsForGlucoseScalar.Count >= MINIMUM_OCCURENCES) //Must have more than a given number of data points
+            catch (NullReferenceException nre)
             {
-                var globalVariables = Application.Current as App; //Get access to properites in the App
-
-                double distance = GetGreatestSafeDistanceFromWantedLine(dataPointsForGlucoseScalar);
-
-                double insulinGivenOnAvgForGlucoseScalar = logsForGlucoseScalar.Sum(log => log.GetInsulinFromDayProfileCarbScalar()) / logsForGlucoseScalar.Count; //Average insulin with this day profiles glucose-scalar
-                double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //How much insulin (either more or less) is needed to close the distance to the line
-
-                double scaleFactor = (insulinGivenOnAvgForGlucoseScalar + extraInsulin) / insulinGivenOnAvgForGlucoseScalar; //The scale factor to obtain the wanted values is calculated e.g. we need 1.2 times more insulin
-
-                DayProfileModel dayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
-                dayProfile.GlucoseScalar *= (float)scaleFactor;
-
-                await dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
-
-                glucoseScalar.ScalarValue = (float)scaleFactor;
-
-                await scalarService.UpdateScalarAsync(glucoseScalar); //Update the Scalar
+                Debug.WriteLine(nre.StackTrace);
+                return false;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return false;
             }
         }
 
@@ -384,7 +408,8 @@ namespace DiabetesContolApp.GlobalLogic
         /// in its list.
         /// </summary>
         /// <param name="groceryID"></param>
-        async private static void UpdateGroceryScalar(int groceryID)
+        /// <returns>True if no errors, else false.</returns>
+        async private static Task<bool> UpdateGroceryScalar(int groceryID)
         {
             try
             {
@@ -394,7 +419,16 @@ namespace DiabetesContolApp.GlobalLogic
 
                 ScalarService scalarService = new();
                 //Get grocery scalar
-                ScalarModel groceryScalar = await scalarService.GetNewestScalarForScalarObjectAsync(currentGrocery);
+                //TODO: TEMP
+                LogModel firstLogWithGrocery = (await new LogService().GetAllLogsAsync()).Where(log =>
+                {
+                    foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceries)
+                        if (numberOfGrocery.Grocery.GroceryID == groceryID)
+                            return true;
+                    return false;
+                }).Min();
+                //TODO: TEMP
+                ScalarModel groceryScalar = await scalarService.GetNewestScalarForTypeWithObjectIDAsync(ScalarTypes.GROCERY, currentGrocery.GroceryID, firstLogWithGrocery.DateTimeValue);
 
                 LogService logService = new();
                 //Get logs after the grocery scalar was created
@@ -439,16 +473,17 @@ namespace DiabetesContolApp.GlobalLogic
                     groceryScalar.ScalarValue = (float)currentGrocery.CarbScalar;
                     await scalarService.UpdateScalarAsync(groceryScalar);
                 }
+                return true;
             }
             catch (NullReferenceException nre)
             {
                 Debug.WriteLine(nre.StackTrace);
-                return;
+                return false;
             }
             catch (Exception e)
             {
                 Debug.WriteLine(e.StackTrace);
-                return;
+                return false;
             }
         }
 
