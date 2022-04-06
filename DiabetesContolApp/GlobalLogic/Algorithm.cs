@@ -233,14 +233,14 @@ namespace DiabetesContolApp.GlobalLogic
                 double insulinGivenOnAvgForCarbScalar = logsForCarbScalar.Sum(log => log.GetInsulinFromDayProfileCarbScalar()) / logsForCarbScalar.Count; //Average insulin with this day profiles carb-scalar
                 double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //How much insulin (either more or less) is needed to close the distance to the line
 
-                double newScalar = (insulinGivenOnAvgForCarbScalar + extraInsulin) / insulinGivenOnAvgForCarbScalar; //The new scalar to obtain the wanted values is calculated
+                double scaleFactor = (insulinGivenOnAvgForCarbScalar + extraInsulin) / insulinGivenOnAvgForCarbScalar; //The scale factor to obtain the wanted values is calculated e.g. we need 1.2 times more insulin
 
                 DayProfileModel dayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
-                dayProfile.CarbScalar = (float)newScalar;
+                dayProfile.CarbScalar *= (float)scaleFactor;
 
                 await dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
 
-                carbScalar.ScalarValue = (float)newScalar;
+                carbScalar.ScalarValue = dayProfile.CarbScalar;
 
                 await scalarService.UpdateScalarAsync(carbScalar); //Update the Scalar
             }
@@ -255,14 +255,14 @@ namespace DiabetesContolApp.GlobalLogic
                 double insulinGivenOnAvgForGlucoseScalar = logsForGlucoseScalar.Sum(log => log.GetInsulinFromDayProfileCarbScalar()) / logsForGlucoseScalar.Count; //Average insulin with this day profiles glucose-scalar
                 double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //How much insulin (either more or less) is needed to close the distance to the line
 
-                double newScalar = (insulinGivenOnAvgForGlucoseScalar + extraInsulin) / insulinGivenOnAvgForGlucoseScalar; //The new scalar to obtain the wanted values is calculated
+                double scaleFactor = (insulinGivenOnAvgForGlucoseScalar + extraInsulin) / insulinGivenOnAvgForGlucoseScalar; //The scale factor to obtain the wanted values is calculated e.g. we need 1.2 times more insulin
 
                 DayProfileModel dayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
-                dayProfile.GlucoseScalar = (float)newScalar;
+                dayProfile.GlucoseScalar *= (float)scaleFactor;
 
                 await dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
 
-                glucoseScalar.ScalarValue = (float)newScalar;
+                glucoseScalar.ScalarValue = (float)scaleFactor;
 
                 await scalarService.UpdateScalarAsync(glucoseScalar); //Update the Scalar
             }
@@ -374,51 +374,78 @@ namespace DiabetesContolApp.GlobalLogic
         }
 
 
+        /// <summary>
+        /// Gets the current grocery based on the ID.
+        /// Gets the newest scalar for the current grocery.
+        /// Get all Logs who is valid and has the grocery
+        /// in its list.
+        /// </summary>
+        /// <param name="groceryID"></param>
         async private static void UpdateGroceryScalar(int groceryID)
         {
-            GroceryService groceryService = new();
-
-            GroceryModel currentGrocery = await groceryService.GetGroceryAsync(groceryID);
-
-            ScalarService scalarService = new();
-
-            ScalarModel groceryScalar = await scalarService.GetNewestScalarForScalarObjectAsync(currentGrocery);
-
-            LogService logService = new();
-
-            List<LogModel> logsAfterDate = await logService.GetAllLogsAfterDateAsync(groceryScalar.DateTimeCreated);
-
-            logsAfterDate = logsAfterDate.FindAll(log => log.IsLogDataValid()); //Filter out the currupt data
-
-            List<DataPoint> dataPointsForGrocery = new();
-            if (logsAfterDate.Count >= MINIMUM_OCCURENCES)
-                foreach (LogModel log in logsAfterDate)
-                {
-                    DataPoint newDataPoint = GetDataPointForGrocery(log, groceryID);
-                    if (newDataPoint.IsValid)
-                        dataPointsForGrocery.Add(newDataPoint);
-                }
-
-            if (dataPointsForGrocery.Count >= MINIMUM_OCCURENCES)
+            try
             {
-                var globalVariables = Application.Current as App; //Get access to properites in the App
+                GroceryService groceryService = new();
+                //Get current grocery
+                GroceryModel currentGrocery = await groceryService.GetGroceryAsync(groceryID);
 
-                double distance = GetGreatestSafeDistanceFromWantedLine(dataPointsForGrocery);
+                ScalarService scalarService = new();
+                //Get grocery scalar
+                ScalarModel groceryScalar = await scalarService.GetNewestScalarForScalarObjectAsync(currentGrocery);
 
-                double insulinPerPortionOfGrocery = logsAfterDate[0].GetInsulinPerPortionFromGroceryWithID(groceryID); //Insulin per portion
-                double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //How much insulin (either more or less) is needed to close the distance to the line
+                LogService logService = new();
+                //Get logs after the grocery scalar was created
+                List<LogModel> logsAfterDate = await logService.GetAllLogsAfterDateAsync(groceryScalar.DateTimeCreated);
 
-                double scalingFactor = (insulinPerPortionOfGrocery + extraInsulin) / insulinPerPortionOfGrocery; //This is how much more insulin we need (in percentage)
+                logsAfterDate = logsAfterDate.FindAll(log =>
+                {
+                    if (!log.IsLogDataValid())
+                        return false; //Filter out the currupt data
+                    foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceries)
+                        if (numberOfGrocery.Grocery.GroceryID == groceryID)
+                            return true; //Only keep logs who has the current grocery in their list
+                    return false;
+                });
 
-                currentGrocery.CarbScalar *= (float)scalingFactor; //Scale the current CarbScalar to make the proper adjustment
+                //Create the data points
+                List<DataPoint> dataPointsForGrocery = new();
+                if (logsAfterDate.Count >= MINIMUM_OCCURENCES)
+                    foreach (LogModel log in logsAfterDate)
+                    {
+                        DataPoint newDataPoint = GetDataPointForGrocery(log, groceryID);
+                        if (newDataPoint.IsValid)
+                            dataPointsForGrocery.Add(newDataPoint);
+                    }
 
-                //Update the grocery
-                await groceryService.UpdateGroceryAsync(currentGrocery);
+                if (dataPointsForGrocery.Count >= MINIMUM_OCCURENCES)
+                {
+                    var globalVariables = Application.Current as App; //Get access to properites in the App
 
-                //Update the scalar
-                groceryScalar.ScalarValue = (float)currentGrocery.CarbScalar;
+                    double distance = GetGreatestSafeDistanceFromWantedLine(dataPointsForGrocery);
 
-                await scalarService.UpdateScalarAsync(groceryScalar); //Update the Scalar
+                    double insulinPerPortionOfGrocery = logsAfterDate[0].GetInsulinPerPortionFromGroceryWithID(groceryID); //Insulin per portion
+                    double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //How much insulin (either more or less) is needed to close the distance to the line
+
+                    double scalingFactor = (insulinPerPortionOfGrocery + extraInsulin) / insulinPerPortionOfGrocery; //This is how much more insulin we need (in percentage)
+
+                    //Update the grocery
+                    currentGrocery.CarbScalar *= (float)scalingFactor; //Scale the current CarbScalar to make the proper adjustment
+                    await groceryService.UpdateGroceryAsync(currentGrocery);
+
+                    //Update the scalar
+                    groceryScalar.ScalarValue = (float)currentGrocery.CarbScalar;
+                    await scalarService.UpdateScalarAsync(groceryScalar);
+                }
+            }
+            catch (NullReferenceException nre)
+            {
+                Debug.WriteLine(nre.StackTrace);
+                return;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return;
             }
         }
 
