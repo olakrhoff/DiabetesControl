@@ -7,7 +7,6 @@ using DiabetesContolApp.Service;
 using DiabetesContolApp.Models;
 
 using MathNet.Numerics;
-using MathNet.Numerics.Distributions;
 
 using Xamarin.Forms;
 using System.Diagnostics;
@@ -41,7 +40,7 @@ namespace DiabetesContolApp.GlobalLogic
             for (int i = 0; i < reminder.Logs.Count; ++i)
                 reminder.Logs[i] = await logService.GetLogAsync(reminder.Logs[i].LogID);
 
-            bool curruptLog = reminder.Logs.Exists(log => log == null); //Check if any of the logs wasnt found
+            bool curruptLog = reminder.Logs.Exists(log => log == null); //Check if any of the logs wasn't found
             if (curruptLog || reminder.Logs.Count == 0)
                 return; //The data is corrupt, this should not happen, and can therfore not be processed
 
@@ -178,9 +177,13 @@ namespace DiabetesContolApp.GlobalLogic
         /// <param name="dayProfileID"></param>
         async private static void UpdateDayProfileScalars(int dayProfileID)
         {
+            Debug.WriteLine("Inside: UpdateDayProfileScalars");
             DayProfileService dayProfileService = new();
+            Debug.WriteLine("POINT");
+            for (int i = 0; i < 100; ++i)
+                Debug.WriteLine("Line: " + i);
             DayProfileModel currentDayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
-
+            Debug.WriteLine(currentDayProfile.ToStringCSV());
             ScalarService scalarService = new();
             //Get datetime for when carb-scalar and glucose-scalar was last updated
             currentDayProfile.SetScalarTypeToCarbScalar();
@@ -547,7 +550,7 @@ namespace DiabetesContolApp.GlobalLogic
                     //  8.3                       = 15.8                         - (5                   - 0                  ) * 1.5 | Case: did not set any insulin (happens sometimes)
                     var glucoseErrorAdjusted = glucoseErrorForLogPartitioned - (log.InsulinEstimate - log.InsulinFromUser) * globalVariables.InsulinToGlucoseRatio;
 
-                    log.GlucoseAfterMeal = glucoseErrorAdjusted;
+                    log.GlucoseAfterMeal = targetGlucoseForLog + glucoseErrorAdjusted; //target glucose plus the error is the estimate for the glucose after meal value
 
                     LogService logService = new();
                     await logService.UpdateLogAsync(log); //Update the Log in the datebase to hold the GlucoseAfterMeal value

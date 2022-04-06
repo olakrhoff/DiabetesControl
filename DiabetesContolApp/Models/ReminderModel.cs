@@ -62,29 +62,32 @@ namespace DiabetesContolApp.Models
         /// </returns>
         async public Task<bool> Handle()
         {
-            if (DateTimeValue > DateTime.Now)
+            if (!ReadyToHandle())
                 return false; //The reminder is not ready to be handled
 
-            if (!await Application.Current.MainPage.DisplayAlert("Glucose after meal", "Want to enter gluocse now?", "OK", "Later"))
-                return false;
-            string userInput = await Application.Current.MainPage.DisplayPromptAsync("Glucose after meal", $"What was your glucose at {DateTimeValue.ToString("H:mm")}", "Confirm", "Currupt", keyboard: Keyboard.Numeric);
-
-            //if userInput is null, currupt was clicked
-            if (userInput == null)
+            if (GlucoseAfterMeal == null) //If we are missing the glucose after meal value, we need to get it from the user
             {
-                GlucoseAfterMeal = -1.0f; //Indicates invalid data
+                if (!await Application.Current.MainPage.DisplayAlert("Glucose after meal", "Want to enter gluocse now?", "OK", "Later"))
+                    return false;
+                string userInput = await Application.Current.MainPage.DisplayPromptAsync("Glucose after meal", $"What was your glucose at {DateTimeValue.ToString("H:mm")}", "Confirm", "Currupt", keyboard: Keyboard.Numeric);
 
-                Logs.ForEach(log => log.GlucoseAfterMeal = -1.0f); //Set all data to be invalid.
+                //if userInput is null, currupt was clicked
+                if (userInput == null)
+                {
+                    GlucoseAfterMeal = -1.0f; //Indicates invalid data
 
-                IsHandled = true;
+                    Logs.ForEach(log => log.GlucoseAfterMeal = -1.0f); //Set all data to be invalid.
 
-                return true;
-            }
+                    IsHandled = true;
 
-            if (Helper.ConvertToFloat(userInput, out float glucoseAfterMeal))
-            {
-                GlucoseAfterMeal = glucoseAfterMeal;
-                IsHandled = true;
+                    return true;
+                }
+
+                if (Helper.ConvertToFloat(userInput, out float glucoseAfterMeal))
+                {
+                    GlucoseAfterMeal = glucoseAfterMeal;
+                    IsHandled = true;
+                }
             }
 
             Algorithm.RunStatisticsOnReminder(ReminderID);
@@ -110,7 +113,7 @@ namespace DiabetesContolApp.Models
         /// <summary>
         /// Checks if the reminder is ready to be handled
         /// </summary>
-        /// <returns>Returns true if the reminder doesn't overlap with the current time within TIME_TO_WAIT hours, else false </returns>
+        /// <returns>Returns true if the reminder doesn't overlap with the current time within TIME_TO_WAIT hours, else false</returns>
         public bool ReadyToHandle()
         {
             return DateTime.Now > DateTimeValue;

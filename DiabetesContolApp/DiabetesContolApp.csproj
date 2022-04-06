@@ -8,6 +8,7 @@
 		<DebugType>portable</DebugType>
 		<DebugSymbols>true</DebugSymbols>
 		<LangVersion>latestmajor</LangVersion>
+		<CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
 	</PropertyGroup>
 	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
 		<LangVersion>latestmajor</LangVersion>

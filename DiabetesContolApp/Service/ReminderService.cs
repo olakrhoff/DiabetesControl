@@ -65,11 +65,15 @@ namespace DiabetesContolApp.Service
         {
             List<ReminderModel> reminders = await GetAllRemindersAsync();
 
+            //Reminders without logs are invalid, therfore delete them.
             reminders.ForEach(async r =>
             {
                 if (r.Logs.Count == 0)
                     await DeleteReminderAsync(r.ReminderID);
             });
+
+            foreach (ReminderModel reminder in reminders)
+                await reminder.Handle();
 
             List<ReminderModel> unhandledReminders = await GetAllUnhandledRemindersAsync();
 
@@ -107,6 +111,8 @@ namespace DiabetesContolApp.Service
 
             for (int i = 0; i < unhandledReminders.Count; ++i)
                 unhandledReminders[i] = await GetReminderAsync(unhandledReminders[i].ReminderID); //Get reminder with Logs
+
+            unhandledReminders = unhandledReminders.FindAll(reminder => reminder != null); //Filter out missing data
 
             return unhandledReminders;
         }
