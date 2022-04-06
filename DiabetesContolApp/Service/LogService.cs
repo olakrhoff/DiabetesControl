@@ -84,7 +84,14 @@ namespace DiabetesContolApp.Service
         /// <returns>List of LogModels after a given date, might be empty.</returns>
         async public Task<List<LogModel>> GetAllLogsAfterDateAsync(DateTime date)
         {
-            return await logRepo.GetAllLogsAfterDateAsync(date);
+            List<LogModel> logsAfterDate = await logRepo.GetAllLogsAfterDateAsync(date);
+
+            for (int i = 0; i < logsAfterDate.Count; ++i)
+                logsAfterDate[i] = await GetLogAsync(logsAfterDate[i].LogID);
+
+            logsAfterDate = logsAfterDate.FindAll(log => log != null && log.LogID >= 0);
+
+            return logsAfterDate;
         }
 
         /// <summary>
