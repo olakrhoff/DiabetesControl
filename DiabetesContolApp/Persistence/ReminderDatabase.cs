@@ -102,10 +102,19 @@ namespace DiabetesContolApp.Persistence
         /// Updates the reminderDAO in the database
         /// </summary>
         /// <param name="reminder"></param>
-        /// <returns>int, number of rows updated.</returns>
+        /// <returns>int, number of rows updated, -1 if an error occured.</returns>
         async public Task<int> UpdateReminderAsync(ReminderModelDAO reminder)
         {
-            return await connection.UpdateAsync(reminder);
+            try
+            {
+                return await connection.UpdateAsync(reminder);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                Debug.WriteLine(e.Message);
+                return -1;
+            }
         }
 
         /// <summary>

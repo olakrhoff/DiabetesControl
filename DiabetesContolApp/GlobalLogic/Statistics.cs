@@ -22,6 +22,11 @@ namespace DiabetesContolApp.GlobalLogic
         {
             int n = xValues.Count; //n, number of observations
 
+            if (n < 3)
+                throw new ArgumentOutOfRangeException("There must be at least three values in x and y");
+            if (xValues.Count != yValues.Count)
+                throw new ArgumentException("There must be an equal amount of data in x and y");
+
             double xAverage = xValues.Average();
             double yAverage = yValues.Average();
 
@@ -49,6 +54,8 @@ namespace DiabetesContolApp.GlobalLogic
 
             double first = alphaHat + betaHat * nextX;
             double second = tValue * s * Math.Sqrt(1 + 1 / n + Math.Pow((nextX - xAverage) / (s / SEBetaHat), 2));
+            if (Double.IsNaN(second))
+                throw new ArithmeticException("Prediction interval is not valid");
             double upper = first + second;
             double lower = first - second;
 

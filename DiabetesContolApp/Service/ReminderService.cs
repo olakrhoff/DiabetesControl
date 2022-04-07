@@ -73,8 +73,13 @@ namespace DiabetesContolApp.Service
                     await DeleteReminderAsync(r.ReminderID);
             });
 
+            //TODO: TEMP
+
             foreach (ReminderModel reminder in reminders)
                 await reminder.Handle();
+
+            //TODO: TEMP
+
 
             List<ReminderModel> unhandledReminders = await GetAllUnhandledRemindersAsync();
 
@@ -93,7 +98,7 @@ namespace DiabetesContolApp.Service
         /// </summary>
         /// <param name="reminder"></param>
         /// <returns>False if an error occurs, else true.</returns>
-        async private Task<bool> UpdateReminderAsync(ReminderModel reminder)
+        async public Task<bool> UpdateReminderAsync(ReminderModel reminder)
         {
             foreach (LogModel log in reminder.Logs)
                 await logRepo.UpdateLogAsync(log);

@@ -28,10 +28,12 @@ namespace DiabetesContolApp.GlobalLogic
         /// </summary>
         /// <param name="reminderID"></param>
         /// <returns>True if done, false if error.</returns>
-        async public static Task<bool> RunStatisticsOnReminder(int reminderID)
+        async public static Task<bool> RunStatisticsOnReminder(ReminderModel currentReminder)
         {
             ReminderService reminderService = new();
-            ReminderModel reminder = await reminderService.GetReminderAsync(reminderID);
+            if (!await reminderService.UpdateReminderAsync(currentReminder))
+                return false;
+            ReminderModel reminder = await reminderService.GetReminderAsync(currentReminder.ReminderID);
             if (reminder == null)
                 return false;
 
@@ -47,6 +49,10 @@ namespace DiabetesContolApp.GlobalLogic
 
             //Do the partitioning from the Reminder to all the Logs
             List<LogModel> logs = await PartitionGlucoseErrorToLogs(reminder);
+
+            curruptLog = logs.Exists(log => log == null); //Check if any of the logs wasn't found
+            if (curruptLog || reminder.Logs.Count == 0)
+                return false; //The data is corrupt, this should not happen, and can therfore not be processed
 
             //Check all elements in all Logs and update the respective scalar if possible
             return await UpdateScalarValues(logs);
@@ -245,10 +251,10 @@ namespace DiabetesContolApp.GlobalLogic
 
                     double distance = GetGreatestSafeDistanceFromWantedLine(dataPointsForCarbScalar);
 
-                    double insulinGivenOnAvgForCarbScalar = logsForCarbScalar.Sum(log => log.GetInsulinFromDayProfileCarbScalar()) / logsForCarbScalar.Count; //Average insulin with this day profiles carb-scalar
+                    double insulinGivenOnAvgForCarbs = logsForCarbScalar.Sum(log => log.GetInsulinForCarbs()) / logsForCarbScalar.Count; //Average insulin with this day profiles carb-scalar
                     double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //How much insulin (either more or less) is needed to close the distance to the line
 
-                    double scaleFactor = (insulinGivenOnAvgForCarbScalar + extraInsulin) / insulinGivenOnAvgForCarbScalar; //The scale factor to obtain the wanted values is calculated e.g. we need 1.2 times more insulin
+                    double scaleFactor = (insulinGivenOnAvgForCarbs + extraInsulin) / insulinGivenOnAvgForCarbs; //The scale factor to obtain the wanted values is calculated e.g. we need 1.2 times more insulin
 
                     DayProfileModel dayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
                     dayProfile.CarbScalar *= (float)scaleFactor;
@@ -256,8 +262,8 @@ namespace DiabetesContolApp.GlobalLogic
                     await dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
 
                     carbScalar.ScalarValue = dayProfile.CarbScalar;
-
-                    await scalarService.UpdateScalarAsync(carbScalar); //Update the Scalar
+                    carbScalar.DateTimeCreated = DateTime.Now;
+                    await scalarService.InsertScalarAsync(carbScalar); //Create new scalar
                 }
 
                 //Change glucose-scalar based on statistics
@@ -267,7 +273,7 @@ namespace DiabetesContolApp.GlobalLogic
 
                     double distance = GetGreatestSafeDistanceFromWantedLine(dataPointsForGlucoseScalar);
 
-                    double insulinGivenOnAvgForGlucoseScalar = logsForGlucoseScalar.Sum(log => log.GetInsulinFromDayProfileCarbScalar()) / logsForGlucoseScalar.Count; //Average insulin with this day profiles glucose-scalar
+                    double insulinGivenOnAvgForGlucoseScalar = logsForGlucoseScalar.Sum(log => log.CorrectionInsulin) / logsForGlucoseScalar.Count; //Average insulin with this day profiles glucose-scalar
                     double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //How much insulin (either more or less) is needed to close the distance to the line
 
                     double scaleFactor = (insulinGivenOnAvgForGlucoseScalar + extraInsulin) / insulinGivenOnAvgForGlucoseScalar; //The scale factor to obtain the wanted values is calculated e.g. we need 1.2 times more insulin
@@ -278,8 +284,8 @@ namespace DiabetesContolApp.GlobalLogic
                     await dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
 
                     glucoseScalar.ScalarValue = (float)scaleFactor;
-
-                    await scalarService.UpdateScalarAsync(glucoseScalar); //Update the Scalar
+                    glucoseScalar.DateTimeCreated = DateTime.Now;
+                    await scalarService.InsertScalarAsync(glucoseScalar); //Create new scalar
                 }
                 return true;
             }
@@ -326,7 +332,7 @@ namespace DiabetesContolApp.GlobalLogic
 
 
             //Check the ends of the line to find the smallest distance to the wanted line on the X-axis
-            double smallestDifferenceToXAxis = Math.Min(alphaAndBetaHat.Item1, alphaAndBetaHat.Item1 + alphaAndBetaHat.Item2 * xValues[xValues.Count - 1]);
+            double smallestDifferenceToXAxis = Math.Min(alphaAndBetaHat.Item1 + alphaAndBetaHat.Item2 * xValues[0], alphaAndBetaHat.Item1 + alphaAndBetaHat.Item2 * xValues[xValues.Count - 1]);
 
             //Returns the smallest distance either between the regression line and the X-axis or the lower prediction line and the LOWER_BOUND_FOR_PREDICTION_INTERVALL
             return Math.Min(smallestDifferenceToXAxis, predictionIntervallNextPoint.Item2 - LOWER_BOUND_FOR_PREDICTION_INTERVAL);
@@ -351,9 +357,9 @@ namespace DiabetesContolApp.GlobalLogic
 
 
                 //Calculate the glucose error partitioned to the carb-scalar
-                float glucoseErrorForCarbScalarPartitioned = log.GetGlucoseError() * (log.GetInsulinFromDayProfileCarbScalar() / log.GetInsulinForCarbs());
+                float glucoseErrorForCarbsPartitioned = log.GetGlucoseError() * (log.GetInsulinForCarbs() / log.InsulinEstimate);
 
-                return new DataPoint(true, log.DateTimeValue, glucoseErrorForCarbScalarPartitioned);
+                return new DataPoint(true, log.DateTimeValue, glucoseErrorForCarbsPartitioned);
             }
             catch (ArgumentNullException ane)
             {
@@ -385,9 +391,9 @@ namespace DiabetesContolApp.GlobalLogic
 
 
                 //Calculate the glucose error partitioned to the carb-scalar
-                float glucoseErrorForGlucoseScalarPartitioned = log.GetGlucoseError() * (log.GetInsulinFromDayProfileGlucoseScalar() / log.GetInsulinForGlucose());
+                float glucoseErrorForGlucosePartitioned = log.GetGlucoseError() * (log.CorrectionInsulin / log.InsulinEstimate);
 
-                return new DataPoint(true, log.DateTimeValue, glucoseErrorForGlucoseScalarPartitioned);
+                return new DataPoint(true, log.DateTimeValue, glucoseErrorForGlucosePartitioned);
             }
             catch (ArgumentNullException ane)
             {

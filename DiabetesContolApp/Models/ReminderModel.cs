@@ -75,23 +75,18 @@ namespace DiabetesContolApp.Models
                 if (userInput == null)
                 {
                     GlucoseAfterMeal = -1.0f; //Indicates invalid data
-
                     Logs.ForEach(log => log.GlucoseAfterMeal = -1.0f); //Set all data to be invalid.
 
                     IsHandled = true;
-
                     return true;
                 }
 
                 if (Helper.ConvertToFloat(userInput, out float glucoseAfterMeal))
-                {
                     GlucoseAfterMeal = glucoseAfterMeal;
-                    IsHandled = true;
-                }
             }
 
-            await Algorithm.RunStatisticsOnReminder(ReminderID);
-
+            await Algorithm.RunStatisticsOnReminder(this);
+            IsHandled = true;
             return true;
         }
 
@@ -149,14 +144,15 @@ namespace DiabetesContolApp.Models
 
         /// <summary>
 		/// Used to see if the glucose after meal
-		/// value has been sat valid or not
+		/// value has been sat valid or not, this
+        /// value also has to be greater than 0.
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>True if value is not null and greater than 0</returns>
         public bool IsGlucoseAfterMealValid()
         {
             if (GlucoseAfterMeal == null)
                 return false;
-            return true;
+            return GlucoseAfterMeal > 0;
         }
 
         public string ToStringCSV()
