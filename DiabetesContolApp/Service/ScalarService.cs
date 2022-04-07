@@ -46,8 +46,7 @@ namespace DiabetesContolApp.Service
 
             //If there wasn't a Scalar with these spesifications
             //then we need to create one
-
-            ScalarModel newScalar = new(-1, type, objectID, 1.0f, oldestOfObject.AddSeconds(-1));
+            ScalarModel newScalar = new(-1, type, objectID, 1.0f, oldestOfObject.AddDays(-1));
             int idOfnewScalar = await InsertScalarAsync(newScalar);
 
             return await GetScalarAsync(idOfnewScalar);

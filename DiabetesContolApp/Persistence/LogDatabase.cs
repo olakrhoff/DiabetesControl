@@ -31,36 +31,36 @@ namespace DiabetesContolApp.Persistence
         /// This method inserts a log into the database.
         /// </summary>
         /// <param name="newLogEntry">LogModelDAO, the log to insert</param>
-        /// <returns>The number of rows added.</returns>
+        /// <returns>The number of rows added, -1 if an error occured.</returns>
         async public Task<int> InsertLogAsync(LogModelDAO newLog)
         {
-
-            return await connection.InsertAsync(newLog);
+            try
+            {
+                return await connection.InsertAsync(newLog);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return -1;
+            }
         }
 
         /// <summary>
         /// Gets all logs with a given DayProfile ID.
         /// </summary>
         /// <param name="dayProfileID"></param>
-        /// <returns>List of LogModelDAOs with given DayProfile ID.</returns>
+        /// <returns>List of LogModelDAOs with given DayProfile ID, might be empty.</returns>
         async public Task<List<LogModelDAO>> GetLogsWithDayProfileIDAsync(int dayProfileID)
         {
-            return await connection.Table<LogModelDAO>().Where(logDAO => logDAO.DayProfileID == dayProfileID).ToListAsync();
-        }
-
-
-        /// <summary>
-        /// Gets all logs that occur after a given time
-        /// </summary>
-        /// <param name="lastUpdate"></param>
-        /// <returns>List of logs after given time, if none were found, list is empty.</returns>
-        async public Task<List<LogModelDAO>> GetAllLogsAfterDateAsync(DateTime date)
-        {
-            List<LogModelDAO> logs = await connection.Table<LogModelDAO>().Where(logDAO => logDAO.DateTimeValue.CompareTo(date) > 0).ToListAsync();
-
-            if (logs == null)
+            try
+            {
+                return await connection.Table<LogModelDAO>().Where(logDAO => logDAO.DayProfileID == dayProfileID).ToListAsync();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
                 return new();
-            return logs;
+            }
         }
 
         /// <summary>
@@ -87,29 +87,6 @@ namespace DiabetesContolApp.Persistence
         }
 
         /// <summary>
-        /// This method get the newest Log based on the time it
-        /// has in its variable DateTime.
-        /// </summary>
-        /// <returns>
-        /// Task&lt;LogModelDAO&gt;
-        /// 
-        /// Task is for async
-        /// LogModelDAO is the newest model,
-        /// if no Log is found, it returns null.
-        /// </returns>
-        async public Task<LogModelDAO> GetNewestLogAsync()
-        {
-            var logs = await connection.Table<LogModelDAO>().ToListAsync();
-
-            if (logs.Count == 0)
-                return null;
-
-            logs.Sort();
-
-            return logs[logs.Count - 1];
-        }
-
-        /// <summary>
         /// Gets the log with the corresponding ID,
         /// if it doesn't exist it returns null
         /// </summary>
@@ -126,6 +103,7 @@ namespace DiabetesContolApp.Persistence
             }
             catch (InvalidOperationException ioe)
             {
+                Debug.WriteLine(ioe.StackTrace);
                 Debug.WriteLine(ioe.Message);
                 return null;
             }
@@ -174,31 +152,21 @@ namespace DiabetesContolApp.Persistence
         }
 
         /// <summary>
-        /// Gets all logs, filter on the given date, then returns whats left.
-        /// </summary>
-        /// <param name="dateTime"></param>
-        /// <returns>Return all log on given date</returns>
-        async public Task<List<LogModelDAO>> GetLogsOnDateAsync(DateTime dateTime)
-        {
-            var logs = await connection.Table<LogModelDAO>().ToListAsync();
-
-            List<LogModelDAO> temp = new();
-
-            foreach (LogModelDAO log in logs)
-                if (log.DateTimeValue.Date.Equals(dateTime.Date))
-                    temp.Add(log);
-
-            return temp;
-        }
-
-        /// <summary>
-        /// This method deletes a log based on it's ID.
+        /// This method deletes a LogDAO based on it's ID.
         /// </summary>
         /// <param name="logID"></param>
-        /// <returns>int, the number of rows deleted</returns>
+        /// <returns>int, the number of rows deleted, -1 if an error occured.</returns>
         async public Task<int> DeleteLogAsync(int logID)
         {
-            return await connection.DeleteAsync<LogModelDAO>(logID);
+            try
+            {
+                return await connection.DeleteAsync<LogModelDAO>(logID);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return -1;
+            }
         }
 
         public override string HeaderForCSVFile()

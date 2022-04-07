@@ -22,18 +22,12 @@ namespace DiabetesContolApp.Repository
         /// into the database.
         /// </summary>
         /// <param name="newLog"></param>
-        /// <returns>Returns the LogID of the new log, if an error occurs -1 is returned</returns>
-        async public Task<int> InsertLogAsync(LogModel newLog)
+        /// <returns>Returns true if inserted else false.</returns>
+        async public Task<bool> InsertLogAsync(LogModel newLog)
         {
             LogModelDAO newLogDAO = new(newLog);
 
-
-            if (await logDatabase.InsertLogAsync(newLogDAO) > 0)
-            {
-                LogModelDAO log = await logDatabase.GetNewestLogAsync();
-                return log.LogID;
-            }
-            return -1; //Return invalid ID
+            return await logDatabase.InsertLogAsync(newLogDAO) > 0;
         }
 
         /// <summary>
@@ -53,24 +47,6 @@ namespace DiabetesContolApp.Repository
                 Debug.WriteLine(e.StackTrace);
                 return false;
             }
-        }
-
-        /// <summary>
-        /// Gets all logDAOs on given date. Then converts all to
-        /// Model objects.
-        /// </summary>
-        /// <param name="dateTime"></param>
-        /// <returns>The list of LogModels on the given date</returns>
-        async public Task<List<LogModel>> GetAllLogsOnDateAsync(DateTime dateTime)
-        {
-            List<LogModelDAO> logDAOs = await logDatabase.GetLogsOnDateAsync(dateTime);
-
-            List<LogModel> logsOnDate = new();
-
-            foreach (LogModelDAO logDAO in logDAOs)
-                logsOnDate.Add(await GetLogAsync(logDAO.LogID));
-
-            return logsOnDate;
         }
 
         /// <summary>
@@ -126,26 +102,6 @@ namespace DiabetesContolApp.Repository
         }
 
         /// <summary>
-        /// Gets all LogDAOs after a given date, converts them to
-        /// LogModels.
-        /// </summary>
-        /// <param name="date"></param>
-        /// <returns>List of LogModels after given date, might be empty</returns>
-        async public Task<List<LogModel>> GetAllLogsAfterDateAsync(DateTime date)
-        {
-            List<LogModelDAO> logDAOsAfterDate = await logDatabase.GetAllLogsAfterDateAsync(date);
-
-            List<LogModel> logsAfterDate = new();
-
-            foreach (LogModelDAO logDAO in logDAOsAfterDate)
-                logsAfterDate.Add(new(logDAO));
-
-            logsAfterDate = logsAfterDate.FindAll(log => log != null); //Filter out potential bad convertions
-
-            return logsAfterDate;
-        }
-
-        /// <summary>
         /// Deletes all Logs with matching the IDs in the list.
         /// </summary>
         /// <param name="logIDs"></param>
@@ -196,20 +152,6 @@ namespace DiabetesContolApp.Repository
             if (await logDatabase.UpdateLogAsync(logDAO) > 0)
                 return true;
             return false; //No log with this ID
-        }
-
-        /// <summary>
-        /// Gets the newest Log.
-        /// </summary>
-        /// <returns>Return LogModel, unless there are no Logs, then it returns null.</returns>
-        async public Task<LogModel> GetNewestLogAsync()
-        {
-            LogModelDAO logDAO = await logDatabase.GetNewestLogAsync();
-
-            if (logDAO == null)
-                return null;
-
-            return new(logDAO);
         }
     }
 }

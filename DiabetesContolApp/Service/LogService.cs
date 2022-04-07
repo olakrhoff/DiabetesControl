@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.Repository;
@@ -57,19 +58,22 @@ namespace DiabetesContolApp.Service
                     return false;
             }
 
-            int logID = await logRepo.InsertLogAsync(newLog); //Insert new Log
-            if (logID == -1)
+            bool logInserted = await logRepo.InsertLogAsync(newLog); //Insert new Log
+            if (!logInserted)
                 return false;
-            newLog.LogID = logID;
+            //Get the ID of the new log
+            LogModel newestLog = await GetNewestLogAsync();
+
+            newLog.LogID = newestLog.LogID; //We update the LogID to be correct
 
             List<GroceryLogModel> groceryLogs = new();
 
             foreach (NumberOfGroceryModel numberOfGrocery in newLog.NumberOfGroceries)
                 groceryLogs.Add(new(numberOfGrocery, newLog));
 
-            if (!await groceryLogRepo.InsertAllGroceryLogsAsync(groceryLogs, logID)) //Insert all grocery-log-cross table entries
+            if (!await groceryLogRepo.InsertAllGroceryLogsAsync(groceryLogs, newLog.LogID)) //Insert all grocery-log-cross table entries
             {
-                if (!await logRepo.DeleteLogAsync(logID))
+                if (!await logRepo.DeleteLogAsync(newLog.LogID))
                     throw new Exception("This state should not be possible");
                 return false;
             }
@@ -78,20 +82,37 @@ namespace DiabetesContolApp.Service
         }
 
         /// <summary>
-        /// Gets all log after a given date.
+        /// Gets all log after and including a given date.
         /// </summary>
-        /// <param name="lastUpdate"></param>
+        /// <param name="date"></param>
         /// <returns>List of LogModels after a given date, might be empty.</returns>
         async public Task<List<LogModel>> GetAllLogsAfterDateAsync(DateTime date)
         {
-            List<LogModel> logsAfterDate = await logRepo.GetAllLogsAfterDateAsync(date);
+            List<LogModel> logsAfterDate = (await logRepo.GetAllLogsAsync()).Where(log => log.DateTimeValue.Date.CompareTo(date.Date) >= 0).ToList();
 
             for (int i = 0; i < logsAfterDate.Count; ++i)
                 logsAfterDate[i] = await GetLogAsync(logsAfterDate[i].LogID);
 
-            logsAfterDate = logsAfterDate.FindAll(log => log != null && log.LogID >= 0);
+            logsAfterDate = logsAfterDate.FindAll(log => log != null); //Filter out bad "gets"
 
             return logsAfterDate;
+        }
+
+        /// <summary>
+        /// Gets all logs on a given date.
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns>List of LogModels on given date, might be empty.</returns>
+        async public Task<List<LogModel>> GetAllLogsOnDateAsync(DateTime date)
+        {
+            List<LogModel> logsOnDate = (await logRepo.GetAllLogsAsync()).Where(log => log.DateTimeValue.Date.Equals(date.Date)).ToList();
+
+            for (int i = 0; i < logsOnDate.Count; ++i)
+                logsOnDate[i] = await GetLogAsync(logsOnDate[i].LogID);
+
+            logsOnDate = logsOnDate.FindAll(log => log != null); //Filter out bad "gets"
+
+            return logsOnDate;
         }
 
         /// <summary>
@@ -180,24 +201,6 @@ namespace DiabetesContolApp.Service
                 Debug.WriteLine(e.Message);
                 return false;
             }
-        }
-
-        /// <summary>
-        /// Gets the logs on the date specified. Then adds
-        /// the DayProfile, Reminder and Groceries.
-        /// </summary>
-        /// <param name="dateTime"></param>
-        /// <returns>Returns the lsit of logs with Dayprofile, Reminder and Groceries added</returns>
-        async public Task<List<LogModel>> GetLogsOnDateAsync(DateTime dateTime)
-        {
-            List<LogModel> logsOnDate = await logRepo.GetAllLogsOnDateAsync(dateTime);
-
-            for (int i = 0; i < logsOnDate.Count; ++i)
-                logsOnDate[i] = await GetLogAsync(logsOnDate[i].LogID); //Gets the LogModels properly
-
-            logsOnDate = logsOnDate.FindAll(log => log != null); //Remove all null values, if any
-
-            return logsOnDate;
         }
 
         /// <summary>
@@ -327,12 +330,27 @@ namespace DiabetesContolApp.Service
         }
 
         /// <summary>
-        /// Get the newest log added.
+        /// Gets the newest LogModel.
+        /// Tries to find logs in one day at a time for the past 10 days.
+        /// This is for performance. If no Logs were found it gets all
+        /// logs, and get the newest from there.
         /// </summary>
         /// <returns>Returns LogModel for the newest log, return null if there are no LogModels.</returns>
         async public Task<LogModel> GetNewestLogAsync()
         {
-            LogModel newestLog = await logRepo.GetNewestLogAsync();
+            List<LogModel> logsOnDate = new();
+            //Get all logs from today, if there are any
+            //the newest log must be there, if empty get yesterday
+            //then go back one day at a time till you find a log
+            for (int dayOffset = 0; dayOffset > -10 && logsOnDate.Count == 0; --dayOffset)
+                logsOnDate = await GetAllLogsOnDateAsync(DateTime.Now.AddDays(dayOffset));
+            if (logsOnDate.Count == 0)
+                logsOnDate = await logRepo.GetAllLogsAsync(); //Get all logs if no logs were found on the first 10 tries
+
+            if (logsOnDate.Count == 0) //There are no logs
+                return null;
+
+            LogModel newestLog = logsOnDate.Max(); //Get newest element
 
             return await GetLogAsync(newestLog.LogID); //Gets the LogModel properly
         }
