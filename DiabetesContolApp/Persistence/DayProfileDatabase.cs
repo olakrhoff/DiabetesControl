@@ -33,12 +33,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                Debug.WriteLine("Inside: GetDayProfileAsync");
-                var test = await connection.Table<DayProfileModelDAO>().ToListAsync();
-                Debug.WriteLine("POINT");
-                DayProfileModelDAO dayProfileDAO = await connection.GetAsync<DayProfileModelDAO>(dayProfileID);
-                Debug.WriteLine("POINT");
-                return dayProfileDAO;
+                return await connection.GetAsync<DayProfileModelDAO>(dayProfileID);
             }
             catch (Exception e)
             {

@@ -26,6 +26,9 @@ namespace DiabetesContolApp.GlobalLogic
                 throw new ArgumentOutOfRangeException("There must be at least three values in x and y");
             if (xValues.Count != yValues.Count)
                 throw new ArgumentException("There must be an equal amount of data in x and y");
+            for (int i = 0; i < xValues.Count; ++i)
+                if (Double.IsNaN(xValues[i]) || Double.IsNaN(yValues[i]))
+                    throw new ArgumentException("NaN values are not accepted in prediction interval data.");
 
             double xAverage = xValues.Average();
             double yAverage = yValues.Average();

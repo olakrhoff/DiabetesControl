@@ -42,8 +42,13 @@ namespace DiabetesContolApp.Service
                 scalarsWithType = scalarsWithType.FindAll(scalar => scalar.ScalarObjectID == objectID); //Filter out only the ones with the correct objectID
 
             if (scalarsWithType.Count > 0)
-                return scalarsWithType.Max();
-
+            {
+                ScalarModel currentMax = scalarsWithType[0];
+                foreach (ScalarModel scalar in scalarsWithType)
+                    if (scalar.DateTimeCreated.CompareTo(currentMax.DateTimeCreated) >= 0)
+                        currentMax = scalar;
+                return currentMax;
+            }
             //If there wasn't a Scalar with these spesifications
             //then we need to create one
             ScalarModel newScalar = new(-1, type, objectID, 1.0f, oldestOfObject.AddDays(-1));

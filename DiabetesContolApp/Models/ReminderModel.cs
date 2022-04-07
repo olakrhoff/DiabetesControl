@@ -75,7 +75,7 @@ namespace DiabetesContolApp.Models
                 if (userInput == null)
                 {
                     GlucoseAfterMeal = -1.0f; //Indicates invalid data
-                    Logs.ForEach(log => log.GlucoseAfterMeal = -1.0f); //Set all data to be invalid.
+                    Logs.ForEach(log => log.GlucoseAfterMeal = null); //Set all data to be invalid.
 
                     IsHandled = true;
                     return true;

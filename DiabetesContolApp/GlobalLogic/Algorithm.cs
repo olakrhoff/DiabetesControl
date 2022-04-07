@@ -17,6 +17,7 @@ namespace DiabetesContolApp.GlobalLogic
     {
         private const int MINIMUM_OCCURENCES = 10;
         private const double LOWER_BOUND_FOR_PREDICTION_INTERVAL = -1.0;
+        private const double ABSOLUTE_MAXIMUM_SCALE_FACTOR = 1.0;
 
 
         /// <summary>
@@ -30,32 +31,49 @@ namespace DiabetesContolApp.GlobalLogic
         /// <returns>True if done, false if error.</returns>
         async public static Task<bool> RunStatisticsOnReminder(ReminderModel currentReminder)
         {
-            ReminderService reminderService = new();
-            if (!await reminderService.UpdateReminderAsync(currentReminder))
+            try
+            {
+                if (currentReminder == null)
+                    return false;
+                ReminderService reminderService = new();
+                if (!await reminderService.UpdateReminderAsync(currentReminder))
+                    return false;
+                ReminderModel reminder = await reminderService.GetReminderAsync(currentReminder.ReminderID);
+                if (reminder == null)
+                    return false;
+                if (reminder.GlucoseAfterMeal == null || reminder.GlucoseAfterMeal == -1)
+                {
+                    reminder.Logs.ForEach(log => log.GlucoseAfterMeal = null);
+                    await reminderService.UpdateReminderAsync(reminder);
+                }
+                Debug.WriteLine("Starting with ReminderID: " + reminder.ReminderID);
+
+
+                //Updates the logs to have all objects in them, since we will need them later
+                LogService logService = new();
+                for (int i = 0; i < reminder.Logs.Count; ++i)
+                    reminder.Logs[i] = await logService.GetLogAsync(reminder.Logs[i].LogID);
+
+                bool curruptLog = reminder.Logs.Exists(log => log == null); //Check if any of the logs wasn't found
+                if (curruptLog || reminder.Logs.Count == 0)
+                    return false; //The data is corrupt, this should not happen, and can therfore not be processed
+
+                //Do the partitioning from the Reminder to all the Logs
+                List<LogModel> logs = await PartitionGlucoseErrorToLogs(reminder);
+
+                curruptLog = logs.Exists(log => log == null); //Check if any of the logs wasn't found
+                if (curruptLog || reminder.Logs.Count == 0)
+                    return false; //The data is corrupt, this should not happen, and can therfore not be processed
+
+                //Check all elements in all Logs and update the respective scalar if possible
+                return await UpdateScalarValues(logs);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                Debug.WriteLine(e.Message);
                 return false;
-            ReminderModel reminder = await reminderService.GetReminderAsync(currentReminder.ReminderID);
-            if (reminder == null)
-                return false;
-
-
-            //Updates the logs to have all objects in them, since we will need them later
-            LogService logService = new();
-            for (int i = 0; i < reminder.Logs.Count; ++i)
-                reminder.Logs[i] = await logService.GetLogAsync(reminder.Logs[i].LogID);
-
-            bool curruptLog = reminder.Logs.Exists(log => log == null); //Check if any of the logs wasn't found
-            if (curruptLog || reminder.Logs.Count == 0)
-                return false; //The data is corrupt, this should not happen, and can therfore not be processed
-
-            //Do the partitioning from the Reminder to all the Logs
-            List<LogModel> logs = await PartitionGlucoseErrorToLogs(reminder);
-
-            curruptLog = logs.Exists(log => log == null); //Check if any of the logs wasn't found
-            if (curruptLog || reminder.Logs.Count == 0)
-                return false; //The data is corrupt, this should not happen, and can therfore not be processed
-
-            //Check all elements in all Logs and update the respective scalar if possible
-            return await UpdateScalarValues(logs);
+            }
         }
 
         /// <summary>
@@ -107,6 +125,7 @@ namespace DiabetesContolApp.GlobalLogic
                 if (logsAfterDate.Count >= MINIMUM_OCCURENCES) //Don't waste time here if there isn't enough data
                     foreach (LogModel log in logsAfterDate)
                     {
+                        Debug.WriteLine(log.LogID);
                         DataPoint dataPoint = GetDataPointForCorrectionInsulin(log);
                         if (dataPoint.IsValid)
                             dataPoints.Add(dataPoint);
@@ -130,8 +149,8 @@ namespace DiabetesContolApp.GlobalLogic
                     globalVariables.InsulinToGlucoseRatio /= (float)newScalar; //Update the ratio
 
                     correctionScalar.ScalarValue = (float)newScalar;
-
-                    await scalarService.UpdateScalarAsync(correctionScalar);
+                    correctionScalar.DateTimeCreated = DateTime.Now;
+                    await scalarService.InsertScalarAsync(correctionScalar);
                 }
 
                 return true;
@@ -139,11 +158,13 @@ namespace DiabetesContolApp.GlobalLogic
             catch (NullReferenceException nre)
             {
                 Debug.WriteLine(nre.StackTrace);
+                Debug.WriteLine(nre.Message);
                 return false;
             }
             catch (Exception e)
             {
                 Debug.WriteLine(e.StackTrace);
+                Debug.WriteLine(e.Message);
                 return false;
             }
         }
@@ -170,17 +191,21 @@ namespace DiabetesContolApp.GlobalLogic
                 //double glucoseErrorPerUnitOfCorrectionInsulin = glucoseErrorForCorrection / log.CorrectionDose; //Adjust to error per unit of correction insulin 
 
                 double glucoseErrorPerUnitOfCorrectionInsulin = log.GetGlucoseError() / log.InsulinEstimate;
-
+                if (Double.IsNaN(glucoseErrorPerUnitOfCorrectionInsulin) ||
+                    Double.IsInfinity(glucoseErrorPerUnitOfCorrectionInsulin))
+                    throw new ArgumentException("Data is corrupted.");
                 return new DataPoint(true, log.DateTimeValue, glucoseErrorPerUnitOfCorrectionInsulin);
             }
             catch (ArgumentException ae)
             {
                 Debug.WriteLine(ae.StackTrace);
+                Debug.WriteLine(ae.Message);
                 return new DataPoint(false, DateTime.Now, -1.0f);
             }
             catch (Exception e)
             {
                 Debug.WriteLine(e.StackTrace);
+                Debug.WriteLine(e.Message);
                 return new DataPoint(false, DateTime.Now, -1.0f);
             }
         }
@@ -219,9 +244,9 @@ namespace DiabetesContolApp.GlobalLogic
                 logsWithDayProfileID = logsWithDayProfileID.FindAll(log => log.IsLogDataValid());
 
                 //Create list for carb-scalar
-                List<LogModel> logsForCarbScalar = logsWithDayProfileID.FindAll(log => log.DateTimeValue > carbScalar.DateTimeCreated);
+                List<LogModel> logsForCarbScalar = logsWithDayProfileID.FindAll(log => log.DateTimeValue.CompareTo(carbScalar.DateTimeCreated) >= 0);
                 //Create list for glucose-scalar
-                List<LogModel> logsForGlucoseScalar = logsWithDayProfileID.FindAll(log => log.DateTimeValue > glucoseScalar.DateTimeCreated);
+                List<LogModel> logsForGlucoseScalar = logsWithDayProfileID.FindAll(log => log.DateTimeValue.CompareTo(glucoseScalar.DateTimeCreated) >= 0);
 
                 //Create data points from logs for carb-scalar
                 List<DataPoint> dataPointsForCarbScalar = new();
@@ -292,11 +317,13 @@ namespace DiabetesContolApp.GlobalLogic
             catch (NullReferenceException nre)
             {
                 Debug.WriteLine(nre.StackTrace);
+                Debug.WriteLine(nre.Message);
                 return false;
             }
             catch (Exception e)
             {
                 Debug.WriteLine(e.StackTrace);
+                Debug.WriteLine(e.Message);
                 return false;
             }
         }
@@ -335,7 +362,10 @@ namespace DiabetesContolApp.GlobalLogic
             double smallestDifferenceToXAxis = Math.Min(alphaAndBetaHat.Item1 + alphaAndBetaHat.Item2 * xValues[0], alphaAndBetaHat.Item1 + alphaAndBetaHat.Item2 * xValues[xValues.Count - 1]);
 
             //Returns the smallest distance either between the regression line and the X-axis or the lower prediction line and the LOWER_BOUND_FOR_PREDICTION_INTERVALL
-            return Math.Min(smallestDifferenceToXAxis, predictionIntervallNextPoint.Item2 - LOWER_BOUND_FOR_PREDICTION_INTERVAL);
+            double distance = Math.Min(smallestDifferenceToXAxis, predictionIntervallNextPoint.Item2 - LOWER_BOUND_FOR_PREDICTION_INTERVAL);
+            if (Math.Abs(distance) > ABSOLUTE_MAXIMUM_SCALE_FACTOR)
+                distance /= Math.Abs(distance);
+            return distance;
         }
 
         /// <summary>
@@ -358,16 +388,25 @@ namespace DiabetesContolApp.GlobalLogic
 
                 //Calculate the glucose error partitioned to the carb-scalar
                 float glucoseErrorForCarbsPartitioned = log.GetGlucoseError() * (log.GetInsulinForCarbs() / log.InsulinEstimate);
-
+                if (Double.IsNaN(glucoseErrorForCarbsPartitioned) ||
+                    Double.IsInfinity(glucoseErrorForCarbsPartitioned))
+                    throw new ArgumentException("Data is corrupted.");
                 return new DataPoint(true, log.DateTimeValue, glucoseErrorForCarbsPartitioned);
             }
             catch (ArgumentNullException ane)
             {
                 Debug.WriteLine(ane.StackTrace);
+                Debug.WriteLine(ane.Message);
             }
             catch (ArgumentException ae)
             {
                 Debug.WriteLine(ae.StackTrace);
+                Debug.WriteLine(ae.Message);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                Debug.WriteLine(e.Message);
             }
             return new DataPoint(false, DateTime.Now, -1.0f);
         }
@@ -392,16 +431,25 @@ namespace DiabetesContolApp.GlobalLogic
 
                 //Calculate the glucose error partitioned to the carb-scalar
                 float glucoseErrorForGlucosePartitioned = log.GetGlucoseError() * (log.CorrectionInsulin / log.InsulinEstimate);
-
+                if (Double.IsNaN(glucoseErrorForGlucosePartitioned) ||
+                    Double.IsInfinity(glucoseErrorForGlucosePartitioned))
+                    throw new ArgumentException("Data is currupted.");
                 return new DataPoint(true, log.DateTimeValue, glucoseErrorForGlucosePartitioned);
             }
             catch (ArgumentNullException ane)
             {
                 Debug.WriteLine(ane.StackTrace);
+                Debug.WriteLine(ane.Message);
             }
             catch (ArgumentException ae)
             {
                 Debug.WriteLine(ae.StackTrace);
+                Debug.WriteLine(ae.Message);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                Debug.WriteLine(e.Message);
             }
             return new DataPoint(false, DateTime.Now, -1.0f);
         }
@@ -477,18 +525,21 @@ namespace DiabetesContolApp.GlobalLogic
 
                     //Update the scalar
                     groceryScalar.ScalarValue = (float)currentGrocery.CarbScalar;
-                    await scalarService.UpdateScalarAsync(groceryScalar);
+                    groceryScalar.DateTimeCreated = DateTime.Now;
+                    await scalarService.InsertScalarAsync(groceryScalar);
                 }
                 return true;
             }
             catch (NullReferenceException nre)
             {
                 Debug.WriteLine(nre.StackTrace);
+                Debug.WriteLine(nre.Message);
                 return false;
             }
             catch (Exception e)
             {
                 Debug.WriteLine(e.StackTrace);
+                Debug.WriteLine(e.Message);
                 return false;
             }
         }
@@ -513,22 +564,27 @@ namespace DiabetesContolApp.GlobalLogic
                     throw new ArgumentOutOfRangeException("Grocery ID must be greater than one");
 
                 double groceryGlucoseError = log.GetGlucoseError() * (log.GetInsulinPerPortionFromGroceryWithID(groceryID) / log.InsulinEstimate);
-
+                if (Double.IsNaN(groceryGlucoseError) ||
+                    Double.IsInfinity(groceryGlucoseError))
+                    throw new ArgumentException("Data is currupted.");
                 return new(true, log.DateTimeValue, groceryGlucoseError);
             }
             catch (ArgumentOutOfRangeException aoore)
             {
                 Debug.WriteLine(aoore.StackTrace);
+                Debug.WriteLine(aoore.Message);
                 return new(false, DateTime.Now, -1);
             }
             catch (ArgumentException ae)
             {
                 Debug.WriteLine(ae.StackTrace);
+                Debug.WriteLine(ae.Message);
                 return new(false, DateTime.Now, -1);
             }
             catch (Exception e)
             {
                 Debug.WriteLine(e.StackTrace);
+                Debug.WriteLine(e.Message);
                 return new(false, DateTime.Now, -1);
             }
         }
@@ -608,6 +664,7 @@ namespace DiabetesContolApp.GlobalLogic
             catch (Exception e)
             {
                 Debug.WriteLine(e.StackTrace);
+                Debug.WriteLine(e.Message);
                 return null;
             }
         }
