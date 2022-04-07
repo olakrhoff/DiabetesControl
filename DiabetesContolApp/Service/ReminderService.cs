@@ -74,11 +74,12 @@ namespace DiabetesContolApp.Service
             });
 
             //TODO: TEMP
+            /*
             reminders = await GetAllRemindersAsync();
             reminders.Sort();
             foreach (ReminderModel reminder in reminders)
                 await reminder.Handle();
-
+            */
             //TODO: TEMP
 
 
