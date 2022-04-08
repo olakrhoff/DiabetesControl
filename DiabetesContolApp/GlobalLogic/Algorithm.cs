@@ -139,7 +139,7 @@ namespace DiabetesContolApp.GlobalLogic
                     if (await globalVariables.MainPage.DisplayAlert("Changing correction insulin", globalVariables.InsulinToGlucoseRatio + " => " + globalVariables.InsulinToGlucoseRatio / (float)newScalar, "OK", "Cancel"))
                     {
                         globalVariables.InsulinToGlucoseRatio /= (float)newScalar; //Update the ratio
-
+                        await globalVariables.SavePropertiesAsync();
                         correctionScalar.ScalarValue = (float)newScalar;
                         correctionScalar.DateTimeCreated = DateTime.Now;
                         await scalarService.InsertScalarAsync(correctionScalar);
