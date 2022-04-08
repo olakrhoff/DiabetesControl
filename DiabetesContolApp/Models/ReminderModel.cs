@@ -87,6 +87,8 @@ namespace DiabetesContolApp.Models
             else if (GlucoseAfterMeal == -1.0f) //Make sure all Logs connected are properly adjusted
             {
                 Logs.ForEach(log => log.GlucoseAfterMeal = null); //Set all data to be invalid.
+                IsHandled = true;
+                return true;
             }
 
             await Algorithm.RunStatisticsOnReminder(this);

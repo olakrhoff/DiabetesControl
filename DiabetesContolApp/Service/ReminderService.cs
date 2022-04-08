@@ -65,27 +65,14 @@ namespace DiabetesContolApp.Service
         async public void HandleRemindersAsync()
         {
             List<ReminderModel> reminders = await GetAllRemindersAsync();
-
-            //TODO: TEMP
-            reminders.ForEach(async r =>
-            {
-                if (r.GlucoseAfterMeal == -1.0f)
-                    r.Logs.ForEach(log =>
-                    {
-                        log.GlucoseAfterMeal = null;
-                    });
-                else if (r.GlucoseAfterMeal == null && r.ReadyToHandle())
-                {
-                    r.GlucoseAfterMeal = -1.0f;
-                    r.Logs.ForEach(log =>
-                    {
-                        log.GlucoseAfterMeal = null;
-                    });
-                }
-                await UpdateReminderAsync(r);
-            });
-            //TODO: TEMP
-
+            /*
+            reminders[reminders.Count - 1].IsHandled = false;
+            reminders[reminders.Count - 1].GlucoseAfterMeal = null;
+            await UpdateReminderAsync(reminders[reminders.Count - 1]);
+            reminders[reminders.Count - 2].IsHandled = false;
+            reminders[reminders.Count - 2].GlucoseAfterMeal = null;
+            await UpdateReminderAsync(reminders[reminders.Count - 2]);
+            */
             //Reminders without logs are invalid, therfore delete them.
             reminders.ForEach(async r =>
             {
