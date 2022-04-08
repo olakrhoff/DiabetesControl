@@ -27,7 +27,7 @@ namespace DiabetesContolApp.Service
         /// Gets all GroceryModels.
         /// </summary>
         /// <returns>List of GroceryModels.</returns>
-        async public Task<List<GroceryModel>> GetGroceriesAsync()
+        async public Task<List<GroceryModel>> GetAllGroceriesAsync()
         {
             return await groceryRepo.GetAllGroceriesAsync();
         }

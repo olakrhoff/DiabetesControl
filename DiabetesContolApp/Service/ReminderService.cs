@@ -66,6 +66,26 @@ namespace DiabetesContolApp.Service
         {
             List<ReminderModel> reminders = await GetAllRemindersAsync();
 
+            //TODO: TEMP
+            reminders.ForEach(async r =>
+            {
+                if (r.GlucoseAfterMeal == -1.0f)
+                    r.Logs.ForEach(log =>
+                    {
+                        log.GlucoseAfterMeal = null;
+                    });
+                else if (r.GlucoseAfterMeal == null && r.ReadyToHandle())
+                {
+                    r.GlucoseAfterMeal = -1.0f;
+                    r.Logs.ForEach(log =>
+                    {
+                        log.GlucoseAfterMeal = null;
+                    });
+                }
+                await UpdateReminderAsync(r);
+            });
+            //TODO: TEMP
+
             //Reminders without logs are invalid, therfore delete them.
             reminders.ForEach(async r =>
             {
@@ -75,8 +95,42 @@ namespace DiabetesContolApp.Service
 
             //TODO: TEMP
             /*
+            GroceryService groceryService = new();
+
+            var groceries = await groceryService.GetAllGroceriesAsync();
+
+            foreach (var g in groceries)
+            {
+                g.CarbScalar = 1;
+                await groceryService.UpdateGroceryAsync(g);
+            }
+
+            DayProfileService dayProfileService = new();
+
+            var dayProfiles = await dayProfileService.GetAllDayProfilesAsync();
+
+            foreach (var d in dayProfiles)
+            {
+                d.CarbScalar = 1f;
+                d.GlucoseScalar = 1f;
+                if (d.Name == "Frokost")
+                {
+                    d.CarbScalar = 1.5f;
+                    d.GlucoseScalar = 1.5f;
+                }
+                else if (d.Name == "Lunsj")
+                {
+                    d.CarbScalar = 1.3f;
+                }
+                await dayProfileService.UpdateDayProfileAsync(d);
+            }
+
+            (Xamarin.Forms.Application.Current as App).InsulinToGlucoseRatio = 2.2f;
+            await (Xamarin.Forms.Application.Current as App).SavePropertiesAsync();
+
+            */
+            /*
             reminders = await GetAllRemindersAsync();
-            reminders.Sort();
             foreach (ReminderModel reminder in reminders)
                 await reminder.Handle();
             */

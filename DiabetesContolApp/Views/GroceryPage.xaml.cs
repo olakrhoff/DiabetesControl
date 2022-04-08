@@ -26,7 +26,7 @@ namespace DiabetesContolApp.Views
 
         protected override async void OnAppearing()
         {
-            var groceries = await groceryService.GetGroceriesAsync();
+            var groceries = await groceryService.GetAllGroceriesAsync();
             groceries.Sort();
             Groceries = new(groceries);
             groceriesList.ItemsSource = Groceries;

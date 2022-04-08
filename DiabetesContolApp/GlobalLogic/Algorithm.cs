@@ -36,18 +36,13 @@ namespace DiabetesContolApp.GlobalLogic
                 if (currentReminder == null)
                     return false;
                 ReminderService reminderService = new();
-                if (!await reminderService.UpdateReminderAsync(currentReminder))
+                if (!await reminderService.UpdateReminderAsync(currentReminder)) //Update the reminder to hold the glucose after meal value and the logs connected to it
                     return false;
-                ReminderModel reminder = await reminderService.GetReminderAsync(currentReminder.ReminderID);
+                ReminderModel reminder = await reminderService.GetReminderAsync(currentReminder.ReminderID); //Get the updated Reminder
                 if (reminder == null)
                     return false;
-                if (reminder.GlucoseAfterMeal == null || reminder.GlucoseAfterMeal == -1)
-                {
-                    reminder.Logs.ForEach(log => log.GlucoseAfterMeal = null);
-                    await reminderService.UpdateReminderAsync(reminder);
-                }
-                Debug.WriteLine("Starting with ReminderID: " + reminder.ReminderID);
 
+                Debug.WriteLine("Starting with ReminderID: " + reminder.ReminderID);
 
                 //Updates the logs to have all objects in them, since we will need them later
                 LogService logService = new();
@@ -60,10 +55,6 @@ namespace DiabetesContolApp.GlobalLogic
 
                 //Do the partitioning from the Reminder to all the Logs
                 List<LogModel> logs = await PartitionGlucoseErrorToLogs(reminder);
-
-                curruptLog = logs.Exists(log => log == null); //Check if any of the logs wasn't found
-                if (curruptLog || reminder.Logs.Count == 0)
-                    return false; //The data is corrupt, this should not happen, and can therfore not be processed
 
                 //Check all elements in all Logs and update the respective scalar if possible
                 return await UpdateScalarValues(logs);
@@ -145,12 +136,14 @@ namespace DiabetesContolApp.GlobalLogic
                     //(avg. correction insulin + extra insulin) / avg. correction insulin
                     //since we operate with "per unit" values the avg. correction insulin would be equal to 1.
                     double newScalar = 1 + extraInsulin;
+                    if (await globalVariables.MainPage.DisplayAlert("Changing correction insulin", globalVariables.InsulinToGlucoseRatio + " => " + globalVariables.InsulinToGlucoseRatio / (float)newScalar, "OK", "Cancel"))
+                    {
+                        globalVariables.InsulinToGlucoseRatio /= (float)newScalar; //Update the ratio
 
-                    globalVariables.InsulinToGlucoseRatio /= (float)newScalar; //Update the ratio
-
-                    correctionScalar.ScalarValue = (float)newScalar;
-                    correctionScalar.DateTimeCreated = DateTime.Now;
-                    await scalarService.InsertScalarAsync(correctionScalar);
+                        correctionScalar.ScalarValue = (float)newScalar;
+                        correctionScalar.DateTimeCreated = DateTime.Now;
+                        await scalarService.InsertScalarAsync(correctionScalar);
+                    }
                 }
 
                 return true;
@@ -282,13 +275,15 @@ namespace DiabetesContolApp.GlobalLogic
                     double scaleFactor = (insulinGivenOnAvgForCarbs + extraInsulin) / insulinGivenOnAvgForCarbs; //The scale factor to obtain the wanted values is calculated e.g. we need 1.2 times more insulin
 
                     DayProfileModel dayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
-                    dayProfile.CarbScalar *= (float)scaleFactor;
+                    if (await globalVariables.MainPage.DisplayAlert("Changing dayProfile (" + dayProfile.Name + ") carb scalar", dayProfile.CarbScalar + " => " + dayProfile.CarbScalar * scaleFactor, "OK", "Cancel"))
+                    {
+                        dayProfile.CarbScalar *= (float)scaleFactor;
+                        await dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
 
-                    await dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
-
-                    carbScalar.ScalarValue = dayProfile.CarbScalar;
-                    carbScalar.DateTimeCreated = DateTime.Now;
-                    await scalarService.InsertScalarAsync(carbScalar); //Create new scalar
+                        carbScalar.ScalarValue = dayProfile.CarbScalar;
+                        carbScalar.DateTimeCreated = DateTime.Now;
+                        await scalarService.InsertScalarAsync(carbScalar); //Create new scalar
+                    }
                 }
 
                 //Change glucose-scalar based on statistics
@@ -304,13 +299,16 @@ namespace DiabetesContolApp.GlobalLogic
                     double scaleFactor = (insulinGivenOnAvgForGlucoseScalar + extraInsulin) / insulinGivenOnAvgForGlucoseScalar; //The scale factor to obtain the wanted values is calculated e.g. we need 1.2 times more insulin
 
                     DayProfileModel dayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
-                    dayProfile.GlucoseScalar *= (float)scaleFactor;
+                    if (await globalVariables.MainPage.DisplayAlert("Changing dayProfile (" + dayProfile.Name + ") glucose scalar", dayProfile.GlucoseScalar + " => " + dayProfile.GlucoseScalar * scaleFactor, "OK", "Cancel"))
+                    {
+                        dayProfile.GlucoseScalar *= (float)scaleFactor;
 
-                    await dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
+                        await dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
 
-                    glucoseScalar.ScalarValue = (float)scaleFactor;
-                    glucoseScalar.DateTimeCreated = DateTime.Now;
-                    await scalarService.InsertScalarAsync(glucoseScalar); //Create new scalar
+                        glucoseScalar.ScalarValue = (float)scaleFactor;
+                        glucoseScalar.DateTimeCreated = DateTime.Now;
+                        await scalarService.InsertScalarAsync(glucoseScalar); //Create new scalar
+                    }
                 }
                 return true;
             }
@@ -519,14 +517,17 @@ namespace DiabetesContolApp.GlobalLogic
 
                     double scalingFactor = (insulinPerPortionOfGrocery + extraInsulin) / insulinPerPortionOfGrocery; //This is how much more insulin we need (in percentage)
 
-                    //Update the grocery
-                    currentGrocery.CarbScalar *= (float)scalingFactor; //Scale the current CarbScalar to make the proper adjustment
-                    await groceryService.UpdateGroceryAsync(currentGrocery);
+                    if (await globalVariables.MainPage.DisplayAlert("Changing grocery (" + currentGrocery.Name + ") carb scalar", currentGrocery.CarbScalar + " => " + currentGrocery.CarbScalar * scalingFactor, "OK", "Cancel"))
+                    {
+                        //Update the grocery
+                        currentGrocery.CarbScalar *= (float)scalingFactor; //Scale the current CarbScalar to make the proper adjustment
+                        await groceryService.UpdateGroceryAsync(currentGrocery);
 
-                    //Update the scalar
-                    groceryScalar.ScalarValue = (float)currentGrocery.CarbScalar;
-                    groceryScalar.DateTimeCreated = DateTime.Now;
-                    await scalarService.InsertScalarAsync(groceryScalar);
+                        //Update the scalar
+                        groceryScalar.ScalarValue = (float)currentGrocery.CarbScalar;
+                        groceryScalar.DateTimeCreated = DateTime.Now;
+                        await scalarService.InsertScalarAsync(groceryScalar);
+                    }
                 }
                 return true;
             }

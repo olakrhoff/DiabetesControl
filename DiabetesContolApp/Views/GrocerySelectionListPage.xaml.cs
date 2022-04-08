@@ -49,7 +49,7 @@ namespace DiabetesContolApp.Views
 
         async private Task<List<NumberOfGroceryModel>> GetNumberOfGroceries()
         {
-            var groceries = await groceryService.GetGroceriesAsync();
+            var groceries = await groceryService.GetAllGroceriesAsync();
             groceries.Sort();
 
             return NumberOfGroceryModel.GetNumberOfGroceries(groceries);
