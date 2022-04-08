@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="DiabetesContolApp.Views.DayProfileDetailPage">
 
-     <StackLayout Padding="0, 0, 0, 35">
+    <StackLayout Padding="0, 0, 0, 35">
         <TableView>
             <TableRoot>
                 <TableSection Title="Day profile settings">

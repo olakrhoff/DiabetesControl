@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 using DiabetesContolApp.Models;
-using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Service;
 using DiabetesContolApp.GlobalLogic;
 
 using Xamarin.Forms;
@@ -13,14 +13,26 @@ namespace DiabetesContolApp.Views
 {
     public partial class LogDetailPage : ContentPage
     {
-        public LogModel Log { get; set; }
+        private LogModel _log = new();
+        public LogModel Log
+        {
+            get
+            {
+                return _log;
+            }
+
+            set
+            {
+                _log = value;
+            }
+        }
         public event EventHandler<LogModel> LogSaved;
         public event EventHandler<LogModel> LogAdded;
 
         private ObservableCollection<NumberOfGroceryModel> NumberOfGrocerySummary;
         public ObservableCollection<DayProfileModel> DayProfiles { get; set; }
 
-        DayProfileDatabase dayProfileDatabase = DayProfileDatabase.GetInstance();
+        DayProfileService dayProfileService = new();
 
         public LogDetailPage(LogModel log)
         {
@@ -32,16 +44,16 @@ namespace DiabetesContolApp.Views
 
             if (log.LogID == -1) //A new log entry
             {
-                NumberOfGrocerySummary = new();
                 glucoseAtMeal.Text = insulinFromUser.Text = "";
                 timePickerTimeOfMeal.Time = DateTime.Now.TimeOfDay;
                 datePickerDateOfMeal.Date = Log.DateTimeValue.Date;
+                NumberOfGrocerySummary = new();
             }
             else
             {
                 timePickerTimeOfMeal.Time = log.DateTimeValue.TimeOfDay;
                 datePickerDateOfMeal.Date = log.DateTimeValue.Date;
-                NumberOfGrocerySummary = new(log.NumberOfGroceryModels);
+                NumberOfGrocerySummary = new(log.NumberOfGroceries);
             }
 
             groceriesAddedList.ItemsSource = NumberOfGrocerySummary;
@@ -49,16 +61,16 @@ namespace DiabetesContolApp.Views
 
         async protected override void OnAppearing()
         {
-            var dayProfiles = await dayProfileDatabase.GetDayProfilesAsync();
+            var dayProfiles = await dayProfileService.GetAllDayProfilesAsync();
             dayProfiles.Sort(); //Sort the elements
 
             DayProfiles = new ObservableCollection<DayProfileModel>(dayProfiles);
             dayProfilePicker.ItemsSource = DayProfiles;
 
             int index = -1;
-            if (Log.DayProfileID != -1)
+            if (Log.DayProfile.DayProfileID != -1)
                 for (int i = 0; i < DayProfiles.Count; ++i)
-                    if (DayProfiles[i].DayProfileID == Log.DayProfileID)
+                    if (DayProfiles[i].DayProfileID == Log.DayProfile.DayProfileID)
                     {
                         index = i;
                         break;
@@ -109,14 +121,14 @@ namespace DiabetesContolApp.Views
             Log.GlucoseAtMeal = glucoseAtMealFloat;
             Log.DateTimeValue = new DateTime(datePickerDateOfMeal.Date.Year, datePickerDateOfMeal.Date.Month, datePickerDateOfMeal.Date.Day, timePickerTimeOfMeal.Time.Hours, timePickerTimeOfMeal.Time.Minutes, 0);
             Log.InsulinFromUser = insulinFromUserFloat;
-            Log.DayProfileID = (dayProfilePicker.SelectedItem as DayProfileModel).DayProfileID;
+            Log.DayProfile.DayProfileID = (dayProfilePicker.SelectedItem as DayProfileModel).DayProfileID;
 
-            Log.NumberOfGroceryModels = NumberOfGrocerySummary.ToList();
+            Log.NumberOfGroceries = NumberOfGrocerySummary.ToList();
 
             //Calcualte the estimated insulin
-            float insulinEsitmate = Helper.CalculateInsulin(Log.GlucoseAtMeal, Log.NumberOfGroceryModels, await dayProfileDatabase.GetDayProfileAsync(Log.DayProfileID));
+            Helper.CalculateInsulin(ref _log);
 
-            Log.InsulinEstimate = insulinEsitmate;
+            Log = _log;
 
             if (Log.LogID == -1)
                 LogAdded?.Invoke(this, Log);

@@ -1,11 +1,12 @@
 ﻿using System;
-using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
+using System.Collections.Generic;
 
 using DiabetesContolApp.Views;
-using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Service;
 using DiabetesContolApp.Models;
-using System.Collections.Generic;
+
+using Xamarin.Forms;
+using Xamarin.Forms.Xaml;
 
 namespace DiabetesContolApp
 {
@@ -16,6 +17,7 @@ namespace DiabetesContolApp
         private const string InsulinToGlucoseRatioKey = "InsulinToGlucoseRatio";
         private const string InsulinOnlyCorrectionScalarKey = "InsulinOnlyCorrectionScalar";
         private const string TimeUsedKey = "TimeUsed";
+
 
         private DateTime StartTime = DateTime.Now;
 
@@ -69,11 +71,16 @@ namespace DiabetesContolApp
             }
         }
 
-        /*
-         * This variable gives the number of glucose per unit of insulin
-         * 
-         * If it is not stored in properties, it returns -1.0f
-         */
+        /// <summary>
+        /// This variable gives the number of glucose per unit of insulin.
+        ///
+        /// Example: If a user sat 1 unit of insulin the glucose would go
+        /// down "this value" number of values. If the value is 2 then
+        /// if the user sat 3 unit of insulin their glucose would go down
+        /// 2 * 3 = 6 mmol/L. This gives it the form of X mmol/L per units of inulin (mmol/L/U).
+        /// 
+        /// If it is not stored in properties, it returns -1.0f
+        /// </summary>
         public float InsulinToGlucoseRatio
         {
             get
@@ -135,10 +142,10 @@ namespace DiabetesContolApp
             }
         }
 
-        /*
-         * This variables gives the time the user has been inside
-         * the app, given in minutes, based on the TimeUsed variable.
-         */
+        /// <summary>
+        /// This variables gives the time the user has been inside
+        /// the app, given in minutes, based on the TimeUsed variable.
+        /// </summary>
         public ulong TimeUsedInMinutes
         {
             get
@@ -147,12 +154,14 @@ namespace DiabetesContolApp
             }
         }
 
-
+        /// <summary>
+        /// Checks if there are any reminders to handle,
+        /// if so, they are handled.
+        /// </summary>
         private void CheckReminders()
         {
-            ReminderDatabase reminderDatabase = ReminderDatabase.GetInstance();
-
-            reminderDatabase.HandleReminders();
+            ReminderService reminderService = new();
+            reminderService.HandleRemindersAsync();
         }
     }
 }

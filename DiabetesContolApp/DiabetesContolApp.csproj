@@ -1,40 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <LangVersion>latestmajor</LangVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <LangVersion>latestmajor</LangVersion>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2337" />
-    <PackageReference Include="Xamarin.Essentials" Version="1.7.1" />
-    <PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
-    <PackageReference Include="SQLiteNetExtensions" Version="2.1.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="View\" />
-    <None Remove="Model\" />
-    <None Remove="sqlite-net-pcl" />
-    <None Remove="GlobalLogic\" />
-    <None Remove="SQLiteNetExtensions" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Views\" />
-    <Folder Include="Models\" />
-    <Folder Include="GlobalLogic\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="Views\MainTabbedPage.xaml.cs">
-      <DependentUpon>MainTabbedPage.xaml</DependentUpon>
-    </Compile>
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DebugType>portable</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<LangVersion>latestmajor</LangVersion>
+		<CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+		<LangVersion>latestmajor</LangVersion>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Xamarin.Forms" Version="5.0.0.2337" />
+		<PackageReference Include="Xamarin.Essentials" Version="1.7.1" />
+		<PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
+		<PackageReference Include="SQLiteNetExtensions" Version="2.1.0" />
+		<PackageReference Include="MathNet.Numerics" Version="4.15.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Remove="View\" />
+		<None Remove="Model\" />
+		<None Remove="sqlite-net-pcl" />
+		<None Remove="GlobalLogic\" />
+		<None Remove="SQLiteNetExtensions" />
+		<None Remove="Extreme.Numerics" />
+		<None Remove="MathNet.Numerics" />
+		<None Remove="dao\" />
+		<None Remove="Repository\" />
+		<None Remove="Service\" />
+	</ItemGroup>
+	<ItemGroup>
+		<Folder Include="Views\" />
+		<Folder Include="Models\" />
+		<Folder Include="GlobalLogic\" />
+		<Folder Include="DAO\" />
+		<Folder Include="Repository\" />
+		<Folder Include="Service\" />
+	</ItemGroup>
+	<ItemGroup>
+		<Compile Update="Views\MainTabbedPage.xaml.cs">
+			<DependentUpon>MainTabbedPage.xaml</DependentUpon>
+		</Compile>
+	</ItemGroup>
 </Project>

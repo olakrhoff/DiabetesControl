@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using DiabetesContolApp.GlobalLogic;
+
 using Xamarin.Forms;
+using Xamarin.Essentials;
+using System.IO;
 
 namespace DiabetesContolApp.Views
 {
@@ -33,5 +37,24 @@ namespace DiabetesContolApp.Views
         {
             (Application.Current as App).TimeUsed = 0;
         }
+
+        /// <summary>
+        /// This method is used to export the data from the app
+        /// to be analyzed.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        async void ShareClicked(System.Object sender, System.EventArgs e)
+        {
+            List<ShareFile> databaseFiles = Helper.DatabaseToString();
+
+            await Share.RequestAsync(new ShareMultipleFilesRequest
+            {
+                Title = Title,
+                Files = databaseFiles
+            });
+        }
+
+
     }
 }

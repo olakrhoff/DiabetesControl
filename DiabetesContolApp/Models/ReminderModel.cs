@@ -4,33 +4,26 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using SQLite;
 
 using DiabetesContolApp.GlobalLogic;
-using DiabetesContolApp.Persistence;
+using DiabetesContolApp.DAO;
 
-using SQLiteNetExtensions.Attributes;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
 namespace DiabetesContolApp.Models
 {
-    [Table("Reminder")]
-    public class ReminderModel : INotifyPropertyChanged, IComparable<ReminderModel>, IEquatable<ReminderModel>
+    public class ReminderModel : IComparable<ReminderModel>, IEquatable<ReminderModel>, IModel//, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
         //The number of hours the reminder is sat to wait
         public static int TIME_TO_WAIT = 3;
 
-        [PrimaryKey, AutoIncrement]
         public int ReminderID { get; set; }
-        [NotNull]
         public long DateTimeLong { get; set; } //When to remind the user
         public float? GlucoseAfterMeal { get; set; }
-        [OneToMany]
         public List<LogModel> Logs { get; set; }
-
         public bool IsHandled { get; set; }
 
         public ReminderModel()
@@ -39,6 +32,23 @@ namespace DiabetesContolApp.Models
             DateTimeLong = DateTime.Now.AddHours(TIME_TO_WAIT).ToBinary();
             IsHandled = false;
             Logs = new();
+        }
+
+        public ReminderModel(int reminderID)
+        {
+            ReminderID = reminderID;
+            DateTimeLong = DateTime.Now.AddHours(TIME_TO_WAIT).ToBinary();
+            IsHandled = false;
+            Logs = new();
+        }
+
+        public ReminderModel(ReminderModelDAO reminderDAO)
+        {
+            ReminderID = reminderDAO.ReminderID;
+            DateTimeValue = reminderDAO.DateTimeValue;
+            GlucoseAfterMeal = reminderDAO.GlucoseAfterMeal;
+            Logs = new();
+            IsHandled = reminderDAO.IsHandled;
         }
 
         /// <summary>
@@ -52,46 +62,43 @@ namespace DiabetesContolApp.Models
         /// </returns>
         async public Task<bool> Handle()
         {
-            if (DateTimeValue > DateTime.Now)
+            if (!ReadyToHandle())
                 return false; //The reminder is not ready to be handled
 
-            if (!await Application.Current.MainPage.DisplayAlert("Glucose after meal", "Want to enter gluocse now?", "OK", "Later"))
-                return false;
-            string userInput = await Application.Current.MainPage.DisplayPromptAsync("Glucose after meal", $"What was your glucose at {DateTimeValue.ToString("H:mm")}", "Confirm", "Currupt", keyboard: Keyboard.Numeric);
-
-            //if userInput is null, currupt was clicked
-            if (userInput == null)
+            if (GlucoseAfterMeal == null) //If we are missing the glucose after meal value, we need to get it from the user
             {
-                GlucoseAfterMeal = -1.0f; //Indicates invalid data
+                if (!await Application.Current.MainPage.DisplayAlert("Glucose after meal", "Want to enter gluocse now?", "OK", "Later"))
+                    return false;
+                string userInput = await Application.Current.MainPage.DisplayPromptAsync("Glucose after meal", $"What was your glucose at {DateTimeValue.ToString("H:mm")}", "Confirm", "Currupt", keyboard: Keyboard.Numeric);
 
-                (await LogDatabase.GetInstance().GetLogsWithReminderAsync(ReminderID)).ForEach(async log =>
+                //if userInput is null, currupt was clicked
+                if (userInput == null)
                 {
-                    log.GlucoseAfterMeal = -1.0f; //Set it invald.
-                    await LogDatabase.GetInstance().UpdateLogAsync(log);
-                });
+                    GlucoseAfterMeal = -1.0f; //Indicates invalid data
+                    Logs.ForEach(log => log.GlucoseAfterMeal = null); //Set all data to be invalid.
 
-                IsHandled = true;
+                    IsHandled = true;
+                    return true;
+                }
 
-                return true;
+                if (Helper.ConvertToFloat(userInput, out float glucoseAfterMeal))
+                    GlucoseAfterMeal = glucoseAfterMeal;
             }
-
-            if (Helper.ConvertToFloat(userInput, out float glucoseAfterMeal))
+            else if (GlucoseAfterMeal == -1.0f) //Make sure all Logs connected are properly adjusted
             {
-                GlucoseAfterMeal = glucoseAfterMeal;
-                IsHandled = true;
+                Logs.ForEach(log => log.GlucoseAfterMeal = null); //Set all data to be invalid.
             }
 
-
-            //TODO: Call statistical algorithm on involved logs.
-
-
+            await Algorithm.RunStatisticsOnReminder(this);
+            IsHandled = true;
             return true;
         }
 
+        /*
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        }*/
 
         /// <summary>
         /// Updates the time the reminder is finnished to
@@ -102,9 +109,13 @@ namespace DiabetesContolApp.Models
             DateTimeValue = DateTime.Now.AddHours(TIME_TO_WAIT);
         }
 
+        /// <summary>
+        /// Checks if the reminder is ready to be handled
+        /// </summary>
+        /// <returns>Returns true if the reminder doesn't overlap with the current time within TIME_TO_WAIT hours, else false</returns>
         public bool ReadyToHandle()
         {
-            return DateTime.Now < DateTimeValue;
+            return DateTime.Now > DateTimeValue;
         }
 
         public int CompareTo(ReminderModel other)
@@ -117,12 +128,11 @@ namespace DiabetesContolApp.Models
             return DateTimeValue.Equals(other.DateTimeValue);
         }
 
-        [Ignore]
         public DateTime DateTimeValue
         {
             get
             {
-                return DateTime.FromBinary(DateTimeLong);
+                return DateTime.FromBinary(this.DateTimeLong);
             }
 
             set
@@ -130,10 +140,31 @@ namespace DiabetesContolApp.Models
                 if (value.ToBinary() != this.DateTimeLong)
                 {
                     this.DateTimeLong = value.ToBinary();
-                    OnPropertyChanged();
+                    //OnPropertyChanged();
                 }
                 //If it is equal to the previous value there is no need to update it
             }
+        }
+
+        /// <summary>
+		/// Used to see if the glucose after meal
+		/// value has been sat valid or not, this
+        /// value also has to be greater than 0.
+		/// </summary>
+		/// <returns>True if value is not null and greater than 0</returns>
+        public bool IsGlucoseAfterMealValid()
+        {
+            if (GlucoseAfterMeal == null)
+                return false;
+            return GlucoseAfterMeal > 0;
+        }
+
+        public string ToStringCSV()
+        {
+            return ReminderID + "," +
+                DateTimeValue.ToString("yyyy/MM/dd HH:mm") + "," +
+                GlucoseAfterMeal + "," +
+                IsHandled + "\n";
         }
     }
 }

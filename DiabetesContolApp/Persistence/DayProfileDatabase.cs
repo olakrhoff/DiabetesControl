@@ -2,11 +2,12 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
-using DiabetesContolApp.Models;
+using DiabetesContolApp.DAO;
 
 using SQLite;
 
 using Xamarin.Forms;
+using System.Diagnostics;
 
 namespace DiabetesContolApp.Persistence
 {
@@ -23,44 +24,72 @@ namespace DiabetesContolApp.Persistence
             return instance == null ? new DayProfileDatabase() : instance;
         }
 
-        /*
-         * This method gets a DayProfileModel based on its ID.
-         * 
-         * Parmas: int, the ID of the DayProfileModel
-         * 
-         * Return: int, the primaryKey (ID) of the DayProfile.
-         */
-        async internal Task<DayProfileModel> GetDayProfileAsync(int dayProfileID)
+        /// <summary>
+        /// Gets the DAO with the given ID, if it exists.
+        /// </summary>
+        /// <param name="dayProfileID"></param>
+        /// <returns>The DAO with the given ID, or null if no element was found.</returns>
+        async public Task<DayProfileModelDAO> GetDayProfileAsync(int dayProfileID)
         {
-            return await connection.GetAsync<DayProfileModel>(dayProfileID);
+            try
+            {
+                return await connection.GetAsync<DayProfileModelDAO>(dayProfileID);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return null;
+            }
         }
 
-        async internal Task<List<DayProfileModel>> GetDayProfilesAsync()
+
+        /// <summary>
+        /// Gets all DayProfilesDAOs.
+        /// </summary>
+        /// <returns>Returns a list of DayProfileDAOs.</returns>
+        async public Task<List<DayProfileModelDAO>> GetAllDayProfilesAsync()
         {
-            return await connection.Table<DayProfileModel>().ToListAsync();
+            return await connection.Table<DayProfileModelDAO>().ToListAsync();
         }
 
-        async internal Task<int> InsertDayProfileAsync(DayProfileModel dayProfile)
+        /// <summary>
+        /// Inserts a DayProfileDAO into the database.
+        /// </summary>
+        /// <param name="dayProfile"></param>
+        /// <returns>int, number of rows added.</returns>
+        async public Task<int> InsertDayProfileAsync(DayProfileModelDAO dayProfile)
         {
             return await connection.InsertAsync(dayProfile);
         }
 
-        async internal Task<int> UpdateDayProfileAsync(DayProfileModel dayProfile)
+        /// <summary>
+        /// Takes a DayProfileDAO and updates it in the database.
+        /// </summary>
+        /// <param name="dayProfile"></param>
+        /// <returns>int, number of rows updated.</returns>
+        async public Task<int> UpdateDayProfileAsync(DayProfileModelDAO dayProfile)
         {
             return await connection.UpdateAsync(dayProfile);
         }
 
-        async internal Task<int> DeleteDayProfileAsync(DayProfileModel dayProfile)
+        /// <summary>
+        /// Deletes the DayProfile with the given ID.
+        /// </summary>
+        /// <param name="dayProfile"></param>
+        /// <returns>int, number of row deleted.</returns>
+        async public Task<int> DeleteDayProfileAsync(int dayProfileID)
         {
-            List<LogModel> logs = await connection.Table<LogModel>().ToListAsync();
+            return await connection.DeleteAsync<DayProfileModelDAO>(dayProfileID);
+        }
 
-            LogDatabase logDatabase = LogDatabase.GetInstance();
+        public override string HeaderForCSVFile()
+        {
+            return "DayProfileID, Name, StartTime, CarbScalar, GlucoseScalar, TargetGlucoseValue\n";
+        }
 
-            foreach (LogModel log in logs)
-                if (log.DayProfileID == dayProfile.DayProfileID)
-                    await logDatabase.DeleteLogAsync(log.LogID);
-
-            return await connection.DeleteAsync(dayProfile);
+        async public override Task<List<IModelDAO>> GetAllAsync()
+        {
+            return new(await connection.Table<DayProfileModelDAO>().ToListAsync());
         }
     }
 }

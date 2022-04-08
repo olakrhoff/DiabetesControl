@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Linq;
 
-using DiabetesContolApp.Models;
+using DiabetesContolApp.DAO;
 
 using SQLite;
 using Xamarin.Forms;
@@ -25,44 +25,96 @@ namespace DiabetesContolApp.Persistence
             return instance == null ? new ReminderDatabase() : instance;
         }
 
-        async public Task<int> InsertReminderAsync(ReminderModel reminderModel)
+        /// <summary>
+        /// Inserts a new Reminder into the database.
+        /// </summary>
+        /// <param name="reminderModel"></param>
+        /// <returns>The number of rows added.</returns>
+        async public Task<int> InsertReminderAsync(ReminderModelDAO reminderModel)
         {
             return await connection.InsertAsync(reminderModel);
         }
 
+        /// <summary>
+        /// Gets all remidners which are unhandled.
+        /// </summary>
+        /// <returns>List of unhandled Reminders, might be empty</returns>
+        async public Task<List<ReminderModelDAO>> GetAllUnhandledRemindersAsync()
+        {
+            try
+            {
+                List<ReminderModelDAO> unhandledRemidners = await connection.Table<ReminderModelDAO>().Where(reminder => !reminder.IsHandled).ToListAsync();
+                return unhandledRemidners;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return new();
+            }
+        }
+
+        /// <summary>
+        /// Gets all ReminderDAOs.
+        /// </summary>
+        /// <returns>List of all ReminderDAOs, might be empty.</returns>
+        async public Task<List<ReminderModelDAO>> GetAllRemindersAsync()
+        {
+            List<ReminderModelDAO> reminderDAOs = await connection.Table<ReminderModelDAO>().ToListAsync();
+            if (reminderDAOs == null)
+                return new();
+            return reminderDAOs;
+        }
+
         /*
-         * This method loops through all reminders,
-         * and call the Handle()-method on the ones who
-         * are yet to be handled. If they were changed in 
-         * the handle()-method, they are updated in the database
-         * 
-         * Parmas: None
-         * 
-         * Return: void
-         */
+        /// <summary>
+        /// This method loops through all reminders,
+        /// and call the Handle()-method on the ones who
+        /// are yet to be handled.If they were changed in
+        /// the handle()-method, they are updated in the database
+        /// </summary>
+        /// <returns>void</returns>
         async public void HandleReminders()
         {
-            List<ReminderModel> unhandledReminders = await GetRemindersAsync();
+            List<ReminderModelDAO> reminders = await GetRemindersAsync();
 
-            unhandledReminders.ForEach(async e =>
+            reminders.ForEach(async e =>
             {
                 if (!e.IsHandled && await e.Handle())
                     await UpdateReminderAsync(e);
             });
+        }*/
+
+        /// <summary>
+        /// Gets the newest Reminder.
+        /// </summary>
+        /// <returns>ReminderDAO for the newest reminder, null if no reminders exist.</returns>
+        async public Task<ReminderModelDAO> GetNewestReminderAsync()
+        {
+            List<ReminderModelDAO> remindersDAO = await connection.Table<ReminderModelDAO>().ToListAsync();
+
+            if (remindersDAO.Count == 0)
+                return null;
+
+            return remindersDAO[remindersDAO.Count - 1];
         }
 
-        /*
-         * This method updates the reminder in the database with the 
-         * corresponding ReminderID.
-         * 
-         * Parmas: ReminderModel (reminder), the reminder object who holds
-         * the new values.
-         * 
-         * Return: Task<int>, task for async, int: the number of rows updated
-         */
-        async public Task<int> UpdateReminderAsync(ReminderModel reminder)
+        /// <summary>
+        /// Updates the reminderDAO in the database
+        /// </summary>
+        /// <param name="reminder"></param>
+        /// <returns>int, number of rows updated, -1 if an error occured.</returns>
+        async public Task<int> UpdateReminderAsync(ReminderModelDAO reminder)
         {
-            return await connection.UpdateAsync(reminder);
+            try
+            {
+                return await connection.UpdateAsync(reminder);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                Debug.WriteLine(e.Message);
+                return -1;
+            }
         }
 
         /// <summary>
@@ -75,59 +127,30 @@ namespace DiabetesContolApp.Persistence
         /// Task for async, ReminderModel,
         /// the corresponding reminder. If not found it returns null
         /// </returns>
-        async public Task<ReminderModel> GetReminderAsync(int reminderID)
+        async public Task<ReminderModelDAO> GetReminderAsync(int reminderID)
         {
-            ReminderModel reminder = null;
-
             try
             {
-                reminder = await connection.GetAsync<ReminderModel>(reminderID);
+                ReminderModelDAO reminder = await connection.GetAsync<ReminderModelDAO>(reminderID);
+                return reminder;
             }
             catch (InvalidOperationException ioe)
             {
                 Debug.WriteLine(ioe.Message);
                 return null;
             }
-
-            reminder.Logs = await GetLogsForReminderAsync(reminder.ReminderID);
-
-            return reminder;
-        }
-
-        /// <summary>
-        /// This method gets the logs that are connected to the
-        /// reminder with the spesific ID.
-        /// </summary>
-        /// <param name="reminderID">
-        /// The ID the reminder has.
-        /// </param>
-        /// <returns>
-        /// Task&lt;List&lt;LogModel&gt;&gt;
-        ///
-        /// Task is for async.
-        ///
-        /// List&lt;LogModel&gt; is the list of Logs that are
-        /// connected to the reminder of the specified ID.
-        /// </returns>
-        async private Task<List<LogModel>> GetLogsForReminderAsync(int reminderID)
-        {
-            LogDatabase logDatabase = LogDatabase.GetInstance();
-
-            return (await logDatabase.GetLogsAsync()).Where(log => log.ReminderID == reminderID).ToList();
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return null;
+            }
         }
 
         /*
-         * This method gets all the reminder in the database.
-         * 
-         * Parmas: None
-         * 
-         * Return: Task<List<ReminderModel>>, Task for async, List<ReminderModel>
-         * is the list from the database.
-         */
-        async public Task<List<ReminderModel>> GetRemindersAsync()
+        async public Task<List<ReminderModelDAO>> GetRemindersAsync()
         {
-            return await connection.Table<ReminderModel>()?.ToListAsync();
-        }
+            return await connection.Table<ReminderModelDAO>()?.ToListAsync();
+        }*/
 
 
         /// <summary>
@@ -140,10 +163,29 @@ namespace DiabetesContolApp.Persistence
         /// Task for async.
         ///
         /// int for the number of rows delete, in the reminder table.
+        /// If an error occurs it returns -1.
         /// </returns>
         async public Task<int> DeleteReminderAsync(int reminderID)
         {
-            return await connection.DeleteAsync<ReminderModel>(reminderID);
+            try
+            {
+                return await connection.DeleteAsync<ReminderModelDAO>(reminderID);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return -1;
+            }
+        }
+
+        public override string HeaderForCSVFile()
+        {
+            return "ReminderID, DateTimeValue, GlucoseAfterMeal, IsHandled\n";
+        }
+
+        async public override Task<List<IModelDAO>> GetAllAsync()
+        {
+            return new(await connection.Table<ReminderModelDAO>().ToListAsync());
         }
     }
 }

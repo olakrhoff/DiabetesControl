@@ -5,17 +5,13 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using DiabetesContolApp.Models;
-using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Service;
 using DiabetesContolApp.GlobalLogic;
 
 using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
-
-using SQLite;
 
 namespace DiabetesContolApp.Views
 {
-    [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class GrocerySelectionListPage : ContentPage
     {
         public event EventHandler<List<NumberOfGroceryModel>> NumberOfGroceryListSaved;
@@ -23,7 +19,8 @@ namespace DiabetesContolApp.Views
 
         public ObservableCollection<NumberOfGroceryModel> Groceries { get; set; }
         private List<NumberOfGroceryModel> GroceriesAdded { get; set; }
-        private GroceryDatabase groceryDatabase = GroceryDatabase.GetInstance();
+
+        private GroceryService groceryService = new();
 
         public GrocerySelectionListPage(List<NumberOfGroceryModel> groceries = null)
         {
@@ -52,7 +49,7 @@ namespace DiabetesContolApp.Views
 
         async private Task<List<NumberOfGroceryModel>> GetNumberOfGroceries()
         {
-            var groceries = await groceryDatabase.GetGroceriesAsync();
+            var groceries = await groceryService.GetAllGroceriesAsync();
             groceries.Sort();
 
             return NumberOfGroceryModel.GetNumberOfGroceries(groceries);
@@ -72,7 +69,7 @@ namespace DiabetesContolApp.Views
             {
                 Groceries.Add(new NumberOfGroceryModel(args));
                 Groceries = Helper.SortObservableCollection(Groceries);
-                await groceryDatabase.InsertGroceryAsync(args);
+                await groceryService.InsertGroceryAsync(args);
             };
 
             await Navigation.PushAsync(page);
@@ -83,7 +80,7 @@ namespace DiabetesContolApp.Views
             if (e == null)
                 return;
 
-            var selectedGrocery = (e as ItemTappedEventArgs).Item as NumberOfGroceryModel;
+            var selectedGrocery = e.Item as NumberOfGroceryModel;
             groceriesList.SelectedItem = null;
             selectedGrocery.NumberOfGrocery++;
         }
@@ -95,7 +92,7 @@ namespace DiabetesContolApp.Views
             {
                 Groceries.Remove(grocery);
                 NumberOfGroceryDeleted?.Invoke(this, grocery);
-                await groceryDatabase.DeleteGroceryAsync(grocery.Grocery);
+                await groceryService.DeleteGroceryAsync(grocery.Grocery.GroceryID);
             }
         }
 
@@ -117,7 +114,7 @@ namespace DiabetesContolApp.Views
 
             page.GrocerySaved += async (source, args) =>
             {
-                await groceryDatabase.UpdateGroceryAsync(args);
+                await groceryService.UpdateGroceryAsync(args);
             };
 
             await Navigation.PushAsync(page);

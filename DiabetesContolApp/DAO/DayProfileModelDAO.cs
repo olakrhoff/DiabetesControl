@@ -1,60 +1,56 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 
-using DiabetesContolApp.DAO;
+using DiabetesContolApp.Models;
 
+using SQLite;
 
-namespace DiabetesContolApp.Models
+namespace DiabetesContolApp.DAO
 {
-    public class DayProfileModel : IComparable<DayProfileModel>, IEquatable<DayProfileModel>, IModel, IScalarObject
+    [Table("DayProfile")]
+    public class DayProfileModelDAO : IComparable<DayProfileModelDAO>, IEquatable<DayProfileModelDAO>, IModelDAO
     {
-        private string _name = "";
+        [PrimaryKey, AutoIncrement]
+        public int DayProfileID { get; set; }
+
+        private string _name;
         private long _startTime;
         private float _carbScalar;
         private float _glucoseScalar;
-        private ScalarTypes scalarType = ScalarTypes.DAY_PROFILE_CARB;
-        private bool isScalarTypeValid = false;
 
-
-        public int DayProfileID { get; set; }
+        [NotNull]
         public float TargetGlucoseValue { get; set; }
 
-        public DayProfileModel()
+        public DayProfileModelDAO()
         {
             DayProfileID = -1;
         }
 
-        public DayProfileModel(int dayProfileID)
+        public DayProfileModelDAO(DayProfileModel dayProfile)
         {
-            DayProfileID = dayProfileID;
+            DayProfileID = dayProfile.DayProfileID;
+            Name = dayProfile.Name;
+            StartTime = dayProfile.StartTime;
+            CarbScalar = dayProfile.CarbScalar;
+            GlucoseScalar = dayProfile.GlucoseScalar;
+            TargetGlucoseValue = dayProfile.TargetGlucoseValue;
         }
 
-        public DayProfileModel(DayProfileModelDAO dayProfileDAO)
-        {
-            DayProfileID = dayProfileDAO.DayProfileID;
-            Name = dayProfileDAO.Name;
-            StartTime = dayProfileDAO.StartTime;
-            CarbScalar = dayProfileDAO.CarbScalar;
-            GlucoseScalar = dayProfileDAO.GlucoseScalar;
-            TargetGlucoseValue = dayProfileDAO.TargetGlucoseValue;
-        }
-
-        public int CompareTo(DayProfileModel other)
+        public int CompareTo(DayProfileModelDAO other)
         {
             if (other == null)
                 return 1;
             return this.StartTime.CompareTo(other.StartTime);
         }
 
-        public bool Equals(DayProfileModel other)
+        public bool Equals(DayProfileModelDAO other)
         {
             if (other == null)
                 return false;
             return this.DayProfileID.Equals(other.DayProfileID);
         }
 
+        [NotNull, MaxLength(255)]
         public string Name
         {
             get
@@ -81,6 +77,7 @@ namespace DiabetesContolApp.Models
             }
         }
 
+        [NotNull]
         public DateTime StartTime
         {
             get
@@ -98,6 +95,7 @@ namespace DiabetesContolApp.Models
             }
         }
 
+        [NotNull]
         public float CarbScalar
         {
             get
@@ -124,6 +122,7 @@ namespace DiabetesContolApp.Models
             }
         }
 
+        [NotNull]
         public float GlucoseScalar
         {
             get
@@ -148,36 +147,6 @@ namespace DiabetesContolApp.Models
 
                 this._glucoseScalar = value;
             }
-        }
-
-        public void SetScalarTypeToCarbScalar()
-        {
-            scalarType = ScalarTypes.DAY_PROFILE_CARB;
-            isScalarTypeValid = true;
-        }
-
-        public void SetScalarTypeToGlucoseScalar()
-        {
-            scalarType = ScalarTypes.DAY_PROFILE_GLUCOSE;
-            isScalarTypeValid = true;
-        }
-
-        public ScalarTypes GetScalarType()
-        {
-            if (!isScalarTypeValid)
-                throw new AccessViolationException("The scalar type in DayProfile must be sat by one of the setter methods before use");
-            isScalarTypeValid = false;
-            return scalarType;
-        }
-
-        public int GetIDForScalarObject()
-        {
-            return DayProfileID;
-        }
-
-        public void SetIDForScalarObject(int objectID)
-        {
-            DayProfileID = objectID;
         }
 
         public string ToStringCSV()

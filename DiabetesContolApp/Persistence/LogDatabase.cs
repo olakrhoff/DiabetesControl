@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 
-using DiabetesContolApp.Models;
+using DiabetesContolApp.DAO;
 using DiabetesContolApp.GlobalLogic;
 
 using SQLite;
 using Xamarin.Forms;
 using System.Diagnostics;
+using DiabetesContolApp.Models;
 
 namespace DiabetesContolApp.Persistence
 {
@@ -26,158 +27,63 @@ namespace DiabetesContolApp.Persistence
         }
 
 
-        /*
-         * This method inserts a log into the database, after it
-         * connects it to a reminder. If the log overlaps with
-         * another log, they will share a reminder.
-         * 
-         * Then it addes all the groceryLog values into the bridge table
-         * 
-         *
-         * Lastly it updates the average TDD (total daily dose (of rapid insulin))
-         * 
-         * Paramas: LogModel, the log to insert
-         * 
-         * Return: the number of rows added.
-         */
-        async internal Task<int> InsertLogAsync(LogModel newLogEntry)
+        /// <summary>
+        /// This method inserts a log into the database.
+        /// </summary>
+        /// <param name="newLogEntry">LogModelDAO, the log to insert</param>
+        /// <returns>The number of rows added, -1 if an error occured.</returns>
+        async public Task<int> InsertLogAsync(LogModelDAO newLog)
         {
-            ReminderDatabase reminderDatabase = ReminderDatabase.GetInstance();
-
-            //If an overlap was registered in the calculator
-            if (newLogEntry.ReminderID != -1)
+            try
             {
-                ReminderModel reminder = await reminderDatabase.GetReminderAsync(newLogEntry.ReminderID);
-
-                try
-                {
-                    reminder.UpdateDateTime();
-                    await reminderDatabase.UpdateReminderAsync(reminder);
-                }
-                catch (NullReferenceException nre)
-                {
-                    Debug.WriteLine(nre.Message);
-                    newLogEntry.ReminderID = -1; //If there was no remidner with this ID, default the value
-                }
+                return await connection.InsertAsync(newLog);
             }
-            else if (newLogEntry.GlucoseAfterMeal == null)
+            catch (Exception e)
             {
-                LogModel newestLog = await GetNewestLogAsync();
-                if (newestLog != null)
-                {
-                    ReminderModel newestReminder = await reminderDatabase.GetReminderAsync(newestLog.ReminderID);
-                    if (!newestReminder.ReadyToHandle()) //If the meals are overlapping
-                    {
-                        newLogEntry.ReminderID = newestLog.ReminderID;
-                        newestReminder.UpdateDateTime();
-                        await reminderDatabase.UpdateReminderAsync(newestReminder);
-                    }
-                }
-                if (newLogEntry.ReminderID == -1) //If the log still hasn't gotten a reminder connected to it, it need a new one
-                {
-                    //Need to create a new reminder
-                    await reminderDatabase.InsertReminderAsync(new ReminderModel());
-                    var reminders = await reminderDatabase.GetRemindersAsync();
-                    ReminderModel newestReminder = reminders.Max(); //Gets the reminder ID
-                    newLogEntry.ReminderID = newestReminder.ReminderID;
-                }
+                Debug.WriteLine(e.StackTrace);
+                return -1;
             }
-
-            var rowsAdded = await connection.InsertAsync(newLogEntry);
-
-            await connection.InsertAllAsync(GroceryLogModel.GetGroceryLogs(newLogEntry.NumberOfGroceryModels, newLogEntry.LogID));
-
-            await UpdateAverageTDD();
-
-
-            return rowsAdded;
         }
 
         /// <summary>
-        /// Gets all logs connected to a reminder by the
+        /// Gets all logs with a given DayProfile ID.
+        /// </summary>
+        /// <param name="dayProfileID"></param>
+        /// <returns>List of LogModelDAOs with given DayProfile ID, might be empty.</returns>
+        async public Task<List<LogModelDAO>> GetLogsWithDayProfileIDAsync(int dayProfileID)
+        {
+            try
+            {
+                return await connection.Table<LogModelDAO>().Where(logDAO => logDAO.DayProfileID == dayProfileID).ToListAsync();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return new();
+            }
+        }
+
+        /// <summary>
+        /// Gets all LogDAOs connected to a reminder by the
         /// ReminderID.
         /// </summary>
         /// <param name="reminderID"></param>
         /// <returns>
-        /// List of LogModels connected to the remidnerID.
+        /// List of LogModelDAOs connected to the remidnerID, if no one, then
+        /// an empty list.
         /// </returns>
-        async public Task<List<LogModel>> GetLogsWithReminderAsync(int reminderID)
+        async public Task<List<LogModelDAO>> GetLogsWithReminderIDAsync(int reminderID)
         {
-            return (await GetLogsAsync()).Where(log => log.ReminderID == reminderID).ToList();
-        }
-
-        /// <summary>
-        /// This method get the newest Log based on the time it
-        /// has in its variable DateTime.
-        /// </summary>
-        /// <returns>
-        /// Task&lt;LogModel&gt;
-        /// 
-        /// Task is for async
-        /// LogModel is the newest model,
-        /// if no Log is found, it returns null.
-        /// </returns>
-        async public Task<LogModel> GetNewestLogAsync()
-        {
-            var logs = await connection.Table<LogModel>().ToListAsync();
-
-            if (logs.Count == 0)
-                return null;
-
-            logs.Sort();
-
-            return logs[logs.Count - 1];
-        }
-
-
-        /*
-         * This method updates the average TDD (total daily dose (of rapid insulin))
-         * The average is of at least three days and at most seven. It will at max
-         * look 14 days (two weeks) back in time, older values than these are regarded
-         * as too old for use in the TDD. We start looking at yesterday and backward,
-         * we do not want to use todays logs, since these are not finished and will
-         * pull the TDD down.
-         * 
-         * TODO: When TimeProfiles, like "weekday" and "weekend" is added, this
-         * method should get the average of the current TimeProfile, to be more 
-         * accurate in the representation.
-         * 
-         * Params: None
-         * 
-         * Return: Task<bool>, Task for async, true if updated, else false
-         */
-        async private Task<bool> UpdateAverageTDD()
-        {
-            List<LogModel> logs = new();
-            int daysWithLogs = 0, maxIterations = 14;
-            for (int i = 1; i <= maxIterations; ++i) //We start looking at yesterday
+            try
             {
-                var temp = await this.GetLogsAsync(DateTime.Now.AddDays(-i));
-                if (temp != null && temp.Count > 0)
-                {
-                    daysWithLogs++;
-                    logs.AddRange(temp);
-                }
-                if (daysWithLogs >= 7)
-                    break; //We have the seven most recent days
+                List<LogModelDAO> logDAOs = await connection.Table<LogModelDAO>().Where(log => log.ReminderID == reminderID).ToListAsync();
+                return logDAOs;
             }
-
-            if (daysWithLogs < 3)
-                return false; //There were not enough data to updated the TDD
-
-            float newAverageTDD = logs.Sum(log => log.InsulinFromUser) / daysWithLogs;
-
-            //After the average TDD is calcualted we need to update
-            //the propertis for carb and glucose sensitivity
-            //with the 500- and 100-rule
-            App globalVariables = Application.Current as App;
-
-            globalVariables.InsulinToCarbohydratesRatio = Helper.Calculate500Rule(newAverageTDD);
-            globalVariables.InsulinToGlucoseRatio = Helper.Calculate100Rule(newAverageTDD);
-
-            await globalVariables.SavePropertiesAsync();
-
-            return true;
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return new();
+            }
         }
 
         /// <summary>
@@ -186,27 +92,18 @@ namespace DiabetesContolApp.Persistence
         /// </summary>
         /// <param name="logID"></param>
         /// <returns>
-        /// The LogModel if it exists, else null
+        /// The LogModelDAO if it exists, else null
         /// </returns>
-        async public Task<LogModel> GetLogAsync(int logID)
+        async public Task<LogModelDAO> GetLogAsync(int logID)
         {
             try
             {
-                LogModel log = await connection.GetAsync<LogModel>(logID);
-
-                List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().Where(e => e.LogID == logID).ToListAsync();
-
-                log.NumberOfGroceryModels = GroceryLogModel.GetNumberOfGroceries(groceryLogs);
-
-                GroceryDatabase groceryDatabase = GroceryDatabase.GetInstance();
-
-                foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceryModels)
-                    numberOfGrocery.Grocery = await groceryDatabase.GetGroceryAsync(numberOfGrocery.Grocery.GroceryID);
-
+                LogModelDAO log = await connection.GetAsync<LogModelDAO>(logID);
                 return log;
             }
             catch (InvalidOperationException ioe)
             {
+                Debug.WriteLine(ioe.StackTrace);
                 Debug.WriteLine(ioe.Message);
                 return null;
             }
@@ -219,84 +116,67 @@ namespace DiabetesContolApp.Persistence
 
         }
 
-        async public Task<int> UpdateLogAsync(LogModel log)
+        /// <summary>
+        /// Gets all LogDAOs from the database.
+        /// </summary>
+        /// <returns>List of LogDAOs, might be empty.</returns>
+        async public Task<List<LogModelDAO>> GetAllLogsAsync()
         {
-            List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().Where(e => e.LogID == log.LogID).ToListAsync();
-
-            foreach (GroceryLogModel groceryLog in groceryLogs)
-                await connection.DeleteAsync(groceryLog); //Delete the prevoius GroceryLog entris for the log
-
-            //Insert the updated grocery list for the log
-            await connection.InsertAllAsync(GroceryLogModel.GetGroceryLogs(log.NumberOfGroceryModels, log.LogID));
-
-
-            return await connection.UpdateAsync(log);
-        }
-
-        async public Task<List<LogModel>> GetLogsAsync(DateTime? dateTime = null)
-        {
-            var logs = await connection.Table<LogModel>().ToListAsync();
-
-            if (dateTime == null)
-                return logs;
-
-            //This is safe since we will not get past the
-            //if-statment above if dateTime is null
-            DateTime dateTimeNotNull = (DateTime)dateTime;
-
-            List<LogModel> temp = new();
-
-            foreach (LogModel log in logs)
-                if (log.DateTimeValue.Date.Equals(dateTimeNotNull.Date))
-                    temp.Add(log);
-
-            logs = temp;
-
-            for (int i = 0; i < logs.Count; ++i)
-                logs[i] = await GetLogAsync(logs[i].LogID);
-
-            return logs;
+            try
+            {
+                return await connection.Table<LogModelDAO>().ToListAsync();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return new();
+            }
         }
 
         /// <summary>
-        /// This method deletes a log based on its ID,
-        /// it also deletes all the groceryLog entries it is
-        /// connected to first.Then it removes it's connection
-        /// to it's reminder and deletes the reminder, and lastly
-        /// delete itself.
+        /// Updates the given log by it's ID
         /// </summary>
-        /// <param name="logID">int (logID), the ID of the log to be deleted</param>
-        /// <returns>int (logID), the ID of the log to be deleted</returns>
+        /// <param name="log"></param>
+        /// <returns>int, the number of rows updated, -1 if an error occured.</returns>
+        async public Task<int> UpdateLogAsync(LogModelDAO log)
+        {
+            try
+            {
+                return await connection.UpdateAsync(log);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return -1;
+            }
+        }
+
+        /// <summary>
+        /// This method deletes a LogDAO based on it's ID.
+        /// </summary>
+        /// <param name="logID"></param>
+        /// <returns>int, the number of rows deleted, -1 if an error occured.</returns>
         async public Task<int> DeleteLogAsync(int logID)
         {
-            List<GroceryLogModel> groceryLogs = await connection.Table<GroceryLogModel>().ToListAsync();
-
-            foreach (GroceryLogModel groceryLog in groceryLogs)
-                if (groceryLog.LogID == logID)
-                    await connection.DeleteAsync(groceryLog); //Deletes all the entries in GroceryLog who are connected to the Grocery
-
-            LogModel currentLog = await GetLogAsync(logID); //Get the log in question
-
-            if (currentLog == null)
-                return 0; //The object is already deleted or never existed, zero rows deleted 
-
-            if (currentLog.ReminderID != -1)
+            try
             {
-                (await GetLogsAsync()).ForEach(async log =>
-                {
-                    if (log.ReminderID == currentLog.ReminderID && log.LogID != currentLog.LogID)
-                    {
-                        //Set remidnerID to invalid FK and update to avoid recursion
-                        log.ReminderID = -1;
-                        await UpdateLogAsync(log);
-                        await DeleteLogAsync(log.LogID);
-                    }
-                });
-
-                await ReminderDatabase.GetInstance().DeleteReminderAsync(currentLog.ReminderID);
+                return await connection.DeleteAsync<LogModelDAO>(logID);
             }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                return -1;
+            }
+        }
 
-            return await connection.DeleteAsync<LogModel>(logID);
+        public override string HeaderForCSVFile()
+        {
+            return "LogID,DayProfileID,ReminderID,DateTimeValue,GlucoseAtMeal,GlucoseAfterMeal,InsulinEstimate,InsulinFromUser,CorrectionInsulin\n";
+        }
+
+        public override async Task<List<IModelDAO>> GetAllAsync()
+        {
+            return new(await connection.Table<LogModelDAO>().ToListAsync());
         }
     }
 }
