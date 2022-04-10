@@ -29,7 +29,8 @@ namespace DiabetesContolApp.Service
         /// <summary>
         /// Checks if the log has a Reminder, if not it adds a new one.
         /// Then it checks if the Reminder and DayProfile attached
-        /// exisits, if so it continues. The new Log is inserted into
+        /// exisits, if so it continues. The Reminder will be updated
+        /// to match the new Log. The new Log is inserted into
         /// the database, then all GroceryLog entries in the cross table
         /// are inserted into the database.
         /// </summary>
@@ -61,8 +62,13 @@ namespace DiabetesContolApp.Service
             bool logInserted = await logRepo.InsertLogAsync(newLog); //Insert new Log
             if (!logInserted)
                 return false;
+            
             //Get the ID of the new log
             LogModel newestLog = await GetNewestLogAsync();
+
+            //We must update the reminder so that it goes of after the last log
+            newestLog.Reminder.UpdateDateTime(newestLog.DateTimeValue);
+            await reminderRepo.UpdateReminderAsync(newestLog.Reminder);
 
             newLog.LogID = newestLog.LogID; //We update the LogID to be correct
 

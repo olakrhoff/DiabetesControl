@@ -65,6 +65,17 @@ namespace DiabetesContolApp.Service
         async public void HandleRemindersAsync()
         {
             List<ReminderModel> reminders = await GetAllRemindersAsync();
+
+            foreach (ReminderModel reminder in reminders)
+            {
+                LogModel lastLog = reminder.Logs[reminder.Logs.Count - 1];
+                reminder.UpdateDateTime(lastLog.DateTimeValue);
+                await UpdateReminderAsync(reminder);
+                ReminderModel updatedReminder = await GetReminderAsync(reminder.ReminderID);
+                await updatedReminder.Handle();
+                await UpdateReminderAsync(updatedReminder);
+            }
+
             /*
             reminders[reminders.Count - 1].IsHandled = false;
             reminders[reminders.Count - 1].GlucoseAfterMeal = null;
