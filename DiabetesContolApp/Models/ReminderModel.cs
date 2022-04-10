@@ -13,10 +13,8 @@ using Xamarin.Forms.Xaml;
 
 namespace DiabetesContolApp.Models
 {
-    public class ReminderModel : IComparable<ReminderModel>, IEquatable<ReminderModel>, IModel//, INotifyPropertyChanged
+    public class ReminderModel : IComparable<ReminderModel>, IEquatable<ReminderModel>, IModel
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
         //The number of hours the reminder is sat to wait
         public static int TIME_TO_WAIT = 3;
 
@@ -96,19 +94,18 @@ namespace DiabetesContolApp.Models
             return true;
         }
 
-        /*
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }*/
-
         /// <summary>
-        /// Updates the time the reminder is finnished to
-        /// TIME_TO_WAIT number of hours from current time.
+        /// Updates the time the reminder is finished to
+        /// TIME_TO_WAIT number of hours from current time or
+        /// if a time is supplied, TIME_TO_WAIT after the given time.
         /// </summary>
-        public void UpdateDateTime()
+        /// <param name="dateTime"></param>
+        public void UpdateDateTime(DateTime? dateTime = null)
         {
-            DateTimeValue = DateTime.Now.AddHours(TIME_TO_WAIT);
+            if (dateTime == null)
+                DateTimeValue = DateTime.Now.AddHours(TIME_TO_WAIT);
+            else
+                DateTimeValue = ((DateTime)dateTime).AddHours(TIME_TO_WAIT);
         }
 
         /// <summary>
@@ -142,7 +139,6 @@ namespace DiabetesContolApp.Models
                 if (value.ToBinary() != this.DateTimeLong)
                 {
                     this.DateTimeLong = value.ToBinary();
-                    //OnPropertyChanged();
                 }
                 //If it is equal to the previous value there is no need to update it
             }

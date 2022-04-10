@@ -6,10 +6,8 @@ using DiabetesContolApp.DAO;
 
 namespace DiabetesContolApp.Models
 {
-    public class LogModel : /*INotifyPropertyChanged,*/ IComparable<LogModel>, IEquatable<LogModel>
+    public class LogModel : IComparable<LogModel>, IEquatable<LogModel>
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
         public int LogID { get; set; }
         public DayProfileModel DayProfile { get; set; }
         public ReminderModel Reminder { get; set; }
@@ -59,12 +57,6 @@ namespace DiabetesContolApp.Models
             NumberOfGroceries = numberOfGroceries != null ? numberOfGroceries : new();
         }
 
-        /*
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-        */
 
         public int CompareTo(LogModel other)
         {
@@ -89,7 +81,6 @@ namespace DiabetesContolApp.Models
                 if (value.ToBinary() != this.DateTimeLong)
                 {
                     this.DateTimeLong = value.ToBinary();
-                    //OnPropertyChanged();
                 }
                 //If it is equal to the previous value there is no need to update it
             }
@@ -118,7 +109,6 @@ namespace DiabetesContolApp.Models
                 if (value >= 0.0f && value != this._insulinEstimate)
                 {
                     this._insulinEstimate = value;
-                    //OnPropertyChanged();
                 }
                 //If value is not greater than 0 or is the same, we don't wnat to set it
             }
@@ -138,7 +128,6 @@ namespace DiabetesContolApp.Models
                 if (value >= 0.0f && value != this._insulinFromUser)
                 {
                     this._insulinFromUser = value;
-                    //OnPropertyChanged();
                 }
                 //If value is not greater than 0 or is the same, we don't want to set it
             }

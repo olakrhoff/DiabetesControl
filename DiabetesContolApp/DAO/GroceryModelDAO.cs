@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 
 using DiabetesContolApp.Models;
@@ -70,6 +71,8 @@ namespace DiabetesContolApp.DAO
                 }
                 catch (ArgumentOutOfRangeException aoore)
                 {
+                    Debug.WriteLine(aoore.StackTrace);
+                    Debug.WriteLine(aoore.Message);
                     //If an error occurs, we simply do not set the value
                     return;
                 }
@@ -97,6 +100,8 @@ namespace DiabetesContolApp.DAO
                 }
                 catch (ArgumentOutOfRangeException aoore)
                 {
+                    Debug.WriteLine(aoore.StackTrace);
+                    Debug.WriteLine(aoore.Message);
                     //If an error occurs, we simply do not set the value
                     return;
                 }
@@ -124,6 +129,8 @@ namespace DiabetesContolApp.DAO
                 }
                 catch (ArgumentOutOfRangeException aoore)
                 {
+                    Debug.WriteLine(aoore.StackTrace);
+                    Debug.WriteLine(aoore.Message);
                     //If an error occurs, we simply do not set the value
                     return;
                 }

@@ -12,6 +12,7 @@ using DiabetesContolApp.Service;
 
 using Xamarin.Forms;
 using Xamarin.Essentials;
+using System.Diagnostics;
 
 namespace DiabetesContolApp.GlobalLogic
 {
@@ -66,11 +67,15 @@ namespace DiabetesContolApp.GlobalLogic
             }
             catch (FormatException fe)
             {
+                Debug.WriteLine(fe.StackTrace);
+                Debug.WriteLine(fe.Message);
                 //Format was not valid
                 return false;
             }
             catch (Exception e)
             {
+                Debug.WriteLine(e.StackTrace);
+                Debug.WriteLine(e.Message);
                 //This should not happen, but for safety it is still here
                 return false;
             }
