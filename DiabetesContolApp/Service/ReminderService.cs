@@ -66,8 +66,12 @@ namespace DiabetesContolApp.Service
         {
             List<ReminderModel> reminders = await GetAllRemindersAsync();
 
+            /*
             foreach (ReminderModel reminder in reminders)
             {
+                if (reminder.Logs.Count > 1)
+                    Debug.WriteLine("kake");
+                reminder.Logs.Sort();
                 LogModel lastLog = reminder.Logs[reminder.Logs.Count - 1];
                 reminder.UpdateDateTime(lastLog.DateTimeValue);
                 await UpdateReminderAsync(reminder);
@@ -75,6 +79,13 @@ namespace DiabetesContolApp.Service
                 await updatedReminder.Handle();
                 await UpdateReminderAsync(updatedReminder);
             }
+
+            var logs = await (new LogService()).GetAllLogsAsync();
+
+            foreach (var log in logs)
+            {
+                Debug.WriteLine(log.Reminder.ReminderID + ": " + log.DateTimeValue + "  ||  " + log.Reminder.DateTimeValue);
+            }*/
 
             /*
             reminders[reminders.Count - 1].IsHandled = false;

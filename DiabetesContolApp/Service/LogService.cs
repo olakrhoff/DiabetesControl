@@ -178,6 +178,7 @@ namespace DiabetesContolApp.Service
             catch (Exception e)
             {
                 Debug.WriteLine(e.StackTrace);
+                Debug.WriteLine(e.Message);
                 return false;
             }
 
