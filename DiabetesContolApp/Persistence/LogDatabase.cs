@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
+using System.Diagnostics;
 
 using DiabetesContolApp.DAO;
-using DiabetesContolApp.GlobalLogic;
+using DiabetesContolApp.Persistence.Interfaces;
+
 
 using SQLite;
 using Xamarin.Forms;
-using System.Diagnostics;
-using DiabetesContolApp.Models;
 
 namespace DiabetesContolApp.Persistence
 {
-    public sealed class LogDatabase : ModelDatabaseAbstract
+    public sealed class LogDatabase : ModelDatabaseAbstract, ILogDatabase
     {
         private static LogDatabase instance = null;
 

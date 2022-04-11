@@ -33,6 +33,8 @@
 		<None Remove="Service\" />
 		<None Remove="OpenCover" />
 		<None Remove="Service\Interfaces\" />
+		<None Remove="Repository\Interfaces\" />
+		<None Remove="Persistence\Interfaces\" />
 	</ItemGroup>
 	<ItemGroup>
 		<Folder Include="Views\" />
@@ -42,6 +44,8 @@
 		<Folder Include="Repository\" />
 		<Folder Include="Service\" />
 		<Folder Include="Service\Interfaces\" />
+		<Folder Include="Repository\Interfaces\" />
+		<Folder Include="Persistence\Interfaces\" />
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Update="Views\MainTabbedPage.xaml.cs">

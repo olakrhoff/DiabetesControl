@@ -7,6 +7,8 @@ using System.Linq;
 using DiabetesContolApp.Models;
 using DiabetesContolApp.Repository;
 using DiabetesContolApp.GlobalLogic;
+using DiabetesContolApp.Service.Interfaces;
+using DiabetesContolApp.Repository.Interfaces;
 
 namespace DiabetesContolApp.Service
 {
@@ -15,15 +17,19 @@ namespace DiabetesContolApp.Service
     /// Assembeling and disassembling LogModel objects and make the
     /// appropriate calls to the respective repositories.
     /// </summary>
-    public class LogService
+    public class LogService : ILogService
     {
-        private LogRepo logRepo = new();
-        private GroceryLogRepo groceryLogRepo = new();
-        private ReminderRepo reminderRepo = new();
-        private DayProfileRepo dayProfileRepo = new();
+        private readonly ILogRepo logRepo;
+        private GroceryLogRepo groceryLogRepo;
+        private ReminderRepo reminderRepo;
+        private DayProfileRepo dayProfileRepo;
 
-        public LogService()
+        public LogService(ILogRepo logRepo = null)
         {
+            if (logRepo == null)
+                this.logRepo = new LogRepo();
+            else
+                this.logRepo = logRepo;
         }
 
         /// <summary>
@@ -38,6 +44,7 @@ namespace DiabetesContolApp.Service
         /// <returns>true if log was inserted, else false</returns>
         async public Task<bool> InsertLogAsync(LogModel newLog)
         {
+            /*
             if (newLog.Reminder == null) //Reminder did not overlap, need new Reminder
             {
                 newLog.Reminder = new();
@@ -50,6 +57,7 @@ namespace DiabetesContolApp.Service
             }
             else
             {
+                
                 ReminderModel reminder = await reminderRepo.GetReminderAsync(newLog.Reminder.ReminderID);
                 if (reminder == null)
                     return false;
@@ -58,11 +66,11 @@ namespace DiabetesContolApp.Service
                 if (dayProfile == null)
                     return false;
             }
-
+            */
             bool logInserted = await logRepo.InsertLogAsync(newLog); //Insert new Log
             if (!logInserted)
                 return false;
-            
+            /*
             //Get the ID of the new log
             LogModel newestLog = await GetNewestLogAsync();
 
@@ -83,7 +91,7 @@ namespace DiabetesContolApp.Service
                     throw new Exception("This state should not be possible");
                 return false;
             }
-
+            */
             return true;
         }
 

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using DiabetesContolApp.Service;
 using DiabetesContolApp.Repository;
+using DiabetesContolApp.Repository.Interfaces;
 using DiabetesContolApp.Models;
 
 namespace Tests
@@ -15,14 +16,16 @@ namespace Tests
     [TestFixture]
     public class LogServiceTest
     {
-        private LogService logService;
-        private Mock<LogRepo> logRepo;
+        private LogService _logService;
+        private Mock<ILogRepo> _logRepo;
 
         [SetUp]
         public void Setup()
         {
-            logRepo = new();
-            logService = new();
+            _logRepo = new();
+            Task<bool> returnValue = It.IsAny<Task<bool>>();
+            _logRepo.Setup(r => r.InsertLogAsync(It.IsAny<LogModel>())).Returns(Task.FromResult(true));
+            _logService = new(_logRepo.Object);
         }
 
         [Test]
@@ -35,17 +38,25 @@ namespace Tests
 
                 LogModel newLog = new(dayProfile, new(), DateTime.Now, 5.6f, 5.5f, 5.4f, numberOfGroceries);
 
-                bool result = await logService.InsertLogAsync(newLog);
+                bool result = await _logService.InsertLogAsync(newLog);
 
-                Assert.AreEqual(result, true);
+                Assert.AreEqual(true, result);
+                return;
+            }
+            catch (NullReferenceException nre)
+            {
+                Console.WriteLine("Error in test");
+                Console.WriteLine(nre.StackTrace);
+                Console.WriteLine(nre.Message);
+                Assert.Fail();
             }
             catch (Exception e)
             {
-                Debug.WriteLine(e.StackTrace);
-                Debug.WriteLine(e.Message);
+                Console.WriteLine("Error in test");
+                Console.WriteLine(e.StackTrace);
+                Console.WriteLine(e.Message);
                 Assert.Fail();
             }
-
         }
     }
 }
