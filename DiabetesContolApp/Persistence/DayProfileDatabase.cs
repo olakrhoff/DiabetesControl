@@ -33,7 +33,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                return await connection.GetAsync<DayProfileModelDAO>(dayProfileID);
+                return await _connection.GetAsync<DayProfileModelDAO>(dayProfileID);
             }
             catch (Exception e)
             {
@@ -49,7 +49,7 @@ namespace DiabetesContolApp.Persistence
         /// <returns>Returns a list of DayProfileDAOs.</returns>
         async public Task<List<DayProfileModelDAO>> GetAllDayProfilesAsync()
         {
-            return await connection.Table<DayProfileModelDAO>().ToListAsync();
+            return await _connection.Table<DayProfileModelDAO>().ToListAsync();
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace DiabetesContolApp.Persistence
         /// <returns>int, number of rows added.</returns>
         async public Task<int> InsertDayProfileAsync(DayProfileModelDAO dayProfile)
         {
-            return await connection.InsertAsync(dayProfile);
+            return await _connection.InsertAsync(dayProfile);
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace DiabetesContolApp.Persistence
         /// <returns>int, number of rows updated.</returns>
         async public Task<int> UpdateDayProfileAsync(DayProfileModelDAO dayProfile)
         {
-            return await connection.UpdateAsync(dayProfile);
+            return await _connection.UpdateAsync(dayProfile);
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace DiabetesContolApp.Persistence
         /// <returns>int, number of row deleted.</returns>
         async public Task<int> DeleteDayProfileAsync(int dayProfileID)
         {
-            return await connection.DeleteAsync<DayProfileModelDAO>(dayProfileID);
+            return await _connection.DeleteAsync<DayProfileModelDAO>(dayProfileID);
         }
 
         public override string HeaderForCSVFile()
@@ -89,7 +89,7 @@ namespace DiabetesContolApp.Persistence
 
         async public override Task<List<IModelDAO>> GetAllAsync()
         {
-            return new(await connection.Table<DayProfileModelDAO>().ToListAsync());
+            return new(await _connection.Table<DayProfileModelDAO>().ToListAsync());
         }
     }
 }

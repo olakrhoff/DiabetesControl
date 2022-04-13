@@ -14,15 +14,15 @@ namespace DiabetesContolApp.Persistence
 {
     public sealed class LogDatabase : ModelDatabaseAbstract, ILogDatabase
     {
-        private static LogDatabase instance = null;
+        private static readonly LogDatabase _instance = null;
 
-        public LogDatabase()
+        public LogDatabase(SQLiteAsyncConnection connection = null) : base(connection)
         {
         }
 
         public static LogDatabase GetInstance()
         {
-            return instance == null ? new LogDatabase() : instance;
+            return _instance == null ? new LogDatabase() : _instance;
         }
 
 
@@ -35,7 +35,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                return await connection.InsertAsync(newLog);
+                return await _connection.InsertAsync(newLog);
             }
             catch (Exception e)
             {
@@ -53,7 +53,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                return await connection.Table<LogModelDAO>().Where(logDAO => logDAO.DayProfileID == dayProfileID).ToListAsync();
+                return await _connection.Table<LogModelDAO>().Where(logDAO => logDAO.DayProfileID == dayProfileID).ToListAsync();
             }
             catch (Exception e)
             {
@@ -75,7 +75,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                List<LogModelDAO> logDAOs = await connection.Table<LogModelDAO>().Where(log => log.ReminderID == reminderID).ToListAsync();
+                List<LogModelDAO> logDAOs = await _connection.Table<LogModelDAO>().Where(log => log.ReminderID == reminderID).ToListAsync();
                 return logDAOs;
             }
             catch (Exception e)
@@ -97,7 +97,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                LogModelDAO log = await connection.GetAsync<LogModelDAO>(logID);
+                LogModelDAO log = await _connection.GetAsync<LogModelDAO>(logID);
                 return log;
             }
             catch (InvalidOperationException ioe)
@@ -123,7 +123,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                return await connection.Table<LogModelDAO>().ToListAsync();
+                return await _connection.Table<LogModelDAO>().ToListAsync();
             }
             catch (Exception e)
             {
@@ -141,7 +141,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                return await connection.UpdateAsync(log);
+                return await _connection.UpdateAsync(log);
             }
             catch (Exception e)
             {
@@ -159,7 +159,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                return await connection.DeleteAsync<LogModelDAO>(logID);
+                return await _connection.DeleteAsync<LogModelDAO>(logID);
             }
             catch (Exception e)
             {
@@ -175,7 +175,7 @@ namespace DiabetesContolApp.Persistence
 
         public override async Task<List<IModelDAO>> GetAllAsync()
         {
-            return new(await connection.Table<LogModelDAO>().ToListAsync());
+            return new(await _connection.Table<LogModelDAO>().ToListAsync());
         }
     }
 }

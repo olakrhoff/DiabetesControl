@@ -28,19 +28,19 @@ namespace DiabetesContolApp.Persistence
         /// <returns>int, the number of rows inserted, if an error occurs, then zero is added</returns>
         async public Task<int> InsertAllGroceryLogsAsync(List<GroceryLogModelDAO> groceryLogs)
         {
-            int rowsAdded = await connection.InsertAllAsync(groceryLogs);
+            int rowsAdded = await _connection.InsertAllAsync(groceryLogs);
 
             if (rowsAdded == groceryLogs.Count)
                 return rowsAdded;
 
             //One or more elements was not added
 
-            List<GroceryLogModelDAO> allGroceryLogs = await connection.Table<GroceryLogModelDAO>().ToListAsync();
+            List<GroceryLogModelDAO> allGroceryLogs = await _connection.Table<GroceryLogModelDAO>().ToListAsync();
 
             List<GroceryLogModelDAO> addedNow = allGroceryLogs.GetRange(allGroceryLogs.Count - rowsAdded - 1, rowsAdded);
 
             foreach (GroceryLogModelDAO groceryLog in addedNow)
-                await connection.DeleteAsync(groceryLog);
+                await _connection.DeleteAsync(groceryLog);
 
             return 0;
         }
@@ -54,12 +54,12 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                List<GroceryLogModelDAO> groceryLogsWithLogID = await connection.Table<GroceryLogModelDAO>().Where(groceryLog => groceryLog.LogID == logID).ToListAsync();
+                List<GroceryLogModelDAO> groceryLogsWithLogID = await _connection.Table<GroceryLogModelDAO>().Where(groceryLog => groceryLog.LogID == logID).ToListAsync();
 
                 int rowsDeleted = 0;
 
                 foreach (GroceryLogModelDAO groceryLog in groceryLogsWithLogID)
-                    rowsDeleted += await connection.DeleteAsync(groceryLog);
+                    rowsDeleted += await _connection.DeleteAsync(groceryLog);
 
                 return rowsDeleted;
             }
@@ -79,12 +79,12 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                List<GroceryLogModelDAO> groceryLogsWithLogID = await connection.Table<GroceryLogModelDAO>().Where(groceryLog => groceryLog.GroceryID == groceryID).ToListAsync();
+                List<GroceryLogModelDAO> groceryLogsWithLogID = await _connection.Table<GroceryLogModelDAO>().Where(groceryLog => groceryLog.GroceryID == groceryID).ToListAsync();
 
                 int rowsDeleted = 0;
 
                 foreach (GroceryLogModelDAO groceryLog in groceryLogsWithLogID)
-                    rowsDeleted += await connection.DeleteAsync(groceryLog);
+                    rowsDeleted += await _connection.DeleteAsync(groceryLog);
 
                 return rowsDeleted;
             }
@@ -102,7 +102,7 @@ namespace DiabetesContolApp.Persistence
         /// <returns>List of GroceryLogModelDAOs with the given Grocery ID.</returns>
         async public Task<List<GroceryLogModelDAO>> GetAllGroceryLogsWithGroceryID(int groceryID)
         {
-            List<GroceryLogModelDAO> groceryLogDAOsWithGroceryID = await connection.Table<GroceryLogModelDAO>().Where(groceryLogDAO => groceryLogDAO.GroceryID == groceryID).ToListAsync();
+            List<GroceryLogModelDAO> groceryLogDAOsWithGroceryID = await _connection.Table<GroceryLogModelDAO>().Where(groceryLogDAO => groceryLogDAO.GroceryID == groceryID).ToListAsync();
             if (groceryLogDAOsWithGroceryID == null)
                 return new List<GroceryLogModelDAO>();
             return groceryLogDAOsWithGroceryID;
@@ -115,7 +115,7 @@ namespace DiabetesContolApp.Persistence
         /// <returns>If no elements was found return empty list, else list of elements found</returns>
         async public Task<List<GroceryLogModelDAO>> GetAllGroceryLogsWithLogID(int logID)
         {
-            List<GroceryLogModelDAO> groceryLogDAOsWithLogID = await connection.Table<GroceryLogModelDAO>().Where(groceryLogDAO => groceryLogDAO.LogID == logID).ToListAsync();
+            List<GroceryLogModelDAO> groceryLogDAOsWithLogID = await _connection.Table<GroceryLogModelDAO>().Where(groceryLogDAO => groceryLogDAO.LogID == logID).ToListAsync();
             if (groceryLogDAOsWithLogID == null)
                 return new List<GroceryLogModelDAO>();
             return groceryLogDAOsWithLogID;
@@ -128,7 +128,7 @@ namespace DiabetesContolApp.Persistence
 
         async public override Task<List<IModelDAO>> GetAllAsync()
         {
-            return new(await connection.Table<GroceryLogModelDAO>().ToListAsync());
+            return new(await _connection.Table<GroceryLogModelDAO>().ToListAsync());
         }
     }
 }

@@ -32,7 +32,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                List<ScalarModelDAO> scalarDAOs = await connection.Table<ScalarModelDAO>().Where(scalarDAO => scalarDAO.TypeOfScalar == type && scalarDAO.ScalarObjectID == objectID).ToListAsync();
+                List<ScalarModelDAO> scalarDAOs = await _connection.Table<ScalarModelDAO>().Where(scalarDAO => scalarDAO.TypeOfScalar == type && scalarDAO.ScalarObjectID == objectID).ToListAsync();
                 return scalarDAOs;
             }
             catch (Exception e)
@@ -51,7 +51,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                return await connection.UpdateAsync(scalarDAO);
+                return await _connection.UpdateAsync(scalarDAO);
             }
             catch (Exception e)
             {
@@ -70,7 +70,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                List<ScalarModelDAO> scalarDAOs = await connection.Table<ScalarModelDAO>().Where(scalar => scalar.TypeOfScalar == type).ToListAsync();
+                List<ScalarModelDAO> scalarDAOs = await _connection.Table<ScalarModelDAO>().Where(scalar => scalar.TypeOfScalar == type).ToListAsync();
                 return scalarDAOs;
             }
             catch (Exception e)
@@ -89,7 +89,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                return await connection.InsertAsync(newScalarDAO);
+                return await _connection.InsertAsync(newScalarDAO);
             }
             catch (Exception e)
             {
@@ -107,7 +107,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                return await connection.GetAsync<ScalarModelDAO>(scalarID);
+                return await _connection.GetAsync<ScalarModelDAO>(scalarID);
             }
             catch (Exception e)
             {
@@ -124,7 +124,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                return await connection.Table<ScalarModelDAO>().ToListAsync();
+                return await _connection.Table<ScalarModelDAO>().ToListAsync();
             }
             catch (Exception e)
             {

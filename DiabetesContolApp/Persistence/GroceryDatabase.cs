@@ -30,7 +30,7 @@ namespace DiabetesContolApp.Persistence
         /// <returns>int, number of rows added.</returns>
         async public Task<int> InsertGroceryAsync(GroceryModelDAO newGrocery)
         {
-            return await connection.InsertAsync(newGrocery);
+            return await _connection.InsertAsync(newGrocery);
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                GroceryModelDAO groceryDAO = await connection.GetAsync<GroceryModelDAO>(groceryID);
+                GroceryModelDAO groceryDAO = await _connection.GetAsync<GroceryModelDAO>(groceryID);
                 return groceryDAO;
             }
             catch (Exception e)
@@ -58,7 +58,7 @@ namespace DiabetesContolApp.Persistence
         /// <returns>Return a List of GroceryDAO objects.</returns>
         async public Task<List<GroceryModelDAO>> GetGroceriesAsync()
         {
-            List<GroceryModelDAO> groceriesDAO = await connection.Table<GroceryModelDAO>().ToListAsync();
+            List<GroceryModelDAO> groceriesDAO = await _connection.Table<GroceryModelDAO>().ToListAsync();
 
             if (groceriesDAO == null)
                 return new();
@@ -73,7 +73,7 @@ namespace DiabetesContolApp.Persistence
         /// <returns>Returns the number of rows updated.</returns>
         async public Task<int> UpdateGroceryAsync(GroceryModelDAO grocery)
         {
-            return await connection.UpdateAsync(grocery);
+            return await _connection.UpdateAsync(grocery);
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace DiabetesContolApp.Persistence
         /// <returns>int, number of rows delete.</returns>
         async public Task<int> DeleteGroceryAsync(int groceryID)
         {
-            return await connection.DeleteAsync<GroceryModelDAO>(groceryID);
+            return await _connection.DeleteAsync<GroceryModelDAO>(groceryID);
         }
 
         public override string HeaderForCSVFile()
@@ -94,7 +94,7 @@ namespace DiabetesContolApp.Persistence
 
         async public override Task<List<IModelDAO>> GetAllAsync()
         {
-            return new(await connection.Table<GroceryModelDAO>().ToListAsync());
+            return new(await _connection.Table<GroceryModelDAO>().ToListAsync());
         }
     }
 }

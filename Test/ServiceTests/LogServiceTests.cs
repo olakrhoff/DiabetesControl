@@ -7,9 +7,14 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Moq;
 
+using DiabetesContolApp.Persistence;
 using DiabetesContolApp.Repository;
 using DiabetesContolApp.Service;
 using DiabetesContolApp.Models;
+
+using Xamarin.Forms;
+using SQLite;
+using System.IO;
 
 namespace Test.ServiceTests
 {
@@ -23,40 +28,31 @@ namespace Test.ServiceTests
         [SetUp]
         public void Setup()
         {
+            Xamarin.Forms.Forms.Init();
             logRepo = new();
-            logService = new();
+
+            var documentPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            var path = Path.Combine(documentPath, "MySQLite.db");
+
+            SQLiteAsyncConnection connection = new(path);
+            logService = new(new LogRepo(new LogDatabase()), connection);
         }
 
         [Test]
-        public void Pass()
-        {
-            Assert.True(true);
-        }
-
-        [Test]
-        public void Fail()
-        {
-            Assert.False(true);
-        }
-
-        [Test]
-        [Ignore("another time")]
-        public void Ignore()
-        {
-            Assert.True(false);
-        }
-
-        [Test]
-        async public Task InsertLog_ValidLog_ReturnTrue()
+        public void InsertLog_ValidLog_ReturnTrue()
         {
             try
             {
-                DayProfileModel dayProfile = new();
-                List<NumberOfGroceryModel> numberOfGroceries = new List<NumberOfGroceryModel> { new(0, new(), 0), new(0, new(), 0) };
+                bool result = Task.Run(async () =>
+                {
+                    DayProfileModel dayProfile = new();
+                    List<NumberOfGroceryModel> numberOfGroceries = new List<NumberOfGroceryModel> { new(0, new(), 0), new(0, new(), 0) };
 
-                LogModel newLog = new(dayProfile, new(), DateTime.Now, 5.6f, 5.5f, 5.4f, numberOfGroceries);
+                    LogModel newLog = new(dayProfile, new(), DateTime.Now, 5.6f, 5.5f, 5.4f, numberOfGroceries);
 
-                bool result = await logService.InsertLogAsync(newLog);
+                    return await logService.InsertLogAsync(newLog);
+                }).GetAwaiter().GetResult();
+                
 
                 Assert.AreEqual(result, true);
             }

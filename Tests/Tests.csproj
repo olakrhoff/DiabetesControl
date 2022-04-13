@@ -17,11 +17,15 @@
     <PackageReference Include="NUnit3TestAdapter" Version="3.16.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="Moq" Version="4.17.2" />
+    <PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
+    <PackageReference Include="SQLiteNetExtensions" Version="2.1.0" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="ServiceTests\" />
     <None Remove="Moq" />
+    <None Remove="sqlite-net-pcl" />
+    <None Remove="SQLiteNetExtensions" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ServiceTests\" />
