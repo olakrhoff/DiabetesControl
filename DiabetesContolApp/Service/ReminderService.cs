@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Linq;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.Repository;
@@ -69,17 +70,19 @@ namespace DiabetesContolApp.Service
             /*
             foreach (ReminderModel reminder in reminders)
             {
-                if (reminder.Logs.Count > 1)
-                    Debug.WriteLine("kake");
-                reminder.Logs.Sort();
-                LogModel lastLog = reminder.Logs[reminder.Logs.Count - 1];
-                reminder.UpdateDateTime(lastLog.DateTimeValue);
-                await UpdateReminderAsync(reminder);
-                ReminderModel updatedReminder = await GetReminderAsync(reminder.ReminderID);
-                await updatedReminder.Handle();
-                await UpdateReminderAsync(updatedReminder);
+                if (reminder.GlucoseAfterMeal == -1.0f || reminder.GlucoseAfterMeal == null)
+                    continue;
+                bool unhandeld = reminder.Logs.Any(log => log.GlucoseAfterMeal == null);
+                if (unhandeld)
+                {
+                    await reminder.Handle();
+                    ReminderModel updatedReminder = await GetReminderAsync(reminder.ReminderID);
+                    Debug.WriteLine("Remidner updeted: " + reminder.ReminderID);
+                }
             }
-
+            Debug.WriteLine("DONE");
+            */
+            /*
             var logs = await (new LogService()).GetAllLogsAsync();
 
             foreach (var log in logs)
@@ -149,8 +152,7 @@ namespace DiabetesContolApp.Service
             List<ReminderModel> unhandledReminders = await GetAllUnhandledRemindersAsync();
 
             foreach (ReminderModel reminder in unhandledReminders)
-                if (await reminder.Handle())
-                    await UpdateReminderAsync(reminder);
+                await reminder.Handle(); //Handle runs algorithm which updates the reminder.
         }
 
         /// <summary>
