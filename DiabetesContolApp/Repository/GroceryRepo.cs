@@ -5,10 +5,11 @@ using System.Threading.Tasks;
 using DiabetesContolApp.Models;
 using DiabetesContolApp.DAO;
 using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Repository.Interfaces;
 
 namespace DiabetesContolApp.Repository
 {
-    public class GroceryRepo
+    public class GroceryRepo : IGroceryRepo
     {
         private GroceryDatabase groceryDatabase = GroceryDatabase.GetInstance();
 
@@ -19,7 +20,7 @@ namespace DiabetesContolApp.Repository
         /// <summary>
         /// Gets all the groceryDAOs and converts them into GroceryModels
         /// </summary>
-        /// <returns>List of GroceryModels.</returns>
+        /// <returns>List of GroceryModels, might be empty.</returns>
         async public Task<List<GroceryModel>> GetAllGroceriesAsync()
         {
             List<GroceryModelDAO> groceriesDAO = await groceryDatabase.GetGroceriesAsync();
@@ -63,10 +64,10 @@ namespace DiabetesContolApp.Repository
         /// object in the database.
         /// </summary>
         /// <param name="groceryID"></param>
-        /// <returns>True if delete, else false</returns>
+        /// <returns>False if an error occured, else true.</returns>
         async public Task<bool> DeleteGroceryAsync(int groceryID)
         {
-            return await groceryDatabase.DeleteGroceryAsync(groceryID) > 0;
+            return await groceryDatabase.DeleteGroceryAsync(groceryID) >= 0;
         }
 
         /// <summary>

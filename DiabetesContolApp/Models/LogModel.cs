@@ -21,6 +21,8 @@ namespace DiabetesContolApp.Models
         public LogModel()
         {
             LogID = -1;
+            DayProfile = new();
+            Reminder = new();
             NumberOfGroceries = new();
             DateTimeValue = DateTime.Now;
         }
@@ -28,6 +30,10 @@ namespace DiabetesContolApp.Models
         public LogModel(int logID)
         {
             LogID = logID;
+            DayProfile = new();
+            Reminder = new();
+            NumberOfGroceries = new();
+            DateTimeValue = DateTime.Now;
         }
 
         public LogModel(LogModelDAO logDAO)

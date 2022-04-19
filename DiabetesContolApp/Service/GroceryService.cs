@@ -6,6 +6,8 @@ using System.Linq;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.Repository;
+using DiabetesContolApp.Repository.Interfaces;
+using DiabetesContolApp.Service.Interfaces;
 
 namespace DiabetesContolApp.Service
 {
@@ -14,22 +16,36 @@ namespace DiabetesContolApp.Service
     /// Assembeling and disassembling GroceryModel objects and make the
     /// appropriate calls to the respective repositories.
     /// </summary>
-    public class GroceryService
+    public class GroceryService : IGroceryService
     {
-        private GroceryRepo groceryRepo = new();
-        private GroceryLogRepo groceryLogRepo = new();
+        private readonly IGroceryRepo _groceryRepo;
+        private readonly IGroceryLogRepo _groceryLogRepo;
+        private readonly ILogRepo _logRepo;
+        private readonly IReminderRepo _reminderRepo;
+        private readonly IDayProfileRepo _dayProfileRepo;
 
-        public GroceryService()
+        public GroceryService(IGroceryRepo groceryRepo, IGroceryLogRepo groceryLogRepo, ILogRepo logRepo, IReminderRepo reminderRepo, IDayProfileRepo dayProfileRepo)
         {
+            _groceryRepo = groceryRepo;
+            _groceryLogRepo = groceryLogRepo;
+            _logRepo = logRepo;
+            _reminderRepo = reminderRepo;
+            _dayProfileRepo = dayProfileRepo;
         }
+
+        public static GroceryService GetGroceryService()
+        {
+            return new GroceryService(new GroceryRepo(), new GroceryLogRepo(), new LogRepo(), new ReminderRepo(), new DayProfileRepo());
+        }
+
 
         /// <summary>
         /// Gets all GroceryModels.
         /// </summary>
-        /// <returns>List of GroceryModels.</returns>
+        /// <returns>List of GroceryModels, might be empty.</returns>
         async public Task<List<GroceryModel>> GetAllGroceriesAsync()
         {
-            return await groceryRepo.GetAllGroceriesAsync();
+            return await _groceryRepo.GetAllGroceriesAsync();
         }
 
         /// <summary>
@@ -39,7 +55,7 @@ namespace DiabetesContolApp.Service
         /// <returns>Returns true if it was inserted, else false.</returns>
         async public Task<bool> InsertGroceryAsync(GroceryModel newGrocery)
         {
-            return await groceryRepo.InsertGroceryAsync(newGrocery);
+            return await _groceryRepo.InsertGroceryAsync(newGrocery);
         }
 
         /// <summary>
@@ -49,7 +65,7 @@ namespace DiabetesContolApp.Service
         /// <returns>True if it was updated, else false.</returns>
         async public Task<bool> UpdateGroceryAsync(GroceryModel grocery)
         {
-            return await groceryRepo.UpdateGroceryAsync(grocery);
+            return await _groceryRepo.UpdateGroceryAsync(grocery);
         }
 
         /// <summary>
@@ -60,18 +76,17 @@ namespace DiabetesContolApp.Service
         /// <returns>True if deleted, else false</returns>
         async public Task<bool> DeleteGroceryAsync(int groceryID)
         {
-            List<GroceryLogModel> groceryLogsWithGroceryID = await groceryLogRepo.GetAllGroceryLogsWithGroceryID(groceryID);
+            List<GroceryLogModel> groceryLogsWithGroceryID = await _groceryLogRepo.GetAllGroceryLogsWithGroceryID(groceryID);
 
             List<int> logIDs = groceryLogsWithGroceryID.Select(log => log.Log.LogID).ToList();
 
-            //TODO: Should have some safety code here to handle these deletions failing.
-            await groceryLogRepo.DeleteAllGroceryLogsWithGroceryIDAsync(groceryID); //Deletes all entries in cross table
+            await _groceryLogRepo.DeleteAllGroceryLogsWithGroceryIDAsync(groceryID); //Deletes all entries in cross table
 
-            LogService logService = LogService.GetLogService();
+            LogService logService = new(_logRepo, _groceryLogRepo, _reminderRepo, _dayProfileRepo);
             await logService.DeleteAllLogsAsync(logIDs); //Deletes all logs
 
 
-            return await groceryRepo.DeleteGroceryAsync(groceryID);
+            return await _groceryRepo.DeleteGroceryAsync(groceryID);
         }
 
         /// <summary>
@@ -81,7 +96,7 @@ namespace DiabetesContolApp.Service
         /// <returns>GroceryModel with the given ID, or null if not found.</returns>
         async public Task<GroceryModel> GetGroceryAsync(int groceryID)
         {
-            return await groceryRepo.GetGroceryAsync(groceryID);
+            return await _groceryRepo.GetGroceryAsync(groceryID);
         }
     }
 }

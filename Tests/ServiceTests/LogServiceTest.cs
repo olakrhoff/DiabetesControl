@@ -18,14 +18,28 @@ namespace Tests
     {
         private LogService _logService;
         private Mock<ILogRepo> _logRepo;
+        private Mock<IGroceryLogRepo> _grocerLogRepo;
+        private Mock<IReminderRepo> _reminderRepo;
+        private Mock<IDayProfileRepo> _dayProfileRepo;
 
         [SetUp]
         public void Setup()
         {
             _logRepo = new();
+            _grocerLogRepo = new();
+            _reminderRepo = new();
+            _dayProfileRepo = new();
+
             Task<bool> returnValue = It.IsAny<Task<bool>>();
             _logRepo.Setup(r => r.InsertLogAsync(It.IsAny<LogModel>())).Returns(Task.FromResult(true));
-            _logService = new(_logRepo.Object);
+            _logRepo.Setup(r => r.GetAllLogsAsync()).Returns(Task.FromResult(new List<LogModel>() { new LogModel() }));
+            _logRepo.Setup(r => r.GetLogAsync(It.IsAny<int>())).Returns(Task.FromResult(new LogModel()));
+            _grocerLogRepo.Setup(r => r.GetAllGroceryLogsWithLogID(It.IsAny<int>())).Returns(Task.FromResult(new List<GroceryLogModel>()));
+            _grocerLogRepo.Setup(r => r.InsertAllGroceryLogsAsync(It.IsAny<List<GroceryLogModel>>(), It.IsAny<int>())).Returns(Task.FromResult(true));
+            _reminderRepo.Setup(r => r.GetReminderAsync(It.IsAny<int>())).Returns(Task.FromResult(new ReminderModel()));
+            _dayProfileRepo.Setup(r => r.GetDayProfileAsync(It.IsAny<int>())).Returns(Task.FromResult(new DayProfileModel()));
+
+            _logService = new(_logRepo.Object, _grocerLogRepo.Object, _reminderRepo.Object, _dayProfileRepo.Object);
         }
 
         [Test]

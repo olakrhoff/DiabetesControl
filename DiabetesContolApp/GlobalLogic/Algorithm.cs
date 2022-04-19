@@ -465,7 +465,7 @@ namespace DiabetesContolApp.GlobalLogic
         {
             try
             {
-                GroceryService groceryService = new();
+                GroceryService groceryService = GroceryService.GetGroceryService();
                 //Get current grocery
                 GroceryModel currentGrocery = await groceryService.GetGroceryAsync(groceryID);
 

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.Repository;
+using DiabetesContolApp.Repository.Interfaces;
 
 namespace DiabetesContolApp.Service
 {
@@ -14,11 +15,18 @@ namespace DiabetesContolApp.Service
     /// </summary>
     public class GroceryLogService
     {
-        private GroceryLogRepo groceryLogRepo = new();
-        private GroceryRepo groceryRepo = new();
+        private readonly IGroceryLogRepo _groceryLogRepo;
+        private readonly IGroceryRepo _groceryRepo;
 
-        public GroceryLogService()
+        public GroceryLogService(IGroceryLogRepo groceryLogRepo, IGroceryRepo groceryRepo)
         {
+            _groceryLogRepo = groceryLogRepo;
+            _groceryRepo = groceryRepo;
+        }
+
+        public static GroceryLogService GetGroceryLogService()
+        {
+            return new GroceryLogService(new GroceryLogRepo(), new GroceryRepo());
         }
 
 
@@ -32,7 +40,7 @@ namespace DiabetesContolApp.Service
         async public Task<List<NumberOfGroceryModel>> GetAllGroceryLogsAsNumberOfGroceryWithLogID(int logID)
         {
             //List<NumberOfGroceryModel> numberOfGroceries = await groceryLogRepo.GetAllGroceryLogsWithLogID(logID);
-            List<GroceryLogModel> groceryLogs = await groceryLogRepo.GetAllGroceryLogsWithLogID(logID);
+            List<GroceryLogModel> groceryLogs = await _groceryLogRepo.GetAllGroceryLogsWithLogID(logID);
 
             List<NumberOfGroceryModel> numberOfGroceries = new();
 
@@ -41,7 +49,7 @@ namespace DiabetesContolApp.Service
 
             //TODO: If grocery is not found the Log might be corrupt, consider deleting the log in this case.
             foreach (NumberOfGroceryModel numberOfGrocery in numberOfGroceries)
-                numberOfGrocery.Grocery = await groceryRepo.GetGroceryAsync(numberOfGrocery.Grocery.GroceryID);
+                numberOfGrocery.Grocery = await _groceryRepo.GetGroceryAsync(numberOfGrocery.Grocery.GroceryID);
 
             return numberOfGroceries;
         }

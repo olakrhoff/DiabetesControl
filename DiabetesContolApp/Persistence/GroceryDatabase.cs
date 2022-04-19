@@ -81,10 +81,19 @@ namespace DiabetesContolApp.Persistence
         /// with the provided ID.
         /// </summary>
         /// <param name="groceryID"></param>
-        /// <returns>int, number of rows delete.</returns>
+        /// <returns>int, number of rows delete, -1 if an error occured.</returns>
         async public Task<int> DeleteGroceryAsync(int groceryID)
         {
-            return await _connection.DeleteAsync<GroceryModelDAO>(groceryID);
+            try
+            {
+                return await _connection.DeleteAsync<GroceryModelDAO>(groceryID);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+                Debug.WriteLine(e.Message);
+                return -1;
+            }
         }
 
         public override string HeaderForCSVFile()

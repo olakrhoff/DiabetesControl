@@ -17,7 +17,7 @@ namespace DiabetesContolApp.Views
     {
         public ObservableCollection<GroceryModel> Groceries { get; set; }
 
-        private GroceryService groceryService = new();
+        private GroceryService groceryService = GroceryService.GetGroceryService();
 
         public GroceryPage()
         {

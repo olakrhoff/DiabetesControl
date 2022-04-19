@@ -304,9 +304,8 @@ namespace DiabetesContolApp.Service
                 return null;
             }
 
-            GroceryLogService groceryLogService = new();
             //Get all NumberOfGrocery with Grocery objects attached
-            log.NumberOfGroceries = await groceryLogService.GetAllGroceryLogsAsNumberOfGroceryWithLogID(log.LogID);
+            log.NumberOfGroceries = (await _groceryLogRepo.GetAllGroceryLogsWithLogID(log.LogID)).ConvertAll(g => new NumberOfGroceryModel(g));
 
 
             //TODO: ---------- TEMP ---------- 
