@@ -6,6 +6,7 @@ using System.Linq;
 using DiabetesContolApp.Models;
 using DiabetesContolApp.Repository;
 using DiabetesContolApp.Repository.Interfaces;
+using DiabetesContolApp.Service.Interfaces;
 
 namespace DiabetesContolApp.Service
 {
@@ -14,7 +15,7 @@ namespace DiabetesContolApp.Service
     /// Assembeling and disassembling DayProfileModel objects and make the
     /// appropriate calls to the respective repositories.
     /// </summary>
-    public class DayProfileService
+    public class DayProfileService : IDayProfileService
     {
         private readonly IDayProfileRepo _dayProfileRepo;
         private readonly ILogRepo _logRepo;
