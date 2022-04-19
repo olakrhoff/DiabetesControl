@@ -283,7 +283,7 @@ namespace DiabetesContolApp.Service
                 //we remove the error for now, by adding a dayprofile and a reminder,
                 //then after the delete call is finsihed, we delete these again.
 
-                DayProfileService dayProfileService = new();
+                DayProfileService dayProfileService = DayProfileService.GetDayProfileService();
                 int fakeDayProfileID = await dayProfileService.InsertDayProfileAsync(new());
 
                 ReminderService reminderService = new();

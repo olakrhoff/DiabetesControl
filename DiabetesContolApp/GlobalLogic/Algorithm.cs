@@ -216,7 +216,7 @@ namespace DiabetesContolApp.GlobalLogic
         {
             try
             {
-                DayProfileService dayProfileService = new();
+                DayProfileService dayProfileService = DayProfileService.GetDayProfileService();
                 DayProfileModel currentDayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
 
                 ScalarService scalarService = new();

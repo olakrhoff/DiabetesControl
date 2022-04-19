@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.Repository;
+using DiabetesContolApp.Repository.Interfaces;
 
 namespace DiabetesContolApp.Service
 {
@@ -14,10 +15,22 @@ namespace DiabetesContolApp.Service
     /// </summary>
     public class DayProfileService
     {
-        private DayProfileRepo dayProfileRepo = new();
+        private readonly IDayProfileRepo _dayProfileRepo;
+        private readonly ILogRepo _logRepo;
+        private readonly IGroceryLogRepo _groceryLogRepo;
+        private readonly IReminderRepo _reminderRepo;
 
-        public DayProfileService()
+        public DayProfileService(IDayProfileRepo dayProfileRepo, ILogRepo logRepo, IGroceryLogRepo groceryLogRepo, IReminderRepo reminderRepo)
         {
+            _dayProfileRepo = dayProfileRepo;
+            _logRepo = logRepo;
+            _groceryLogRepo = groceryLogRepo;
+            _reminderRepo = reminderRepo;
+        }
+
+        public static DayProfileService GetDayProfileService()
+        {
+            return new DayProfileService(new DayProfileRepo(), new LogRepo(), new GroceryLogRepo(), new ReminderRepo());
         }
 
         /// <summary>
@@ -26,7 +39,7 @@ namespace DiabetesContolApp.Service
         /// <returns>List of DayProfiles.</returns>
         async public Task<List<DayProfileModel>> GetAllDayProfilesAsync()
         {
-            List<DayProfileModel> dayProfiles = await dayProfileRepo.GetAllDayProfilesAsync();
+            List<DayProfileModel> dayProfiles = await _dayProfileRepo.GetAllDayProfilesAsync();
 
             for (int i = 0; i < dayProfiles.Count; ++i)
                 dayProfiles[i] = await GetDayProfileAsync(dayProfiles[i].DayProfileID);
@@ -43,10 +56,10 @@ namespace DiabetesContolApp.Service
         /// <returns>ID of new DayProfile, -1 if an error occured.</returns>
         async public Task<int> InsertDayProfileAsync(DayProfileModel newDayProfile)
         {
-            if (!await dayProfileRepo.InsertDayProfileAsync(newDayProfile))
+            if (!await _dayProfileRepo.InsertDayProfileAsync(newDayProfile))
                 return -1;
 
-            DayProfileModel newestDayProfile = await dayProfileRepo.GetNewestDayProfileAsync();
+            DayProfileModel newestDayProfile = await _dayProfileRepo.GetNewestDayProfileAsync();
 
             if (newestDayProfile == null)
                 return -1;
@@ -61,7 +74,7 @@ namespace DiabetesContolApp.Service
         /// <returns>True if updated, else false.</returns>
         async public Task<bool> UpdateDayProfileAsync(DayProfileModel dayProfile)
         {
-            return await dayProfileRepo.UpdateDayProfileAsync(dayProfile);
+            return await _dayProfileRepo.UpdateDayProfileAsync(dayProfile);
         }
 
         /// <summary>
@@ -72,11 +85,11 @@ namespace DiabetesContolApp.Service
         /// <returns>False if an error, else true</returns>
         async public Task<bool> DeleteDayProfileAsync(int dayProfileID)
         {
-            LogService logService = LogService.GetLogService();
+            LogService logService = new(_logRepo, _groceryLogRepo, _reminderRepo, _dayProfileRepo);
             //Delete all log using this day profile
             await logService.DeleteAllWithDayProfileIDAsync(dayProfileID);
 
-            return await dayProfileRepo.DeleteDayProfileAsync(dayProfileID);
+            return await _dayProfileRepo.DeleteDayProfileAsync(dayProfileID);
         }
 
         /// <summary>
@@ -86,9 +99,12 @@ namespace DiabetesContolApp.Service
         /// <returns>DayProfileModel with given ID or null if not found.</returns>
         async public Task<DayProfileModel> GetDayProfileAsync(int dayProfileID)
         {
-            DayProfileModel dayProfile = await dayProfileRepo.GetDayProfileAsync(dayProfileID);
+            DayProfileModel dayProfile = await _dayProfileRepo.GetDayProfileAsync(dayProfileID);
 
-            if (dayProfile.TargetGlucoseValue <= 0.0f) //This indicates an illegal value, might have been used as a temp value
+            if (dayProfile == null)
+                return null;
+
+            if (dayProfile.TargetGlucoseValue < 0.0f) //This indicates an illegal value, might have been used as a temp value
             {
                 await DeleteDayProfileAsync(dayProfile.DayProfileID);
                 return null;

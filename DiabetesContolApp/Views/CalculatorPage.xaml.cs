@@ -20,7 +20,7 @@ namespace DiabetesContolApp.Views
         public ObservableCollection<NumberOfGroceryModel> NumberOfGroceriesSummary { get; set; }
         private LogModel _tempLog = new();
 
-        private DayProfileService dayProfileService = new();
+        private DayProfileService dayProfileService = DayProfileService.GetDayProfileService();
         private LogService logService = LogService.GetLogService();
 
         public CalculatorPage()

@@ -41,6 +41,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>DayProfileModel with the highest ID, null if no DayProfiles exists</returns>
         async public Task<DayProfileModel> GetNewestDayProfileAsync()
         {
+            //TODO: THIS METHOD SHOULD NOT EXSIST IN REPO, MOVE TO SERVICE
             List<DayProfileModelDAO> dayProfileDAOs = await dayProfileDatabase.GetAllDayProfilesAsync();
 
             if (dayProfileDAOs.Count == 0)
