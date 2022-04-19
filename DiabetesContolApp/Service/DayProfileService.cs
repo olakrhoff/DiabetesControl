@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.Repository;
@@ -59,12 +60,28 @@ namespace DiabetesContolApp.Service
             if (!await _dayProfileRepo.InsertDayProfileAsync(newDayProfile))
                 return -1;
 
-            DayProfileModel newestDayProfile = await _dayProfileRepo.GetNewestDayProfileAsync();
+            DayProfileModel newestDayProfile = await GetNewestDayProfileAsync();
 
             if (newestDayProfile == null)
                 return -1;
 
             return newestDayProfile.DayProfileID;
+        }
+
+        /// <summary>
+        /// Gets the DayProfile with the highest ID.
+        /// </summary>
+        /// <returns>DayProfileModel with the highest ID, null if no DayProfiles exists</returns>
+        async public Task<DayProfileModel> GetNewestDayProfileAsync()
+        {
+            List<DayProfileModel> dayProfiles = await GetAllDayProfilesAsync();
+
+            if (dayProfiles.Count == 0)
+                return null;
+
+            int newestDayProfileID = dayProfiles.Max(dayprofile => dayprofile.DayProfileID);
+
+            return await GetDayProfileAsync(newestDayProfileID);
         }
 
         /// <summary>

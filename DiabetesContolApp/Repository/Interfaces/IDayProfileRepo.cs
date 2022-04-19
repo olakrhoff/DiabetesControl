@@ -11,7 +11,6 @@ namespace DiabetesContolApp.Repository.Interfaces
         Task<bool> DeleteDayProfileAsync(int fakeDayProfileID);
         Task<List<DayProfileModel>> GetAllDayProfilesAsync();
         Task<bool> InsertDayProfileAsync(DayProfileModel newDayProfile);
-        Task<DayProfileModel> GetNewestDayProfileAsync();
         Task<bool> UpdateDayProfileAsync(DayProfileModel dayProfile);
     }
 }

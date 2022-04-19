@@ -63,7 +63,8 @@ namespace Tests.ServiceTests
         {
             const int NEW_ID = 1;
             _dayProfileRepo.Setup(r => r.InsertDayProfileAsync(It.IsAny<DayProfileModel>())).Returns(Task.FromResult(true));
-            _dayProfileRepo.Setup(r => r.GetNewestDayProfileAsync()).Returns(Task.FromResult(new DayProfileModel(NEW_ID)));
+            _dayProfileRepo.Setup(r => r.GetAllDayProfilesAsync()).Returns(Task.FromResult(new List<DayProfileModel>() { new DayProfileModel(NEW_ID) }));
+            _dayProfileRepo.Setup(r => r.GetDayProfileAsync(It.IsAny<int>())).Returns((int x) => Task.FromResult(new DayProfileModel(x)));
 
             int id = await _dayProfileService.InsertDayProfileAsync(new DayProfileModel());
 
@@ -84,11 +85,32 @@ namespace Tests.ServiceTests
         async public Task InsertDayProfileAsync_WithNoNewestDayProfile_ReturnsMinusOne()
         {
             _dayProfileRepo.Setup(r => r.InsertDayProfileAsync(It.IsAny<DayProfileModel>())).Returns(Task.FromResult(true));
-            _dayProfileRepo.Setup(r => r.GetNewestDayProfileAsync()).Returns(Task.FromResult<DayProfileModel>(null));
+            _dayProfileRepo.Setup(r => r.GetAllDayProfilesAsync()).Returns(Task.FromResult(new List<DayProfileModel>()));
 
             int id = await _dayProfileService.InsertDayProfileAsync(new DayProfileModel());
 
             Assert.AreEqual(-1, id);
+        }
+
+        [Test]
+        async public Task GetNewestDayProfileAsync_WithDayProfilesExisits_ReturnsDayProfile()
+        {
+            _dayProfileRepo.Setup(r => r.GetAllDayProfilesAsync()).Returns(Task.FromResult(new List<DayProfileModel>() { new DayProfileModel() }));
+            _dayProfileRepo.Setup(r => r.GetDayProfileAsync(It.IsAny<int>())).Returns((int x) => Task.FromResult(new DayProfileModel(x)));
+
+            DayProfileModel dayProfile = await _dayProfileService.GetNewestDayProfileAsync();
+
+            Assert.NotNull(dayProfile);
+        }
+
+        [Test]
+        async public Task GetNewestDayProfileAsync_WithNoDayProfiles_ReturnsDayProfile()
+        {
+            _dayProfileRepo.Setup(r => r.GetAllDayProfilesAsync()).Returns(Task.FromResult(new List<DayProfileModel>()));
+
+            DayProfileModel dayProfile = await _dayProfileService.GetNewestDayProfileAsync();
+
+            Assert.Null(dayProfile);
         }
 
         [Test]
