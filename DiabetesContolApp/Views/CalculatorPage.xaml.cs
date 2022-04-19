@@ -21,7 +21,7 @@ namespace DiabetesContolApp.Views
         private LogModel _tempLog = new();
 
         private DayProfileService dayProfileService = new();
-        private LogService logService = new();
+        private LogService logService = LogService.GetLogService();
 
         public CalculatorPage()
         {

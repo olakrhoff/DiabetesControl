@@ -72,7 +72,7 @@ namespace DiabetesContolApp.Service
         /// <returns>False if an error, else true</returns>
         async public Task<bool> DeleteDayProfileAsync(int dayProfileID)
         {
-            LogService logService = new();
+            LogService logService = LogService.GetLogService();
             //Delete all log using this day profile
             await logService.DeleteAllWithDayProfileIDAsync(dayProfileID);
 

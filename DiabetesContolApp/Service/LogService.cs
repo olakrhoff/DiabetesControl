@@ -22,16 +22,21 @@ namespace DiabetesContolApp.Service
     public class LogService : ILogService
     {
         private readonly ILogRepo _logRepo;
-        private GroceryLogRepo _groceryLogRepo = new();
-        private ReminderRepo _reminderRepo = new();
-        private DayProfileRepo _dayProfileRepo = new();
+        private readonly IGroceryLogRepo _groceryLogRepo;
+        private readonly IReminderRepo _reminderRepo;
+        private readonly IDayProfileRepo _dayProfileRepo;
 
-        public LogService(ILogRepo logRepo = null, SQLiteAsyncConnection connection = null)
+        public LogService(ILogRepo logRepo, IGroceryLogRepo groceryLogRepo, IReminderRepo reminderRepo, IDayProfileRepo dayProfileRepo)
         {
-            if (logRepo == null)
-                this._logRepo = new LogRepo();
-            else
-                this._logRepo = logRepo;
+            _logRepo = logRepo;
+            _groceryLogRepo = groceryLogRepo;
+            _reminderRepo = reminderRepo;
+            _dayProfileRepo = dayProfileRepo;
+        }
+
+        public static LogService GetLogService()
+        {
+            return new LogService(new LogRepo(), new GroceryLogRepo(), new ReminderRepo(), new DayProfileRepo());
         }
 
         /// <summary>
@@ -58,7 +63,7 @@ namespace DiabetesContolApp.Service
             }
             else
             {
-                
+
                 ReminderModel reminder = await _reminderRepo.GetReminderAsync(newLog.Reminder.ReminderID);
                 if (reminder == null)
                     return false;
@@ -67,11 +72,11 @@ namespace DiabetesContolApp.Service
                 if (dayProfile == null)
                     return false;
             }
-            
+
             bool logInserted = await _logRepo.InsertLogAsync(newLog); //Insert new Log
             if (!logInserted)
                 return false;
-            
+
             //Get the ID of the new log
             LogModel newestLog = await GetNewestLogAsync();
 
@@ -92,7 +97,7 @@ namespace DiabetesContolApp.Service
                     throw new Exception("This state should not be possible");
                 return false;
             }
-            
+
             return true;
         }
 

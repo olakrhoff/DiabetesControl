@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Collections.Generic;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.DAO;
 using DiabetesContolApp.Persistence;
-using System.Collections.Generic;
+using DiabetesContolApp.Repository.Interfaces;
 
 namespace DiabetesContolApp.Repository
 {
-    public class DayProfileRepo
+    public class DayProfileRepo : IDayProfileRepo
     {
         private DayProfileDatabase dayProfileDatabase = DayProfileDatabase.GetInstance();
 

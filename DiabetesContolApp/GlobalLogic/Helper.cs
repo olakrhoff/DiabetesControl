@@ -128,7 +128,7 @@ namespace DiabetesContolApp.GlobalLogic
         async private static void WriteBreadToCSVFile(string filePath)
         {
             ReminderService reminderService = new();
-            LogService logService = new();
+            LogService logService = LogService.GetLogService();
 
             List<LogModel> logs = new();
 

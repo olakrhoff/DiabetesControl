@@ -67,7 +67,7 @@ namespace DiabetesContolApp.Service
             //TODO: Should have some safety code here to handle these deletions failing.
             await groceryLogRepo.DeleteAllGroceryLogsWithGroceryIDAsync(groceryID); //Deletes all entries in cross table
 
-            LogService logService = new();
+            LogService logService = LogService.GetLogService();
             await logService.DeleteAllLogsAsync(logIDs); //Deletes all logs
 
 

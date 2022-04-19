@@ -45,7 +45,7 @@ namespace DiabetesContolApp.GlobalLogic
                 Debug.WriteLine("Starting with ReminderID: " + reminder.ReminderID);
 
                 //Updates the logs to have all objects in them, since we will need them later
-                LogService logService = new();
+                LogService logService = LogService.GetLogService();
                 for (int i = 0; i < reminder.Logs.Count; ++i)
                     reminder.Logs[i] = await logService.GetLogAsync(reminder.Logs[i].LogID);
 
@@ -102,12 +102,12 @@ namespace DiabetesContolApp.GlobalLogic
             {
                 ScalarService scalarService = new();
 
-                //TODO: TEMP
-                LogModel firstLog = (await new LogService().GetAllLogsAsync()).Min();
-                //TODO: TEMP
+                LogService logService = LogService.GetLogService();
+
+                LogModel firstLog = (await logService.GetAllLogsAsync()).Min();
+
                 ScalarModel correctionScalar = await scalarService.GetNewestScalarForTypeWithObjectIDAsync(ScalarTypes.CORRECTION_INSULIN, -1, firstLog.DateTimeValue);
 
-                LogService logService = new();
                 List<LogModel> logsAfterDate = await logService.GetAllLogsAfterDateAsync(correctionScalar.DateTimeCreated);
 
                 logsAfterDate = logsAfterDate.FindAll(log => log.IsLogDataValid()); //Filter out corrupt data.
@@ -221,16 +221,16 @@ namespace DiabetesContolApp.GlobalLogic
 
                 ScalarService scalarService = new();
                 //Get datetime for when carb-scalar and glucose-scalar was last updated
-                //TODO: TEMP
-                LogModel firstLogWithDayProfile = (await new LogService().GetAllLogsWithDayProfileIDAsync(dayProfileID)).Min();
-                //TODO: TEMP
+                LogService logService = LogService.GetLogService();
+
+                LogModel firstLogWithDayProfile = (await logService.GetAllLogsWithDayProfileIDAsync(dayProfileID)).Min();
+
                 ScalarModel carbScalar = await scalarService.GetNewestScalarForTypeWithObjectIDAsync(ScalarTypes.DAY_PROFILE_CARB, currentDayProfile.DayProfileID, firstLogWithDayProfile.DateTimeValue);
                 ScalarModel glucoseScalar = await scalarService.GetNewestScalarForTypeWithObjectIDAsync(ScalarTypes.DAY_PROFILE_GLUCOSE, currentDayProfile.DayProfileID, firstLogWithDayProfile.DateTimeValue);
 
 
 
                 //Get all other log-entries with the same DayProfile
-                LogService logService = new();
                 List<LogModel> logsWithDayProfileID = await logService.GetAllLogsWithDayProfileIDAsync(dayProfileID);
 
                 //Filter out all invalid logs
@@ -471,18 +471,18 @@ namespace DiabetesContolApp.GlobalLogic
 
                 ScalarService scalarService = new();
                 //Get grocery scalar
-                //TODO: TEMP
-                LogModel firstLogWithGrocery = (await new LogService().GetAllLogsAsync()).Where(log =>
+                LogService logService = LogService.GetLogService();
+
+                LogModel firstLogWithGrocery = (await logService.GetAllLogsAsync()).Where(log =>
                 {
                     foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceries)
                         if (numberOfGrocery.Grocery.GroceryID == groceryID)
                             return true;
                     return false;
                 }).Min();
-                //TODO: TEMP
+
                 ScalarModel groceryScalar = await scalarService.GetNewestScalarForTypeWithObjectIDAsync(ScalarTypes.GROCERY, currentGrocery.GroceryID, firstLogWithGrocery.DateTimeValue);
 
-                LogService logService = new();
                 //Get logs after the grocery scalar was created
                 List<LogModel> logsAfterDate = await logService.GetAllLogsAfterDateAsync(groceryScalar.DateTimeCreated);
 
@@ -650,7 +650,7 @@ namespace DiabetesContolApp.GlobalLogic
 
                     log.GlucoseAfterMeal = targetGlucoseForLog + glucoseErrorAdjusted; //target glucose plus the error is the estimate for the glucose after meal value
 
-                    LogService logService = new();
+                    LogService logService = LogService.GetLogService();
                     await logService.UpdateLogAsync(log); //Update the Log in the datebase to hold the GlucoseAfterMeal value
                 }
 
