@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Linq;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.Repository;
+using DiabetesContolApp.Repository.Interfaces;
+using DiabetesContolApp.Service.Interfaces;
 
 namespace DiabetesContolApp.Service
 {
@@ -13,13 +16,20 @@ namespace DiabetesContolApp.Service
     /// Assembeling and disassembling RemdinerModel objects and make the
     /// appropriate calls to the respective repositories.
     /// </summary>
-    public class ReminderService
+    public class ReminderService : IReminderService
     {
-        private ReminderRepo reminderRepo = new();
-        private LogRepo logRepo = new();
+        private readonly IReminderRepo _reminderRepo;
+        private readonly ILogRepo _logRepo;
 
-        public ReminderService()
+        public ReminderService(IReminderRepo reminderRepo, ILogRepo logRepo)
         {
+            _reminderRepo = reminderRepo;
+            _logRepo = logRepo;
+        }
+
+        public static ReminderService GetReminderService()
+        {
+            return new ReminderService(new ReminderRepo(), new LogRepo());
         }
 
         /// <summary>
@@ -32,12 +42,27 @@ namespace DiabetesContolApp.Service
         /// </returns>
         async public Task<int> InsertReminderAsync(ReminderModel newReminder)
         {
-            if (!await reminderRepo.InsertReminderAsync(newReminder))
+            if (!await _reminderRepo.InsertReminderAsync(newReminder))
                 return -1;
 
-            ReminderModel newestReminder = await reminderRepo.GetNewestReminder();
+            ReminderModel newestReminder = await GetNewestReminderAsync();
 
             return newestReminder.ReminderID;
+        }
+
+        /// <summary>
+        /// Gets the reminder with the highest DateTimeValue.
+        /// </summary>
+        /// <returns>ReminderModel with highest ID, might be null if no reminders exist.</returns>
+        async public Task<ReminderModel> GetNewestReminderAsync()
+        {
+            List<ReminderModel> reminders = await GetAllRemindersAsync();
+
+            if (reminders.Count == 0)
+                return null;
+            int maxRemidnerID = reminders.Max(reminder => reminder.ReminderID);
+
+            return await GetReminderAsync(maxRemidnerID);
         }
 
         /// <summary>
@@ -48,11 +73,11 @@ namespace DiabetesContolApp.Service
         /// <returns>ReminderModel with given ID or null if not found.</returns>
         async public Task<ReminderModel> GetReminderAsync(int reminderID)
         {
-            ReminderModel reminder = await reminderRepo.GetReminderAsync(reminderID);
+            ReminderModel reminder = await _reminderRepo.GetReminderAsync(reminderID);
             if (reminder == null)
                 return null;
 
-            reminder.Logs = await logRepo.GetAllLogsWithReminderIDAsync(reminder.ReminderID);
+            reminder.Logs = await _logRepo.GetAllLogsWithReminderIDAsync(reminder.ReminderID);
 
             return reminder;
         }
@@ -166,9 +191,9 @@ namespace DiabetesContolApp.Service
         async public Task<bool> UpdateReminderAsync(ReminderModel reminder)
         {
             foreach (LogModel log in reminder.Logs)
-                await logRepo.UpdateLogAsync(log);
+                await _logRepo.UpdateLogAsync(log);
 
-            return await reminderRepo.UpdateReminderAsync(reminder);
+            return await _reminderRepo.UpdateReminderAsync(reminder);
         }
 
         /// <summary>
@@ -178,7 +203,7 @@ namespace DiabetesContolApp.Service
         /// <returns>List of ReminderModels with Logs and are unhandled.</returns>
         async private Task<List<ReminderModel>> GetAllUnhandledRemindersAsync()
         {
-            List<ReminderModel> unhandledReminders = await reminderRepo.GetAllUnhandledRemindersAsync();
+            List<ReminderModel> unhandledReminders = await _reminderRepo.GetAllUnhandledRemindersAsync();
 
             for (int i = 0; i < unhandledReminders.Count; ++i)
                 unhandledReminders[i] = await GetReminderAsync(unhandledReminders[i].ReminderID); //Get reminder with Logs
@@ -194,7 +219,7 @@ namespace DiabetesContolApp.Service
         /// <returns>List of ReminderModels, might be empty.</returns>
         async public Task<List<ReminderModel>> GetAllRemindersAsync()
         {
-            List<ReminderModel> reminders = await reminderRepo.GetAllRemindersAsync();
+            List<ReminderModel> reminders = await _reminderRepo.GetAllRemindersAsync();
 
             for (int i = 0; i < reminders.Count; ++i)
                 reminders[i] = await GetReminderAsync(reminders[i].ReminderID); //Get reminder with Logs
@@ -209,7 +234,7 @@ namespace DiabetesContolApp.Service
         /// <returns>False if error occurs, else true</returns>
         async public Task<bool> DeleteReminderAsync(int reminderID)
         {
-            return await reminderRepo.DeleteReminderAsync(reminderID);
+            return await _reminderRepo.DeleteReminderAsync(reminderID);
         }
     }
 }

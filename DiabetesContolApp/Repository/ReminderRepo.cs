@@ -38,22 +38,6 @@ namespace DiabetesContolApp.Repository
         }
 
         /// <summary>
-        /// Gets the reminder with the highest DateTimeValue.
-        /// </summary>
-        /// <returns>ReminderModel with highest ID, might be null if no reminders exist.</returns>
-        async public Task<ReminderModel> GetNewestReminder()
-        {
-            List<ReminderModelDAO> reminderDAOs = await reminderDatabase.GetAllRemindersAsync();
-
-            if (reminderDAOs.Count == 0)
-                return null;
-
-            reminderDAOs.Sort();
-
-            return await GetReminderAsync(reminderDAOs[reminderDAOs.Count - 1].ReminderID);
-        }
-
-        /// <summary>
         /// Converts the RemidnerModel to a DAO and updates
         /// it in the database.
         /// </summary>
