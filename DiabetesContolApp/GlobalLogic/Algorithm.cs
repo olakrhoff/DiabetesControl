@@ -100,7 +100,7 @@ namespace DiabetesContolApp.GlobalLogic
         {
             try
             {
-                ScalarService scalarService = new();
+                ScalarService scalarService = ScalarService.GetScalarService();
 
                 LogService logService = LogService.GetLogService();
 
@@ -219,7 +219,7 @@ namespace DiabetesContolApp.GlobalLogic
                 DayProfileService dayProfileService = DayProfileService.GetDayProfileService();
                 DayProfileModel currentDayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
 
-                ScalarService scalarService = new();
+                ScalarService scalarService = ScalarService.GetScalarService();
                 //Get datetime for when carb-scalar and glucose-scalar was last updated
                 LogService logService = LogService.GetLogService();
 
@@ -469,7 +469,7 @@ namespace DiabetesContolApp.GlobalLogic
                 //Get current grocery
                 GroceryModel currentGrocery = await groceryService.GetGroceryAsync(groceryID);
 
-                ScalarService scalarService = new();
+                ScalarService scalarService = ScalarService.GetScalarService();
                 //Get grocery scalar
                 LogService logService = LogService.GetLogService();
 
