@@ -17,7 +17,7 @@ namespace DiabetesContolApp.GlobalLogic
     {
         private const int MINIMUM_OCCURENCES = 10;
         private const double LOWER_BOUND_FOR_PREDICTION_INTERVAL = -1.0;
-        private const double ABSOLUTE_MAXIMUM_SCALE_FACTOR = 1.0;
+        private const double ABSOLUTE_MAXIMUM_DISTANCE_CHANGE = 1.0;
 
 
         /// <summary>
@@ -361,7 +361,7 @@ namespace DiabetesContolApp.GlobalLogic
 
             //Returns the smallest distance either between the regression line and the X-axis or the lower prediction line and the LOWER_BOUND_FOR_PREDICTION_INTERVALL
             double distance = Math.Min(smallestDifferenceToXAxis, predictionIntervallNextPoint.Item2 - LOWER_BOUND_FOR_PREDICTION_INTERVAL);
-            if (Math.Abs(distance) > ABSOLUTE_MAXIMUM_SCALE_FACTOR)
+            if (Math.Abs(distance) > ABSOLUTE_MAXIMUM_DISTANCE_CHANGE)
                 distance /= Math.Abs(distance);
             return distance;
         }
