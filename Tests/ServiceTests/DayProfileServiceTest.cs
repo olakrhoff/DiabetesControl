@@ -6,7 +6,6 @@ using System.Collections.Generic;
 
 using DiabetesContolApp.Service;
 using DiabetesContolApp.Models;
-using DiabetesContolApp.Repository;
 using DiabetesContolApp.Repository.Interfaces;
 
 namespace Tests.ServiceTests

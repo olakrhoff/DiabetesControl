@@ -35,7 +35,7 @@ namespace DiabetesContolApp.GlobalLogic
             {
                 if (currentReminder == null)
                     return false;
-                ReminderService reminderService = new();
+                ReminderService reminderService = ReminderService.GetReminderService();
                 if (!await reminderService.UpdateReminderAsync(currentReminder)) //Update the reminder to hold the glucose after meal value and the logs connected to it
                     return false;
                 ReminderModel reminder = await reminderService.GetReminderAsync(currentReminder.ReminderID); //Get the updated Reminder

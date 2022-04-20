@@ -55,7 +55,7 @@ namespace DiabetesContolApp.Service
             {
                 newLog.Reminder = new();
 
-                ReminderService reminderService = new();
+                ReminderService reminderService = ReminderService.GetReminderService();
                 int reminderID = await reminderService.InsertReminderAsync(newLog.Reminder); //Call to service to get ID
                 if (reminderID == -1)
                     return false; //An error occured while creating the remidner
@@ -286,7 +286,7 @@ namespace DiabetesContolApp.Service
                 DayProfileService dayProfileService = DayProfileService.GetDayProfileService();
                 int fakeDayProfileID = await dayProfileService.InsertDayProfileAsync(new());
 
-                ReminderService reminderService = new();
+                ReminderService reminderService = ReminderService.GetReminderService();
                 int fakeReminderID = await reminderService.InsertReminderAsync(new());
 
                 log.DayProfile = await _dayProfileRepo.GetDayProfileAsync(fakeDayProfileID);

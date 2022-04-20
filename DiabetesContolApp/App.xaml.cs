@@ -160,7 +160,7 @@ namespace DiabetesContolApp
         /// </summary>
         private void CheckReminders()
         {
-            ReminderService reminderService = new();
+            ReminderService reminderService = ReminderService.GetReminderService();
             reminderService.HandleRemindersAsync();
         }
     }

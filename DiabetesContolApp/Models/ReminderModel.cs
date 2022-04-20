@@ -60,7 +60,9 @@ namespace DiabetesContolApp.Models
         /// </returns>
         async public Task<bool> Handle()
         {
-            if (!ReadyToHandle())
+            if (IsHandled) //Already handled
+                return true;
+            else if (!ReadyToHandle())
                 return false; //The reminder is not ready to be handled
 
             if (GlucoseAfterMeal == null) //If we are missing the glucose after meal value, we need to get it from the user

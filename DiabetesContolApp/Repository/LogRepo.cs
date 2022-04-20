@@ -17,14 +17,12 @@ namespace DiabetesContolApp.Repository
 
         public LogRepo()
         {
+            _logDatabase = LogDatabase.GetInstance();
         }
 
-        public LogRepo(ILogDatabase logDatabase = null)
+        public LogRepo(ILogDatabase logDatabase)
         {
-            if (logDatabase == null)
-                _logDatabase = LogDatabase.GetInstance();
-            else
-                _logDatabase = logDatabase;
+            _logDatabase = logDatabase;
         }
 
         /// <summary>
