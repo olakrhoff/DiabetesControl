@@ -10,8 +10,6 @@ using DiabetesContolApp.GlobalLogic;
 using DiabetesContolApp.Service.Interfaces;
 using DiabetesContolApp.Repository.Interfaces;
 
-using SQLite;
-
 namespace DiabetesContolApp.Service
 {
     /// <summary>
@@ -55,7 +53,7 @@ namespace DiabetesContolApp.Service
             {
                 newLog.Reminder = new();
 
-                ReminderService reminderService = ReminderService.GetReminderService();
+                ReminderService reminderService = new(_reminderRepo, _logRepo);
                 int reminderID = await reminderService.InsertReminderAsync(newLog.Reminder); //Call to service to get ID
                 if (reminderID == -1)
                     return false; //An error occured while creating the remidner
@@ -283,10 +281,10 @@ namespace DiabetesContolApp.Service
                 //we remove the error for now, by adding a dayprofile and a reminder,
                 //then after the delete call is finsihed, we delete these again.
 
-                DayProfileService dayProfileService = DayProfileService.GetDayProfileService();
+                DayProfileService dayProfileService = new(_dayProfileRepo, _logRepo, _groceryLogRepo, _reminderRepo);
                 int fakeDayProfileID = await dayProfileService.InsertDayProfileAsync(new());
 
-                ReminderService reminderService = ReminderService.GetReminderService();
+                ReminderService reminderService = new(_reminderRepo, _logRepo);
                 int fakeReminderID = await reminderService.InsertReminderAsync(new());
 
                 log.DayProfile = await _dayProfileRepo.GetDayProfileAsync(fakeDayProfileID);
@@ -306,21 +304,6 @@ namespace DiabetesContolApp.Service
 
             //Get all NumberOfGrocery with Grocery objects attached
             log.NumberOfGroceries = (await _groceryLogRepo.GetAllGroceryLogsWithLogID(log.LogID)).ConvertAll(g => new NumberOfGroceryModel(g));
-
-
-            //TODO: ---------- TEMP ---------- 
-
-            if ((log.DayProfile.TargetGlucoseValue != log.GlucoseAtMeal && log.CorrectionInsulin == 0) ||
-                log.NumberOfGroceries != null && log.NumberOfGroceries.Count != 0 && log.NumberOfGroceries[0].InsulinForGroceries == 0)
-            {
-                //Update old Logs
-                Helper.CalculateInsulin(ref log);
-                log.Reminder.IsHandled = log.Reminder.IsHandled;
-
-                await UpdateLogAsync(log);
-            }
-
-            //TODO: ---------- TEMP ---------- 
 
             return log;
         }
