@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using DiabetesContolApp.Models;
 using DiabetesContolApp.DAO;
 using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Repository.Interfaces;
 
 namespace DiabetesContolApp.Repository
 {
-    public class ScalarRepo
+    public class ScalarRepo : IScalarRepo
     {
         ScalarDatabase scalarDatabase = ScalarDatabase.GetInstance();
 
