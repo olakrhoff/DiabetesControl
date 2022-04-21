@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 
 using DiabetesContolApp.DAO;
+using DiabetesContolApp.Persistence.Interfaces;
 
 using SQLite;
 
@@ -11,9 +12,9 @@ using System.Diagnostics;
 
 namespace DiabetesContolApp.Persistence
 {
-    public class DayProfileDatabase : ModelDatabaseAbstract
+    public class DayProfileDatabase : ModelDatabaseAbstract, IDayProfileDatabase
     {
-        private static DayProfileDatabase instance = null;
+        private static readonly DayProfileDatabase _instance = null;
 
         public DayProfileDatabase()
         {
@@ -21,7 +22,7 @@ namespace DiabetesContolApp.Persistence
 
         public static DayProfileDatabase GetInstance()
         {
-            return instance == null ? new DayProfileDatabase() : instance;
+            return _instance ?? new DayProfileDatabase();
         }
 
         /// <summary>

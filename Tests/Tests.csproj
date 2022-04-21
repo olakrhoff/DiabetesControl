@@ -26,9 +26,11 @@
     <None Remove="Moq" />
     <None Remove="sqlite-net-pcl" />
     <None Remove="SQLiteNetExtensions" />
+    <None Remove="RepositoryTest\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ServiceTests\" />
+    <Folder Include="RepositoryTests\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DiabetesContolApp\DiabetesContolApp.csproj" />

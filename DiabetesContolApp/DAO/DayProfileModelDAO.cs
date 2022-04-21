@@ -14,7 +14,7 @@ namespace DiabetesContolApp.DAO
         [PrimaryKey, AutoIncrement]
         public int DayProfileID { get; set; }
 
-        private string _name;
+        private string _name = "";
         private long _startTime;
         private float _carbScalar;
         private float _glucoseScalar;
