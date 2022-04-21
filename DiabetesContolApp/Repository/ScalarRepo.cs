@@ -5,13 +5,24 @@ using System.Collections.Generic;
 using DiabetesContolApp.Models;
 using DiabetesContolApp.DAO;
 using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Persistence.Interfaces;
 using DiabetesContolApp.Repository.Interfaces;
 
 namespace DiabetesContolApp.Repository
 {
     public class ScalarRepo : IScalarRepo
     {
-        ScalarDatabase scalarDatabase = ScalarDatabase.GetInstance();
+        private readonly IScalarDatabase _scalarDatabase;
+
+        public ScalarRepo(IScalarDatabase scalarDatabase)
+        {
+            _scalarDatabase = scalarDatabase;
+        }
+
+        public static ScalarRepo GetScalarRepo()
+        {
+            return new ScalarRepo(ScalarDatabase.GetInstance());
+        }
 
         /// <summary>
         /// Gets all the ScalarDAO of the given type,
@@ -22,7 +33,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>List of ScalarModels with the given type and objectID, if might be empty.</returns>
         async public Task<List<ScalarModel>> GetAllScalarsOfTypeWithObjectID(ScalarTypes type, int objectID)
         {
-            List<ScalarModelDAO> scalarDAOs = await scalarDatabase.GetAllScalarsOfTypeWithObjectIDAsync((int)type, objectID);
+            List<ScalarModelDAO> scalarDAOs = await _scalarDatabase.GetAllScalarsOfTypeWithObjectIDAsync((int)type, objectID);
 
             List<ScalarModel> scalars = new();
 
@@ -44,7 +55,7 @@ namespace DiabetesContolApp.Repository
         {
             ScalarModelDAO scalarDAO = new(carbScalar);
 
-            return await scalarDatabase.UpdateScalarAsync(scalarDAO) > 0;
+            return await _scalarDatabase.UpdateScalarAsync(scalarDAO) > 0;
         }
 
         /// <summary>
@@ -53,9 +64,9 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="type"></param>
         /// <returns>List of ScalarModels, might be empty.</returns>
-        async public Task<List<ScalarModel>> GetAllScalarsOfType(ScalarTypes type)
+        async public Task<List<ScalarModel>> GetAllScalarsOfTypeAsync(ScalarTypes type)
         {
-            List<ScalarModelDAO> scalarDAOs = await scalarDatabase.GetAllScalarsOfTypeAsync((int)type);
+            List<ScalarModelDAO> scalarDAOs = await _scalarDatabase.GetAllScalarsOfTypeAsync((int)type);
 
             List<ScalarModel> scalarsOfType = new();
 
@@ -71,15 +82,12 @@ namespace DiabetesContolApp.Repository
         /// Converts Scalar to DAO and inserts new Scalar into the database.
         /// </summary>
         /// <param name="newScalar"></param>
-        /// <returns></returns>
+        /// <returns>True if inserted, else false</returns>
         async public Task<bool> InsertScalarAsync(ScalarModel newScalar)
         {
             ScalarModelDAO newScalarDAO = new(newScalar);
 
-            if (newScalarDAO == null)
-                return false;
-
-            return await scalarDatabase.InsertScalarAsync(newScalarDAO) > 0;
+            return await _scalarDatabase.InsertScalarAsync(newScalarDAO) > 0;
         }
 
         /// <summary>
@@ -90,7 +98,10 @@ namespace DiabetesContolApp.Repository
         /// <returns>ScalarModel with given ID, might be null.</returns>
         async public Task<ScalarModel> GetScalarAsync(int scalarID)
         {
-            ScalarModelDAO scalarDAO = await scalarDatabase.GetScalarAsync(scalarID);
+            ScalarModelDAO scalarDAO = await _scalarDatabase.GetScalarAsync(scalarID);
+
+            if (scalarDAO == null)
+                return null;
 
             ScalarModel scalar = new(scalarDAO);
 
@@ -104,7 +115,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>List of ScalarModels, might be empty.</returns>
         async public Task<List<ScalarModel>> GetAllScalarsAsync()
         {
-            List<ScalarModelDAO> scalarDAOs = await scalarDatabase.GetAllScalarsAsync();
+            List<ScalarModelDAO> scalarDAOs = await _scalarDatabase.GetAllScalarsAsync();
 
             List<ScalarModel> scalars = new();
 

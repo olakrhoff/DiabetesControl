@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
+using System.Diagnostics;
 
 using DiabetesContolApp.DAO;
-using System.Diagnostics;
+using DiabetesContolApp.Persistence.Interfaces;
 
 namespace DiabetesContolApp.Persistence
 {
-    public class ScalarDatabase : ModelDatabaseAbstract
+    public class ScalarDatabase : ModelDatabaseAbstract, IScalarDatabase
     {
-        private static ScalarDatabase instance = null;
+        private static readonly ScalarDatabase _instance = null;
 
         public ScalarDatabase()
         {
@@ -18,7 +18,7 @@ namespace DiabetesContolApp.Persistence
 
         public static ScalarDatabase GetInstance()
         {
-            return instance == null ? new ScalarDatabase() : instance;
+            return _instance == null ? new ScalarDatabase() : _instance;
         }
 
         /// <summary>

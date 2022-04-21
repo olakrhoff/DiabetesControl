@@ -20,7 +20,7 @@ namespace DiabetesContolApp.Service
 
         public static ScalarService GetScalarService()
         {
-            return new(new ScalarRepo());
+            return new(ScalarRepo.GetScalarRepo());
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace DiabetesContolApp.Service
         /// <returns>Newest ScalarModel with given type and objectID, might be null</returns>
         async public Task<ScalarModel> GetNewestScalarForTypeWithObjectIDAsync(ScalarTypes type, int objectID, DateTime oldestOfObject)
         {
-            List<ScalarModel> scalarsWithType = await _scalarRepo.GetAllScalarsOfType(type);
+            List<ScalarModel> scalarsWithType = await _scalarRepo.GetAllScalarsOfTypeAsync(type);
 
             if (type != ScalarTypes.CORRECTION_INSULIN && objectID >= 0) //Edge case, correction insulin does not have an object represenation in the database, hens no objectID
                 scalarsWithType = scalarsWithType.FindAll(scalar => scalar.ScalarObjectID == objectID); //Filter out only the ones with the correct objectID

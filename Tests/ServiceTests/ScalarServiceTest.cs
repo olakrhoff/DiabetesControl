@@ -34,7 +34,7 @@ namespace Tests.ServiceTests
 
             List<ScalarModel> scalars = new() { new ScalarModel(1, TYPE, ID, 1.0f, DateTime.Now), new ScalarModel(2, TYPE, 2, 1.0f, DateTime.Now) };
 
-            _scalarRepo.Setup(r => r.GetAllScalarsOfType(It.IsAny<ScalarTypes>())).Returns(Task.FromResult(scalars));
+            _scalarRepo.Setup(r => r.GetAllScalarsOfTypeAsync(It.IsAny<ScalarTypes>())).Returns(Task.FromResult(scalars));
 
             ScalarModel scalar = await _scalarService.GetNewestScalarForTypeWithObjectIDAsync(TYPE, ID, DateTime.Now.AddDays(-1));
 
@@ -52,7 +52,7 @@ namespace Tests.ServiceTests
 
             ScalarModel s = new(SCALAR_ID, TYPE, OBJECT_ID, 1.0f, DateTime.Now);
 
-            _scalarRepo.Setup(r => r.GetAllScalarsOfType(It.IsAny<ScalarTypes>())).Returns(Task.FromResult(new List<ScalarModel>()));
+            _scalarRepo.Setup(r => r.GetAllScalarsOfTypeAsync(It.IsAny<ScalarTypes>())).Returns(Task.FromResult(new List<ScalarModel>()));
             _scalarRepo.Setup(r => r.InsertScalarAsync(It.IsAny<ScalarModel>())).Returns(Task.FromResult(true));
             _scalarRepo.Setup(r => r.GetAllScalarsAsync()).Returns(Task.FromResult(new List<ScalarModel>() { s })); ;
             _scalarRepo.Setup(r => r.GetScalarAsync(SCALAR_ID)).Returns(Task.FromResult(s));
