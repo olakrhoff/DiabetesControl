@@ -44,7 +44,7 @@ namespace Tests
             _logRepo.Setup(r => r.GetAllLogsAsync()).Returns(Task.FromResult(new List<LogModel>() { log }));
             _logRepo.Setup(r => r.GetLogAsync(It.IsAny<int>())).Returns((int x) => Task.FromResult(new LogModel(x)));
             _groceryLogRepo.Setup(r => r.GetAllGroceryLogsWithLogID(It.IsAny<int>())).Returns(Task.FromResult(new List<GroceryLogModel>()));
-            _groceryLogRepo.Setup(r => r.InsertAllGroceryLogsAsync(It.IsAny<List<GroceryLogModel>>(), It.IsAny<int>())).Returns(Task.FromResult(true));
+            _groceryLogRepo.Setup(r => r.InsertAllGroceryLogsAsync(It.IsAny<List<GroceryLogModel>>())).Returns(Task.FromResult(true));
 
             Assert.True(await _logService.InsertLogAsync(log));
         }
@@ -67,7 +67,7 @@ namespace Tests
             _logRepo.Setup(r => r.GetAllLogsWithReminderIDAsync(It.IsAny<int>())).Returns((int x) => Task.FromResult(new List<LogModel>()));
 
             _groceryLogRepo.Setup(r => r.GetAllGroceryLogsWithLogID(It.IsAny<int>())).Returns(Task.FromResult(new List<GroceryLogModel>()));
-            _groceryLogRepo.Setup(r => r.InsertAllGroceryLogsAsync(It.IsAny<List<GroceryLogModel>>(), It.IsAny<int>())).Returns(Task.FromResult(true));
+            _groceryLogRepo.Setup(r => r.InsertAllGroceryLogsAsync(It.IsAny<List<GroceryLogModel>>())).Returns(Task.FromResult(true));
 
             Assert.True(await _logService.InsertLogAsync(log));
         }
@@ -90,7 +90,7 @@ namespace Tests
             _logRepo.Setup(r => r.GetAllLogsWithReminderIDAsync(It.IsAny<int>())).Returns((int x) => Task.FromResult(new List<LogModel>()));
 
             _groceryLogRepo.Setup(r => r.GetAllGroceryLogsWithLogID(It.IsAny<int>())).Returns(Task.FromResult(new List<GroceryLogModel>()));
-            _groceryLogRepo.Setup(r => r.InsertAllGroceryLogsAsync(It.IsAny<List<GroceryLogModel>>(), It.IsAny<int>())).Returns(Task.FromResult(true));
+            _groceryLogRepo.Setup(r => r.InsertAllGroceryLogsAsync(It.IsAny<List<GroceryLogModel>>())).Returns(Task.FromResult(true));
 
             Assert.False(await _logService.InsertLogAsync(log));
         }
@@ -149,7 +149,7 @@ namespace Tests
             _logRepo.Setup(r => r.DeleteLogAsync(It.IsAny<int>())).Returns(Task.FromResult(true));
 
             _groceryLogRepo.Setup(r => r.GetAllGroceryLogsWithLogID(It.IsAny<int>())).Returns(Task.FromResult(new List<GroceryLogModel>()));
-            _groceryLogRepo.Setup(r => r.InsertAllGroceryLogsAsync(It.IsAny<List<GroceryLogModel>>(), It.IsAny<int>())).Returns(Task.FromResult(false));
+            _groceryLogRepo.Setup(r => r.InsertAllGroceryLogsAsync(It.IsAny<List<GroceryLogModel>>())).Returns(Task.FromResult(false));
 
             Assert.False(await _logService.InsertLogAsync(log));
         }
@@ -173,7 +173,7 @@ namespace Tests
             _logRepo.Setup(r => r.DeleteLogAsync(It.IsAny<int>())).Returns(Task.FromResult(false));
 
             _groceryLogRepo.Setup(r => r.GetAllGroceryLogsWithLogID(It.IsAny<int>())).Returns(Task.FromResult(new List<GroceryLogModel>()));
-            _groceryLogRepo.Setup(r => r.InsertAllGroceryLogsAsync(It.IsAny<List<GroceryLogModel>>(), It.IsAny<int>())).Returns(Task.FromResult(false));
+            _groceryLogRepo.Setup(r => r.InsertAllGroceryLogsAsync(It.IsAny<List<GroceryLogModel>>())).Returns(Task.FromResult(false));
 
             try
             {
@@ -471,7 +471,7 @@ namespace Tests
             _logRepo.Setup(r => r.UpdateLogAsync(It.IsAny<LogModel>())).Returns(Task.FromResult(true));
 
             _groceryLogRepo.Setup(r => r.DeleteAllGroceryLogsWithLogIDAsync(LOG_ID)).Returns(Task.FromResult(true));
-            _groceryLogRepo.Setup(r => r.InsertAllGroceryLogsAsync(It.IsAny<List<GroceryLogModel>>(), LOG_ID)).Returns(Task.FromResult(true));
+            _groceryLogRepo.Setup(r => r.InsertAllGroceryLogsAsync(It.IsAny<List<GroceryLogModel>>())).Returns(Task.FromResult(true));
 
             Assert.True(await _logService.UpdateLogAsync(log));
         }
@@ -495,7 +495,7 @@ namespace Tests
             _logRepo.Setup(r => r.UpdateLogAsync(It.IsAny<LogModel>())).Returns(Task.FromResult(true));
 
             _groceryLogRepo.Setup(r => r.DeleteAllGroceryLogsWithLogIDAsync(LOG_ID)).Returns(Task.FromResult(false));
-            _groceryLogRepo.Setup(r => r.InsertAllGroceryLogsAsync(It.IsAny<List<GroceryLogModel>>(), LOG_ID)).Returns(Task.FromResult(true));
+            _groceryLogRepo.Setup(r => r.InsertAllGroceryLogsAsync(It.IsAny<List<GroceryLogModel>>())).Returns(Task.FromResult(true));
 
             Assert.False(await _logService.UpdateLogAsync(log));
         }
@@ -511,7 +511,7 @@ namespace Tests
             _logRepo.Setup(r => r.UpdateLogAsync(It.IsAny<LogModel>())).Returns(Task.FromResult(true));
 
             _groceryLogRepo.Setup(r => r.DeleteAllGroceryLogsWithLogIDAsync(LOG_ID)).Returns(Task.FromResult(true));
-            _groceryLogRepo.Setup(r => r.InsertAllGroceryLogsAsync(It.IsAny<List<GroceryLogModel>>(), LOG_ID)).Returns(Task.FromResult(false));
+            _groceryLogRepo.Setup(r => r.InsertAllGroceryLogsAsync(It.IsAny<List<GroceryLogModel>>())).Returns(Task.FromResult(false));
 
             Assert.False(await _logService.UpdateLogAsync(log));
         }

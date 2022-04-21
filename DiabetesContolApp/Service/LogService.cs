@@ -34,7 +34,7 @@ namespace DiabetesContolApp.Service
 
         public static LogService GetLogService()
         {
-            return new LogService(new LogRepo(), new GroceryLogRepo(), new ReminderRepo(), DayProfileRepo.GetDayProfileRepo());
+            return new LogService(new LogRepo(), GroceryLogRepo.GetGroceryLogRepo(), new ReminderRepo(), DayProfileRepo.GetDayProfileRepo());
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace DiabetesContolApp.Service
             foreach (NumberOfGroceryModel numberOfGrocery in newLog.NumberOfGroceries)
                 groceryLogs.Add(new(numberOfGrocery, newLog));
 
-            if (!await _groceryLogRepo.InsertAllGroceryLogsAsync(groceryLogs, newLog.LogID)) //Insert all grocery-log-cross table entries
+            if (!await _groceryLogRepo.InsertAllGroceryLogsAsync(groceryLogs)) //Insert all grocery-log-cross table entries
             {
                 if (!await _logRepo.DeleteLogAsync(newLog.LogID))
                     throw new Exception("This state should not be possible");
@@ -325,7 +325,7 @@ namespace DiabetesContolApp.Service
             foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceries)
                 groceryLogs.Add(new(numberOfGrocery, log));
 
-            bool added = await _groceryLogRepo.InsertAllGroceryLogsAsync(groceryLogs, log.LogID); //Add all the new ones
+            bool added = await _groceryLogRepo.InsertAllGroceryLogsAsync(groceryLogs); //Add all the new ones
 
             if (deleted && added)
                 return true; //If no problems, return true

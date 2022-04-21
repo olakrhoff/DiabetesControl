@@ -4,12 +4,13 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 
 using DiabetesContolApp.DAO;
+using DiabetesContolApp.Persistence.Interfaces;
 
 namespace DiabetesContolApp.Persistence
 {
-    public class GroceryLogDatabase : ModelDatabaseAbstract
+    public class GroceryLogDatabase : ModelDatabaseAbstract, IGroceryLogDatabase
     {
-        private static GroceryLogDatabase instance = null;
+        private static GroceryLogDatabase _instance = null;
 
         public GroceryLogDatabase()
         {
@@ -17,7 +18,7 @@ namespace DiabetesContolApp.Persistence
 
         public static GroceryLogDatabase GetInstance()
         {
-            return instance == null ? new GroceryLogDatabase() : instance;
+            return _instance == null ? new GroceryLogDatabase() : _instance;
         }
 
         /// <summary>
@@ -52,6 +53,7 @@ namespace DiabetesContolApp.Persistence
         /// <returns>int, the number of rows deleted, -1 if an error occurs.</returns>
         async public Task<int> DeleteAllGroceryLogsWithLogIDAsync(int logID)
         {
+            //TODO: This should be moved to the Service layer
             try
             {
                 List<GroceryLogModelDAO> groceryLogsWithLogID = await _connection.Table<GroceryLogModelDAO>().Where(groceryLog => groceryLog.LogID == logID).ToListAsync();
@@ -77,6 +79,7 @@ namespace DiabetesContolApp.Persistence
         /// <returns>int, the number of rows deleted, -1 if an error occurs.</returns>
         async public Task<int> DeleteAllGroceryLogsWithGroceryIDAsync(int groceryID)
         {
+            //TODO: This should be in the Service layer
             try
             {
                 List<GroceryLogModelDAO> groceryLogsWithLogID = await _connection.Table<GroceryLogModelDAO>().Where(groceryLog => groceryLog.GroceryID == groceryID).ToListAsync();

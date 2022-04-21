@@ -158,10 +158,10 @@ namespace DiabetesContolApp
         /// Checks if there are any reminders to handle,
         /// if so, they are handled.
         /// </summary>
-        private void CheckReminders()
+        async private void CheckReminders()
         {
             ReminderService reminderService = ReminderService.GetReminderService();
-            reminderService.HandleRemindersAsync();
+            await reminderService.HandleRemindersAsync();
         }
     }
 }

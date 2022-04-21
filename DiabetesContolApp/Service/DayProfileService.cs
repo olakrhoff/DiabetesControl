@@ -32,7 +32,7 @@ namespace DiabetesContolApp.Service
 
         public static DayProfileService GetDayProfileService()
         {
-            return new DayProfileService(DayProfileRepo.GetDayProfileRepo(), new LogRepo(), new GroceryLogRepo(), new ReminderRepo());
+            return new DayProfileService(DayProfileRepo.GetDayProfileRepo(), new LogRepo(), GroceryLogRepo.GetGroceryLogRepo(), new ReminderRepo());
         }
 
         /// <summary>
