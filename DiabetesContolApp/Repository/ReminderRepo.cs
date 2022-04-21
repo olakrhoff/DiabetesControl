@@ -6,16 +6,23 @@ using System.Collections.Generic;
 using DiabetesContolApp.Models;
 using DiabetesContolApp.DAO;
 using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Persistence.Interfaces;
 using DiabetesContolApp.Repository.Interfaces;
 
 namespace DiabetesContolApp.Repository
 {
     public class ReminderRepo : IReminderRepo
     {
-        private ReminderDatabase reminderDatabase = ReminderDatabase.GetInstance();
+        private readonly IReminderDatabase _reminderDatabase;
 
-        public ReminderRepo()
+        public ReminderRepo(IReminderDatabase reminderDatabase)
         {
+            _reminderDatabase = reminderDatabase;
+        }
+
+        public static ReminderRepo GetReminderRepo()
+        {
+            return new ReminderRepo(ReminderDatabase.GetInstance());
         }
 
         /// <summary>
@@ -29,7 +36,7 @@ namespace DiabetesContolApp.Repository
         /// </returns>
         async public Task<ReminderModel> GetReminderAsync(int reminderID)
         {
-            ReminderModelDAO reminderDAO = await reminderDatabase.GetReminderAsync(reminderID);
+            ReminderModelDAO reminderDAO = await _reminderDatabase.GetReminderAsync(reminderID);
 
             if (reminderDAO == null)
                 return null;
@@ -45,7 +52,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>True if updated, else false.</returns>
         async public Task<bool> UpdateReminderAsync(ReminderModel reminder)
         {
-            return await reminderDatabase.UpdateReminderAsync(new(reminder)) > 0;
+            return await _reminderDatabase.UpdateReminderAsync(new(reminder)) > 0;
         }
 
         /// <summary>
@@ -56,7 +63,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>False if error occurs, else true</returns>
         async public Task<bool> DeleteReminderAsync(int reminderID)
         {
-            return await reminderDatabase.DeleteReminderAsync(reminderID) >= 0;
+            return await _reminderDatabase.DeleteReminderAsync(reminderID) >= 0;
         }
 
         /// <summary>
@@ -66,7 +73,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>List of ReminderModels, might be empty.</returns>
         async public Task<List<ReminderModel>> GetAllRemindersAsync()
         {
-            List<ReminderModelDAO> reminderDAOs = await reminderDatabase.GetAllRemindersAsync();
+            List<ReminderModelDAO> reminderDAOs = await _reminderDatabase.GetAllRemindersAsync();
 
             List<ReminderModel> reminders = new();
 
@@ -83,7 +90,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>List of ReminderModels which are unhandled, might be empty</returns>
         async public Task<List<ReminderModel>> GetAllUnhandledRemindersAsync()
         {
-            List<ReminderModelDAO> unhandledReminderDAOs = await reminderDatabase.GetAllUnhandledRemindersAsync();
+            List<ReminderModelDAO> unhandledReminderDAOs = await _reminderDatabase.GetAllUnhandledRemindersAsync();
 
             List<ReminderModel> unhandledReminders = new();
 
@@ -100,7 +107,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>bool, true if inserted, else false</returns>
         async public Task<bool> InsertReminderAsync(ReminderModel newReminder)
         {
-            return await reminderDatabase.InsertReminderAsync(new(newReminder)) > 0;
+            return await _reminderDatabase.InsertReminderAsync(new(newReminder)) > 0;
         }
     }
 }

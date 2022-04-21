@@ -34,7 +34,7 @@ namespace DiabetesContolApp.Service
 
         public static LogService GetLogService()
         {
-            return new LogService(new LogRepo(), GroceryLogRepo.GetGroceryLogRepo(), new ReminderRepo(), DayProfileRepo.GetDayProfileRepo());
+            return new LogService(new LogRepo(), GroceryLogRepo.GetGroceryLogRepo(), ReminderRepo.GetReminderRepo(), DayProfileRepo.GetDayProfileRepo());
         }
 
         /// <summary>

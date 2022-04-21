@@ -29,7 +29,7 @@ namespace DiabetesContolApp.Service
 
         public static ReminderService GetReminderService()
         {
-            return new ReminderService(new ReminderRepo(), new LogRepo());
+            return new ReminderService(ReminderRepo.GetReminderRepo(), new LogRepo());
         }
 
         /// <summary>

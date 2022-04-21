@@ -2,16 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using System.Linq;
 
 using DiabetesContolApp.DAO;
+using DiabetesContolApp.Persistence.Interfaces;
 
-using SQLite;
-using Xamarin.Forms;
 
 namespace DiabetesContolApp.Persistence
 {
-    public class ReminderDatabase : ModelDatabaseAbstract
+    public class ReminderDatabase : ModelDatabaseAbstract, IReminderDatabase
     {
 
         private static ReminderDatabase instance = null;
@@ -64,25 +62,6 @@ namespace DiabetesContolApp.Persistence
                 return new();
             return reminderDAOs;
         }
-
-        /*
-        /// <summary>
-        /// This method loops through all reminders,
-        /// and call the Handle()-method on the ones who
-        /// are yet to be handled.If they were changed in
-        /// the handle()-method, they are updated in the database
-        /// </summary>
-        /// <returns>void</returns>
-        async public void HandleReminders()
-        {
-            List<ReminderModelDAO> reminders = await GetRemindersAsync();
-
-            reminders.ForEach(async e =>
-            {
-                if (!e.IsHandled && await e.Handle())
-                    await UpdateReminderAsync(e);
-            });
-        }*/
 
         /// <summary>
         /// Gets the newest Reminder.
