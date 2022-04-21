@@ -35,7 +35,7 @@ namespace DiabetesContolApp.Service
 
         public static GroceryService GetGroceryService()
         {
-            return new GroceryService(new GroceryRepo(), new GroceryLogRepo(), new LogRepo(), new ReminderRepo(), DayProfileRepo.GetDayProfileRepo());
+            return new GroceryService(GroceryRepo.GetGroceryRepo(), new GroceryLogRepo(), new LogRepo(), new ReminderRepo(), DayProfileRepo.GetDayProfileRepo());
         }
 
 

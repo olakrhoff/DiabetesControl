@@ -4,13 +4,12 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 
 using DiabetesContolApp.DAO;
+using DiabetesContolApp.Persistence.Interfaces;
 
-using SQLite;
-using Xamarin.Forms;
 
 namespace DiabetesContolApp.Persistence
 {
-    public class GroceryDatabase : ModelDatabaseAbstract
+    public class GroceryDatabase : ModelDatabaseAbstract, IGroceryDatabase
     {
         private static GroceryDatabase instance = null;
 
@@ -56,7 +55,7 @@ namespace DiabetesContolApp.Persistence
         /// Get all the GroceryDAO entries.
         /// </summary>
         /// <returns>Return a List of GroceryDAO objects.</returns>
-        async public Task<List<GroceryModelDAO>> GetGroceriesAsync()
+        async public Task<List<GroceryModelDAO>> GetAllGroceriesAsync()
         {
             List<GroceryModelDAO> groceriesDAO = await _connection.Table<GroceryModelDAO>().ToListAsync();
 
