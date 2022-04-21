@@ -18,7 +18,7 @@ namespace DiabetesContolApp.GlobalLogic
         /// <param name="betaHat"></param>
         /// <param name="confidenceAlpha"></param>
         /// <returns>Returns the upper and lower values of the prediction intervall for the next expected point</returns>
-        public static Tuple<double, double> PredictionInterval(List<double> xValues, List<double> yValues, double alphaHat, double betaHat, double confidenceAlpha)
+        public static Tuple<double, double> PredictionInterval(List<double> xValues, List<double> yValues, double alphaHat, double betaHat, double confidenceAlpha, double? checkXValue = null)
         {
             int n = xValues.Count; //n, number of observations
 
@@ -53,19 +53,22 @@ namespace DiabetesContolApp.GlobalLogic
 
             double SEBetaHat = Math.Sqrt(betaHatVariance);
 
-            double nextX = xValues[xValues.Count - 1]; //Takes the last x-value as an estimate for the next x-value
 
+            double nextX;
+            if (checkXValue == null)
+                nextX = xValues[xValues.Count - 1]; //Takes the last x-value as an estimate for the next x-value
+            else
+                nextX = (double)checkXValue;
             double first = alphaHat + betaHat * nextX;
             double second = tValue * s * Math.Sqrt(1 + 1 / n + Math.Pow((nextX - xAverage) / (s / SEBetaHat), 2));
             if (Double.IsNaN(second))
                 throw new ArithmeticException("Prediction interval is not valid");
             double upper = first + second;
             double lower = first - second;
-
             return new(upper, lower);
         }
 
-        private static double GetCriticalTValue(double alpha, int freedom)
+        public static double GetCriticalTValue(double alpha, int freedom)
         {
             return StudentT.InvCDF(0, 1, freedom, 1 - alpha / 2);
         }

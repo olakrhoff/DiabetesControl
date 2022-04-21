@@ -308,5 +308,21 @@ namespace DiabetesContolApp.GlobalLogic
         {
             return 100 / averageTDD;
         }
+
+        //TODO: Write doc and code
+        public static void RoundFirstSignificantDigit(ref double input, uint digits)
+        {
+            if (input == 0)
+                return;
+
+            int precision = 0;
+            double val = input - Math.Round(input, 0);
+            while (Math.Abs(val) < 1.0d)
+            {
+                val *= 10;
+                precision++;
+            }
+            input = Math.Round(input, precision + (int)digits - 1);
+        }
     }
 }
