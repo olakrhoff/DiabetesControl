@@ -251,8 +251,8 @@ namespace DiabetesContolApp.Views
 
             //The previous log overlaps in time with the
             //new log, if it is to be added now
-
-            SetOverlappingMeals(!log.Reminder.ReadyToHandle(), log);
+            else
+                SetOverlappingMeals(!log.Reminder.ReadyToHandle(), log);
         }
     }
 }
