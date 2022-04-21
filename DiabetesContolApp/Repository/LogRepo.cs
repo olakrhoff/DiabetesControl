@@ -45,16 +45,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>Returns true if it was deleted, if an error occurs then false</returns>
         async public Task<bool> DeleteLogAsync(int logID)
         {
-            try
-            {
-                await _logDatabase.DeleteLogAsync(logID);
-                return true;
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e.StackTrace);
-                return false;
-            }
+            return await _logDatabase.DeleteLogAsync(logID) >= 0;
         }
 
         /// <summary>
@@ -65,7 +56,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>List of LogModels with the given reminder ID, might be empty.</returns>
         async public Task<List<LogModel>> GetAllLogsWithReminderIDAsync(int reminderID)
         {
-            List<LogModelDAO> logDAOs = await _logDatabase.GetLogsWithReminderIDAsync(reminderID);
+            List<LogModelDAO> logDAOs = await _logDatabase.GetAllLogsWithReminderIDAsync(reminderID);
 
             List<LogModel> logsWithRemiderID = new();
 
@@ -83,7 +74,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>List of LogModels who has the given DayProfile ID.</returns>
         async public Task<List<LogModel>> GetAllLogsWithDayProfileIDAsync(int dayProfileID)
         {
-            List<LogModelDAO> logsDAOWithDayProfileID = await _logDatabase.GetLogsWithDayProfileIDAsync(dayProfileID);
+            List<LogModelDAO> logsDAOWithDayProfileID = await _logDatabase.GetAllLogsWithDayProfileIDAsync(dayProfileID);
 
             List<LogModel> logs = new();
 
@@ -110,26 +101,6 @@ namespace DiabetesContolApp.Repository
         }
 
         /// <summary>
-        /// Deletes all Logs with matching the IDs in the list.
-        /// </summary>
-        /// <param name="logIDs"></param>
-        /// <returns>True if no problem, else false.</returns>
-        async public Task<bool> DeleteAllLogsAsync(List<int> logIDs)
-        {
-            try
-            {
-                foreach (int logID in logIDs)
-                    await DeleteLogAsync(logID);
-                return true;
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e.StackTrace);
-                return false;
-            }
-        }
-
-        /// <summary>
         /// Gets the logDAO with the given logID, if it exists,
         /// then convert it to a logModel.
         /// </summary>
@@ -146,7 +117,6 @@ namespace DiabetesContolApp.Repository
 
             return new(logDAO);
         }
-
 
         /// <summary>
         /// Updates the log with the matching ID.

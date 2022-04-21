@@ -49,7 +49,7 @@ namespace DiabetesContolApp.Persistence
         /// </summary>
         /// <param name="dayProfileID"></param>
         /// <returns>List of LogModelDAOs with given DayProfile ID, might be empty.</returns>
-        async public Task<List<LogModelDAO>> GetLogsWithDayProfileIDAsync(int dayProfileID)
+        async public Task<List<LogModelDAO>> GetAllLogsWithDayProfileIDAsync(int dayProfileID)
         {
             try
             {
@@ -71,7 +71,7 @@ namespace DiabetesContolApp.Persistence
         /// List of LogModelDAOs connected to the remidnerID, if no one, then
         /// an empty list.
         /// </returns>
-        async public Task<List<LogModelDAO>> GetLogsWithReminderIDAsync(int reminderID)
+        async public Task<List<LogModelDAO>> GetAllLogsWithReminderIDAsync(int reminderID)
         {
             try
             {
