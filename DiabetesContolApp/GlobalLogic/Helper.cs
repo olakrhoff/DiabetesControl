@@ -309,20 +309,33 @@ namespace DiabetesContolApp.GlobalLogic
             return 100 / averageTDD;
         }
 
-        //TODO: Write doc and code
-        public static void RoundFirstSignificantDigit(ref double input, uint digits)
+        /// <summary>
+        /// This method takes a double value and rounds it of to
+        /// the "digits"-number of significant digits
+        /// </summary>
+        /// <example>
+        /// value = 0.001234
+        /// We want the 2 (digits = 2) most significant digits
+        ///
+        /// Step by step
+        /// 0.001234 => 1.234000
+        /// 1.234000 => 1.230000
+        /// 1.230000 => 0.001230
+        ///
+        /// 
+        /// </example>
+        /// <param name="value"></param>
+        /// <param name="digits"></param>
+        public static void FirstNSignificantDigits(this ref double value, uint digits)
         {
-            if (input == 0)
-                return;
+            if (value == 0d)
+                return; //There is nothing her to change.
 
-            int precision = 0;
-            double val = input - Math.Round(input, 0);
-            while (Math.Abs(val) < 1.0d)
-            {
-                val *= 10;
-                precision++;
-            }
-            input = Math.Round(input, precision + (int)digits - 1);
+            //We then scale the number to be on scientific format
+            double scaleFactor = Math.Pow(10, Math.Floor(Math.Log10(Math.Abs(value))) + 1);
+
+            //Then we round to the correct number of significant figures, then scale the value back
+            value = scaleFactor * Math.Round(value / scaleFactor, (int)digits);
         }
     }
 }
