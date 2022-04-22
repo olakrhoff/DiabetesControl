@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Linq;
 
 using DiabetesContolApp.Service;
+using DiabetesContolApp.Service.Interfaces;
 using DiabetesContolApp.Models;
 
 using MathNet.Numerics;
@@ -18,6 +19,8 @@ namespace DiabetesContolApp.GlobalLogic
         private const int MINIMUM_OCCURENCES = 10;
         private const double LOWER_BOUND_FOR_PREDICTION_INTERVAL = -1.0;
         private const double ABSOLUTE_MAXIMUM_DISTANCE_CHANGE = 1.0;
+
+        public static IReminderService _reminderService;
 
 
         /// <summary>
@@ -35,10 +38,11 @@ namespace DiabetesContolApp.GlobalLogic
             {
                 if (currentReminder == null)
                     return false;
-                ReminderService reminderService = ReminderService.GetReminderService();
-                if (!await reminderService.UpdateReminderAsync(currentReminder)) //Update the reminder to hold the glucose after meal value and the logs connected to it
+                //ReminderService _reminderService = _reminderService == null ? ReminderService.GetReminderService() : _reminderService;
+                _reminderService ??= ReminderService.GetReminderService();
+                if (!await _reminderService.UpdateReminderAsync(currentReminder)) //Update the reminder to hold the glucose after meal value and the logs connected to it
                     return false;
-                ReminderModel reminder = await reminderService.GetReminderAsync(currentReminder.ReminderID); //Get the updated Reminder
+                ReminderModel reminder = await _reminderService.GetReminderAsync(currentReminder.ReminderID); //Get the updated Reminder
                 if (reminder == null)
                     return false;
 

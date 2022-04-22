@@ -5,7 +5,6 @@
     x:Class="DiabetesContolApp.Views.LogPage">
 
     <ContentPage.Resources>
-        <src:DateConverter x:Key="dateConverter"/>
         <ResourceDictionary>
             <Style x:Key="labels" TargetType="Label">
                 <Setter Property="FontSize" Value="Title"/>

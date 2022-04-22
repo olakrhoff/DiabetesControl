@@ -1,12 +1,10 @@
 ﻿using NUnit.Framework;
 
-using System.Threading.Tasks;
 using System;
 
 using DiabetesContolApp.GlobalLogic;
 using System.Collections.Generic;
 using MathNet.Numerics;
-using System.Diagnostics;
 
 namespace Tests.GlobalLogicTests
 {

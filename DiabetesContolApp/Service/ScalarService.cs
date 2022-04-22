@@ -6,10 +6,11 @@ using System.Linq;
 using DiabetesContolApp.Models;
 using DiabetesContolApp.Repository;
 using DiabetesContolApp.Repository.Interfaces;
+using DiabetesContolApp.Service.Interfaces;
 
 namespace DiabetesContolApp.Service
 {
-    public class ScalarService
+    public class ScalarService : IScalarService
     {
         private readonly IScalarRepo _scalarRepo;
 
