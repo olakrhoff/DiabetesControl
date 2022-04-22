@@ -32,6 +32,16 @@ namespace DiabetesContolApp.Models
             DayProfileID = dayProfileID;
         }
 
+        public DayProfileModel(int dayProfileID, float targetGlucoseValue, string name, DateTime startTime, float carbScalar, float glucoseScalar)
+        {
+            DayProfileID = dayProfileID;
+            TargetGlucoseValue = targetGlucoseValue;
+            Name = name;
+            StartTime = startTime;
+            CarbScalar = carbScalar;
+            GlucoseScalar = glucoseScalar;
+        }
+
         public DayProfileModel(DayProfileModelDAO dayProfileDAO)
         {
             DayProfileID = dayProfileDAO.DayProfileID;

@@ -21,7 +21,7 @@ namespace DiabetesContolApp.GlobalLogic
         private const double ABSOLUTE_MAXIMUM_DISTANCE_CHANGE = 1.0;
 
         public static IReminderService _reminderService;
-
+        public static ILogService _logService;
 
         /// <summary>
         /// Handles the logic of the algorithm scheme.
@@ -38,7 +38,6 @@ namespace DiabetesContolApp.GlobalLogic
             {
                 if (currentReminder == null)
                     return false;
-                //ReminderService _reminderService = _reminderService == null ? ReminderService.GetReminderService() : _reminderService;
                 _reminderService ??= ReminderService.GetReminderService();
                 if (!await _reminderService.UpdateReminderAsync(currentReminder)) //Update the reminder to hold the glucose after meal value and the logs connected to it
                     return false;
@@ -49,9 +48,9 @@ namespace DiabetesContolApp.GlobalLogic
                 Debug.WriteLine("Starting with ReminderID: " + reminder.ReminderID);
 
                 //Updates the logs to have all objects in them, since we will need them later
-                LogService logService = LogService.GetLogService();
+                _logService ??= LogService.GetLogService();
                 for (int i = 0; i < reminder.Logs.Count; ++i)
-                    reminder.Logs[i] = await logService.GetLogAsync(reminder.Logs[i].LogID);
+                    reminder.Logs[i] = await _logService.GetLogAsync(reminder.Logs[i].LogID);
 
                 bool curruptLog = reminder.Logs.Exists(log => log == null); //Check if any of the logs wasn't found
                 if (curruptLog || reminder.Logs.Count == 0)
@@ -59,6 +58,9 @@ namespace DiabetesContolApp.GlobalLogic
 
                 //Do the partitioning from the Reminder to all the Logs
                 List<LogModel> logs = await PartitionGlucoseErrorToLogs(reminder);
+
+                if (logs == null)
+                    return false;
 
                 //Check all elements in all Logs and update the respective scalar if possible
                 return await UpdateScalarValues(logs);
@@ -612,7 +614,7 @@ namespace DiabetesContolApp.GlobalLogic
             try
             {
                 if (!reminder.IsGlucoseAfterMealValid())
-                    throw new ArgumentNullException("Glucose after meal value in Reminder must not be null"); //Should not be null, it is needed in this method
+                    throw new ArgumentNullException("Glucose after meal value in Reminder must be valid");
 
                 //We calculate the glucose error in the reminder
                 float lastLogTargetGlucoseValue = reminder.Logs[reminder.Logs.Count - 1].DayProfile.TargetGlucoseValue;
@@ -654,11 +656,17 @@ namespace DiabetesContolApp.GlobalLogic
 
                     log.GlucoseAfterMeal = targetGlucoseForLog + glucoseErrorAdjusted; //target glucose plus the error is the estimate for the glucose after meal value
 
-                    LogService logService = LogService.GetLogService();
-                    await logService.UpdateLogAsync(log); //Update the Log in the datebase to hold the GlucoseAfterMeal value
+                    _logService ??= LogService.GetLogService();
+                    await _logService.UpdateLogAsync(log); //Update the Log in the datebase to hold the GlucoseAfterMeal value
                 }
 
                 return reminder.Logs;
+            }
+            catch (ArgumentNullException ane)
+            {
+                Debug.WriteLine(ane.StackTrace);
+                Debug.WriteLine(ane.Message);
+                return null;
             }
             catch (NullReferenceException nre)
             {

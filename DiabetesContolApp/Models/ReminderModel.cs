@@ -24,6 +24,16 @@ namespace DiabetesContolApp.Models
         public List<LogModel> Logs { get; set; }
         public bool IsHandled { get; set; }
 
+        public ReminderModel(int reminderID, float? glucoseAfterMeal, List<LogModel> logs, bool isHandled, DateTime dateTimeValue)
+        {
+            ReminderID = reminderID;
+            DateTimeLong = dateTimeValue.ToBinary();
+            GlucoseAfterMeal = glucoseAfterMeal;
+            Logs = logs;
+            IsHandled = isHandled;
+            DateTimeValue = dateTimeValue;
+        }
+
         public ReminderModel()
         {
             ReminderID = -1;

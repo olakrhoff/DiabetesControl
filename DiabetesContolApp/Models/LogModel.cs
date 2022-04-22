@@ -60,9 +60,22 @@ namespace DiabetesContolApp.Models
             InsulinFromUser = insulinFromUser;
             GlucoseAtMeal = glucoseAtMeal;
             GlucoseAfterMeal = glucoseAfterMeal;
-            NumberOfGroceries = numberOfGroceries != null ? numberOfGroceries : new();
+            NumberOfGroceries = numberOfGroceries ?? new();
         }
 
+        public LogModel(int logID, DayProfileModel dayProfile, ReminderModel reminder, DateTime dateTime, float insulinEstimate, float insulinFromUser, float glucoseAtMeal, float correctionInsulin, List<NumberOfGroceryModel> numberOfGroceries, float? glucoseAfterMeal = null)
+        {
+            LogID = logID;
+            Reminder = reminder;
+            DayProfile = dayProfile;
+            DateTimeValue = dateTime;
+            InsulinEstimate = insulinEstimate;
+            InsulinFromUser = insulinFromUser;
+            GlucoseAtMeal = glucoseAtMeal;
+            GlucoseAfterMeal = glucoseAfterMeal;
+            CorrectionInsulin = correctionInsulin;
+            NumberOfGroceries = numberOfGroceries ?? new();
+        }
 
         public int CompareTo(LogModel other)
         {
