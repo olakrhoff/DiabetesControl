@@ -4,13 +4,16 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Collections;
+
 using MathNet.Numerics;
 
 using DiabetesContolApp.GlobalLogic;
+using DiabetesContolApp.GlobalLogic.Interfaces;
 using DiabetesContolApp.Service.Interfaces;
 using DiabetesContolApp.Models;
+using DiabetesContolApp;
 using DiabetesContolApp.Service;
-using System.Collections;
 
 namespace Tests.GlobalLogicTests
 {
@@ -19,6 +22,8 @@ namespace Tests.GlobalLogicTests
     {
         private Mock<IReminderService> _reminderService;
         private Mock<ILogService> _logService;
+        private Mock<IDayProfileService> _dayProfileService;
+        private Mock<IApplicationProperties> _applicationProperies;
 
         //Emulate Database
         private List<ReminderModel> _reminderDB;
@@ -30,9 +35,13 @@ namespace Tests.GlobalLogicTests
         {
             _reminderService = new();
             _logService = new();
+            _dayProfileService = new();
+            _applicationProperies = new();
 
             Algorithm._reminderService = _reminderService.Object;
             Algorithm._logService = _logService.Object;
+            Algorithm._dayProfileService = _dayProfileService.Object;
+            Algorithm._applicationProperties = _applicationProperies.Object;
 
             _dayProfileDB = new();
             _logDB = new();
@@ -171,6 +180,47 @@ namespace Tests.GlobalLogicTests
                 return Task.FromResult(log);
             });
 
+
+            Assert.False(await Algorithm.RunStatisticsOnReminder(reminder));
+        }
+
+        [Test]
+        async public Task PartitionGlucoseErrorToLogs_UpdateLogFailed_RetursNull_ReturnsFalse()
+        {
+            ReminderModel reminder = _reminderDB[^1];
+            _reminderService.Setup(r => r.UpdateReminderAsync(reminder)).Returns(Task.FromResult(true));
+            _reminderService.Setup(r => r.GetReminderAsync(reminder.ReminderID)).Returns(Task.FromResult(reminder));
+
+            _logService.Setup(r => r.GetLogAsync(It.IsAny<int>())).Returns((int id) =>
+            {
+                LogModel log = _logDB.Find(log => log.LogID == id);
+                return Task.FromResult(log);
+            });
+
+            _logService.Setup(r => r.UpdateLogAsync(It.IsAny<LogModel>())).Returns(Task.FromResult(false));
+
+
+            Assert.False(await Algorithm.RunStatisticsOnReminder(reminder));
+        }
+
+        [Test]
+        async public Task UpdateDayProfileScalars_ErrorOnGetDayProfile_ThrowsNullReferenceException_ReturnsFalse()
+        {
+            ReminderModel reminder = _reminderDB[^1];
+            _reminderService.Setup(r => r.UpdateReminderAsync(reminder)).Returns(Task.FromResult(true));
+            _reminderService.Setup(r => r.GetReminderAsync(reminder.ReminderID)).Returns(Task.FromResult(reminder));
+
+            _logService.Setup(r => r.GetLogAsync(It.IsAny<int>())).Returns((int id) =>
+            {
+                LogModel log = _logDB.Find(log => log.LogID == id);
+                return Task.FromResult(log);
+            });
+
+            _logService.Setup(r => r.UpdateLogAsync(It.IsAny<LogModel>())).Returns(Task.FromResult(true));
+
+            _dayProfileService.Setup(r => r.GetDayProfileAsync(It.IsAny<int>())).Returns(Task.FromResult<DayProfileModel>(null));
+
+            _applicationProperies.Setup(r => r.GetProperty<float>(It.IsAny<string>())).Returns(2.0f);
 
             Assert.False(await Algorithm.RunStatisticsOnReminder(reminder));
         }

@@ -93,7 +93,7 @@ namespace DiabetesContolApp.Service
 
             foreach (ReminderModel reminder in unhandledReminders)
                 if (await reminder.Handle())
-                    await UpdateReminderAsync(reminder);
+                    await _reminderRepo.UpdateReminderAsync(reminder); //Call to repo, Handle will call the algorithm that updates the logs
         }
 
         /// <summary>

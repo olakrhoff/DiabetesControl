@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Diagnostics;
 
 using DiabetesContolApp.Service;
 using DiabetesContolApp.Service.Interfaces;
 using DiabetesContolApp.Models;
+using DiabetesContolApp.GlobalLogic.Interfaces;
 
 using MathNet.Numerics;
 
 using Xamarin.Forms;
-using System.Diagnostics;
 
 namespace DiabetesContolApp.GlobalLogic
 {
@@ -22,6 +23,8 @@ namespace DiabetesContolApp.GlobalLogic
 
         public static IReminderService _reminderService;
         public static ILogService _logService;
+        public static IDayProfileService _dayProfileService;
+        public static IApplicationProperties _applicationProperties;
 
         /// <summary>
         /// Handles the logic of the algorithm scheme.
@@ -130,11 +133,12 @@ namespace DiabetesContolApp.GlobalLogic
 
                 if (dataPoints.Count >= MINIMUM_OCCURENCES)
                 {
-                    var globalVariables = Application.Current as App; //Get access to properites in the App
+                    _applicationProperties ??= new ApplicationProperties(Application.Current as App); //Get access to properites in the App
 
                     double distance = GetGreatestSafeDistanceFromWantedLine(dataPoints);
 
-                    double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //Either what we were missing or gave to much
+                    //double extraInsulin = distance / _applicationProperties.InsulinToGlucoseRatio; //Either what we were missing or gave to much
+                    double extraInsulin = distance / _applicationProperties.GetProperty<float>(App.InsulinToGlucoseRatioKey); //Either what we were missing or gave to much
 
                     //The statistics for correction insulin is adjusted to be per unit of insulin
                     //so all we need is to add the "extra insulin per unit" to 1 to get the new
@@ -142,10 +146,11 @@ namespace DiabetesContolApp.GlobalLogic
                     //(avg. correction insulin + extra insulin) / avg. correction insulin
                     //since we operate with "per unit" values the avg. correction insulin would be equal to 1.
                     double newScalar = 1 + extraInsulin;
-                    if (await globalVariables.MainPage.DisplayAlert("Changing correction insulin", globalVariables.InsulinToGlucoseRatio + " => " + globalVariables.InsulinToGlucoseRatio / (float)newScalar, "OK", "Cancel"))
+                    if (await _applicationProperties.DisplayAlert("Changing correction insulin", _applicationProperties.GetProperty<float>(App.InsulinToGlucoseRatioKey) + " => " + _applicationProperties.GetProperty<float>(App.InsulinToGlucoseRatioKey) / (float)newScalar, "OK", "Cancel"))
                     {
-                        globalVariables.InsulinToGlucoseRatio /= (float)newScalar; //Update the ratio
-                        await globalVariables.SavePropertiesAsync();
+                        //_applicationProperties.InsulinToGlucoseRatio /= (float)newScalar; //Update the ratio
+                        _applicationProperties.SetProperty<float>(App.InsulinToGlucoseRatioKey, _applicationProperties.GetProperty<float>(App.InsulinToGlucoseRatioKey) / (float)newScalar); //Update the ratio
+                        await _applicationProperties.SavePropertiesAsync();
                         correctionScalar.ScalarValue = (float)newScalar;
                         correctionScalar.DateTimeCreated = DateTime.Now;
                         await scalarService.InsertScalarAsync(correctionScalar);
@@ -222,8 +227,8 @@ namespace DiabetesContolApp.GlobalLogic
         {
             try
             {
-                DayProfileService dayProfileService = DayProfileService.GetDayProfileService();
-                DayProfileModel currentDayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
+                _dayProfileService ??= DayProfileService.GetDayProfileService();
+                DayProfileModel currentDayProfile = await _dayProfileService.GetDayProfileAsync(dayProfileID);
 
                 ScalarService scalarService = ScalarService.GetScalarService();
                 //Get datetime for when carb-scalar and glucose-scalar was last updated
@@ -271,20 +276,21 @@ namespace DiabetesContolApp.GlobalLogic
                 //Change carb-scalar based on statistics
                 if (dataPointsForCarbScalar.Count >= MINIMUM_OCCURENCES) //Must have more than a given number of data points
                 {
-                    var globalVariables = Application.Current as App; //Get access to properites in the App
+                    _applicationProperties ??= new ApplicationProperties(Application.Current as App); //Get access to properites in the App
 
                     double distance = GetGreatestSafeDistanceFromWantedLine(dataPointsForCarbScalar);
 
                     double insulinGivenOnAvgForCarbs = logsForCarbScalar.Sum(log => log.GetInsulinForCarbs()) / logsForCarbScalar.Count; //Average insulin with this day profiles carb-scalar
-                    double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //How much insulin (either more or less) is needed to close the distance to the line
+                    //double extraInsulin = distance / _applicationProperties.InsulinToGlucoseRatio; //How much insulin (either more or less) is needed to close the distance to the line
+                    double extraInsulin = distance / _applicationProperties.GetProperty<float>(App.InsulinToGlucoseRatioKey); //How much insulin (either more or less) is needed to close the distance to the line
 
                     double scaleFactor = (insulinGivenOnAvgForCarbs + extraInsulin) / insulinGivenOnAvgForCarbs; //The scale factor to obtain the wanted values is calculated e.g. we need 1.2 times more insulin
 
-                    DayProfileModel dayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
-                    if (await globalVariables.MainPage.DisplayAlert("Changing dayProfile (" + dayProfile.Name + ") carb scalar", dayProfile.CarbScalar + " => " + dayProfile.CarbScalar * scaleFactor, "OK", "Cancel"))
+                    DayProfileModel dayProfile = await _dayProfileService.GetDayProfileAsync(dayProfileID);
+                    if (await _applicationProperties.DisplayAlert("Changing dayProfile (" + dayProfile.Name + ") carb scalar", dayProfile.CarbScalar + " => " + dayProfile.CarbScalar * scaleFactor, "OK", "Cancel"))
                     {
                         dayProfile.CarbScalar *= (float)scaleFactor;
-                        await dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
+                        await _dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
 
                         carbScalar.ScalarValue = dayProfile.CarbScalar;
                         carbScalar.DateTimeCreated = DateTime.Now;
@@ -295,21 +301,21 @@ namespace DiabetesContolApp.GlobalLogic
                 //Change glucose-scalar based on statistics
                 if (dataPointsForGlucoseScalar.Count >= MINIMUM_OCCURENCES) //Must have more than a given number of data points
                 {
-                    var globalVariables = Application.Current as App; //Get access to properites in the App
+                    _applicationProperties ??= new ApplicationProperties(Application.Current as App); //Get access to properites in the App
 
                     double distance = GetGreatestSafeDistanceFromWantedLine(dataPointsForGlucoseScalar);
 
                     double insulinGivenOnAvgForGlucoseScalar = logsForGlucoseScalar.Sum(log => log.CorrectionInsulin) / logsForGlucoseScalar.Count; //Average insulin with this day profiles glucose-scalar
-                    double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //How much insulin (either more or less) is needed to close the distance to the line
+                    double extraInsulin = distance / _applicationProperties.GetProperty<float>(App.InsulinToGlucoseRatioKey); //How much insulin (either more or less) is needed to close the distance to the line
 
                     double scaleFactor = (insulinGivenOnAvgForGlucoseScalar + extraInsulin) / insulinGivenOnAvgForGlucoseScalar; //The scale factor to obtain the wanted values is calculated e.g. we need 1.2 times more insulin
 
-                    DayProfileModel dayProfile = await dayProfileService.GetDayProfileAsync(dayProfileID);
-                    if (await globalVariables.MainPage.DisplayAlert("Changing dayProfile (" + dayProfile.Name + ") glucose scalar", dayProfile.GlucoseScalar + " => " + dayProfile.GlucoseScalar * scaleFactor, "OK", "Cancel"))
+                    DayProfileModel dayProfile = await _dayProfileService.GetDayProfileAsync(dayProfileID);
+                    if (await _applicationProperties.DisplayAlert("Changing dayProfile (" + dayProfile.Name + ") glucose scalar", dayProfile.GlucoseScalar + " => " + dayProfile.GlucoseScalar * scaleFactor, "OK", "Cancel"))
                     {
                         dayProfile.GlucoseScalar *= (float)scaleFactor;
 
-                        await dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
+                        await _dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
 
                         glucoseScalar.ScalarValue = (float)scaleFactor;
                         glucoseScalar.DateTimeCreated = DateTime.Now;
@@ -514,16 +520,16 @@ namespace DiabetesContolApp.GlobalLogic
 
                 if (dataPointsForGrocery.Count >= MINIMUM_OCCURENCES)
                 {
-                    var globalVariables = Application.Current as App; //Get access to properites in the App
+                    _applicationProperties ??= new ApplicationProperties(Application.Current as App); //Get access to properites in the App
 
                     double distance = GetGreatestSafeDistanceFromWantedLine(dataPointsForGrocery);
 
                     double insulinPerPortionOfGrocery = logsAfterDate[0].GetInsulinPerPortionFromGroceryWithID(groceryID); //Insulin per portion
-                    double extraInsulin = distance / globalVariables.InsulinToGlucoseRatio; //How much insulin (either more or less) is needed to close the distance to the line
+                    double extraInsulin = distance / _applicationProperties.GetProperty<float>(App.InsulinToGlucoseRatioKey); //How much insulin (either more or less) is needed to close the distance to the line
 
                     double scalingFactor = (insulinPerPortionOfGrocery + extraInsulin) / insulinPerPortionOfGrocery; //This is how much more insulin we need (in percentage)
 
-                    if (await globalVariables.MainPage.DisplayAlert("Changing grocery (" + currentGrocery.Name + ") carb scalar", currentGrocery.CarbScalar + " => " + currentGrocery.CarbScalar * scalingFactor, "OK", "Cancel"))
+                    if (await _applicationProperties.DisplayAlert("Changing grocery (" + currentGrocery.Name + ") carb scalar", currentGrocery.CarbScalar + " => " + currentGrocery.CarbScalar * scalingFactor, "OK", "Cancel"))
                     {
                         //Update the grocery
                         currentGrocery.CarbScalar *= (float)scalingFactor; //Scale the current CarbScalar to make the proper adjustment
@@ -637,8 +643,7 @@ namespace DiabetesContolApp.GlobalLogic
                     var glucoseErrorForLogPartitioned = glucoseErrorInReminder * (log.InsulinEstimate / totalInsulinGiven);
 
 
-                    var globalVariables = Application.Current as App; //Get access to properites in the App
-
+                    _applicationProperties ??= new ApplicationProperties(Application.Current as App); //Get access to properites in the App
 
                     //We adjust the difference to account for correctness with what was accualy given
                     //This means that if the app estimate was 3.0 units and the user sat 1 unit
@@ -649,15 +654,15 @@ namespace DiabetesContolApp.GlobalLogic
                     //currently would get it to. 
 
                     //E.g.
-                    //  4.8                       = 7.8                          - (3                   - 1                  ) * 1.5 | Case: adjusted insulin down
-                    //  12.3                      = 7.8                          - (1                   - 4                  ) * 1.5 | Case: adjusted insulin up
-                    //  8.3                       = 15.8                         - (5                   - 0                  ) * 1.5 | Case: did not set any insulin (happens sometimes)
-                    var glucoseErrorAdjusted = glucoseErrorForLogPartitioned - (log.InsulinEstimate - log.InsulinFromUser) * globalVariables.InsulinToGlucoseRatio;
-
+                    //  4.8                  = 7.8                           - (3                   - 1                  ) * 1.5 | Case: adjusted insulin down
+                    //  12.3                 = 7.8                           - (1                   - 4                  ) * 1.5 | Case: adjusted insulin up
+                    //  8.3                  = 15.8                          - (5                   - 0                  ) * 1.5 | Case: did not set any insulin (happens sometimes)
+                    var glucoseErrorAdjusted = glucoseErrorForLogPartitioned - (log.InsulinEstimate - log.InsulinFromUser) * _applicationProperties.GetProperty<float>(App.InsulinToGlucoseRatioKey);
                     log.GlucoseAfterMeal = targetGlucoseForLog + glucoseErrorAdjusted; //target glucose plus the error is the estimate for the glucose after meal value
 
                     _logService ??= LogService.GetLogService();
-                    await _logService.UpdateLogAsync(log); //Update the Log in the datebase to hold the GlucoseAfterMeal value
+                    if (!await _logService.UpdateLogAsync(log)) //Update the Log in the datebase to hold the GlucoseAfterMeal value
+                        return null;
                 }
 
                 return reminder.Logs;

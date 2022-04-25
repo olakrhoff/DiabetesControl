@@ -101,8 +101,8 @@ namespace DiabetesContolApp.Models
                 return true;
             }
 
-            IsHandled = true; //Need to set this before the (await Algorithm.RunStatisticsOnReminder(this);) line, to ensure IsHandled is updated.
             await Algorithm.RunStatisticsOnReminder(this);
+            IsHandled = true;
             return true;
         }
 
