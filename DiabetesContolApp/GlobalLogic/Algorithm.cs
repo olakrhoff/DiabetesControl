@@ -24,6 +24,7 @@ namespace DiabetesContolApp.GlobalLogic
         public static IReminderService _reminderService;
         public static ILogService _logService;
         public static IDayProfileService _dayProfileService;
+        public static IScalarService _scalarService;
         public static IApplicationProperties _applicationProperties;
 
         /// <summary>
@@ -109,15 +110,15 @@ namespace DiabetesContolApp.GlobalLogic
         {
             try
             {
-                ScalarService scalarService = ScalarService.GetScalarService();
+                _scalarService ??= ScalarService.GetScalarService();
 
-                LogService logService = LogService.GetLogService();
+                _logService ??= LogService.GetLogService();
 
-                LogModel firstLog = (await logService.GetAllLogsAsync()).Min();
+                LogModel firstLog = (await _logService.GetAllLogsAsync()).Min();
 
-                ScalarModel correctionScalar = await scalarService.GetNewestScalarForTypeWithObjectIDAsync(ScalarTypes.CORRECTION_INSULIN, -1, firstLog.DateTimeValue);
+                ScalarModel correctionScalar = await _scalarService.GetNewestScalarForTypeWithObjectIDAsync(ScalarTypes.CORRECTION_INSULIN, -1, firstLog.DateTimeValue);
 
-                List<LogModel> logsAfterDate = await logService.GetAllLogsAfterDateAsync(correctionScalar.DateTimeCreated);
+                List<LogModel> logsAfterDate = await _logService.GetAllLogsAfterDateAsync(correctionScalar.DateTimeCreated);
 
                 logsAfterDate = logsAfterDate.FindAll(log => log.IsLogDataValid()); //Filter out corrupt data.
 
@@ -153,7 +154,7 @@ namespace DiabetesContolApp.GlobalLogic
                         await _applicationProperties.SavePropertiesAsync();
                         correctionScalar.ScalarValue = (float)newScalar;
                         correctionScalar.DateTimeCreated = DateTime.Now;
-                        await scalarService.InsertScalarAsync(correctionScalar);
+                        await _scalarService.InsertScalarAsync(correctionScalar);
                     }
                 }
 
@@ -230,19 +231,19 @@ namespace DiabetesContolApp.GlobalLogic
                 _dayProfileService ??= DayProfileService.GetDayProfileService();
                 DayProfileModel currentDayProfile = await _dayProfileService.GetDayProfileAsync(dayProfileID);
 
-                ScalarService scalarService = ScalarService.GetScalarService();
+                _scalarService ??= ScalarService.GetScalarService();
                 //Get datetime for when carb-scalar and glucose-scalar was last updated
-                LogService logService = LogService.GetLogService();
+                _logService ??= LogService.GetLogService();
 
-                LogModel firstLogWithDayProfile = (await logService.GetAllLogsWithDayProfileIDAsync(dayProfileID)).Min();
+                LogModel firstLogWithDayProfile = (await _logService.GetAllLogsWithDayProfileIDAsync(dayProfileID)).Min();
 
-                ScalarModel carbScalar = await scalarService.GetNewestScalarForTypeWithObjectIDAsync(ScalarTypes.DAY_PROFILE_CARB, currentDayProfile.DayProfileID, firstLogWithDayProfile.DateTimeValue);
-                ScalarModel glucoseScalar = await scalarService.GetNewestScalarForTypeWithObjectIDAsync(ScalarTypes.DAY_PROFILE_GLUCOSE, currentDayProfile.DayProfileID, firstLogWithDayProfile.DateTimeValue);
+                ScalarModel carbScalar = await _scalarService.GetNewestScalarForTypeWithObjectIDAsync(ScalarTypes.DAY_PROFILE_CARB, currentDayProfile.DayProfileID, firstLogWithDayProfile.DateTimeValue);
+                ScalarModel glucoseScalar = await _scalarService.GetNewestScalarForTypeWithObjectIDAsync(ScalarTypes.DAY_PROFILE_GLUCOSE, currentDayProfile.DayProfileID, firstLogWithDayProfile.DateTimeValue);
 
 
 
                 //Get all other log-entries with the same DayProfile
-                List<LogModel> logsWithDayProfileID = await logService.GetAllLogsWithDayProfileIDAsync(dayProfileID);
+                List<LogModel> logsWithDayProfileID = await _logService.GetAllLogsWithDayProfileIDAsync(dayProfileID);
 
                 //Filter out all invalid logs
                 logsWithDayProfileID = logsWithDayProfileID.FindAll(log => log.IsLogDataValid());
@@ -294,7 +295,7 @@ namespace DiabetesContolApp.GlobalLogic
 
                         carbScalar.ScalarValue = dayProfile.CarbScalar;
                         carbScalar.DateTimeCreated = DateTime.Now;
-                        await scalarService.InsertScalarAsync(carbScalar); //Create new scalar
+                        await _scalarService.InsertScalarAsync(carbScalar); //Create new scalar
                     }
                 }
 
@@ -319,7 +320,7 @@ namespace DiabetesContolApp.GlobalLogic
 
                         glucoseScalar.ScalarValue = (float)scaleFactor;
                         glucoseScalar.DateTimeCreated = DateTime.Now;
-                        await scalarService.InsertScalarAsync(glucoseScalar); //Create new scalar
+                        await _scalarService.InsertScalarAsync(glucoseScalar); //Create new scalar
                     }
                 }
                 return true;
@@ -481,11 +482,11 @@ namespace DiabetesContolApp.GlobalLogic
                 //Get current grocery
                 GroceryModel currentGrocery = await groceryService.GetGroceryAsync(groceryID);
 
-                ScalarService scalarService = ScalarService.GetScalarService();
+                _scalarService ??= ScalarService.GetScalarService();
                 //Get grocery scalar
-                LogService logService = LogService.GetLogService();
+                _logService ??= LogService.GetLogService();
 
-                LogModel firstLogWithGrocery = (await logService.GetAllLogsAsync()).Where(log =>
+                LogModel firstLogWithGrocery = (await _logService.GetAllLogsAsync()).Where(log =>
                 {
                     foreach (NumberOfGroceryModel numberOfGrocery in log.NumberOfGroceries)
                         if (numberOfGrocery.Grocery.GroceryID == groceryID)
@@ -493,10 +494,10 @@ namespace DiabetesContolApp.GlobalLogic
                     return false;
                 }).Min();
 
-                ScalarModel groceryScalar = await scalarService.GetNewestScalarForTypeWithObjectIDAsync(ScalarTypes.GROCERY, currentGrocery.GroceryID, firstLogWithGrocery.DateTimeValue);
+                ScalarModel groceryScalar = await _scalarService.GetNewestScalarForTypeWithObjectIDAsync(ScalarTypes.GROCERY, currentGrocery.GroceryID, firstLogWithGrocery.DateTimeValue);
 
                 //Get logs after the grocery scalar was created
-                List<LogModel> logsAfterDate = await logService.GetAllLogsAfterDateAsync(groceryScalar.DateTimeCreated);
+                List<LogModel> logsAfterDate = await _logService.GetAllLogsAfterDateAsync(groceryScalar.DateTimeCreated);
 
                 logsAfterDate = logsAfterDate.FindAll(log =>
                 {
@@ -538,7 +539,7 @@ namespace DiabetesContolApp.GlobalLogic
                         //Update the scalar
                         groceryScalar.ScalarValue = (float)currentGrocery.CarbScalar;
                         groceryScalar.DateTimeCreated = DateTime.Now;
-                        await scalarService.InsertScalarAsync(groceryScalar);
+                        await _scalarService.InsertScalarAsync(groceryScalar);
                     }
                 }
                 return true;

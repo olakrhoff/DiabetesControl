@@ -14,6 +14,8 @@ using DiabetesContolApp.Service.Interfaces;
 using DiabetesContolApp.Models;
 using DiabetesContolApp;
 using DiabetesContolApp.Service;
+using System.Linq;
+using System.Diagnostics;
 
 namespace Tests.GlobalLogicTests
 {
@@ -23,12 +25,14 @@ namespace Tests.GlobalLogicTests
         private Mock<IReminderService> _reminderService;
         private Mock<ILogService> _logService;
         private Mock<IDayProfileService> _dayProfileService;
+        private Mock<IScalarService> _scalarService;
         private Mock<IApplicationProperties> _applicationProperies;
 
         //Emulate Database
         private List<ReminderModel> _reminderDB;
         private List<LogModel> _logDB;
         private List<DayProfileModel> _dayProfileDB;
+        private List<ScalarModel> _scalarDB;
 
         [SetUp]
         public void Setup()
@@ -36,16 +40,20 @@ namespace Tests.GlobalLogicTests
             _reminderService = new();
             _logService = new();
             _dayProfileService = new();
+            _scalarService = new();
             _applicationProperies = new();
 
             Algorithm._reminderService = _reminderService.Object;
             Algorithm._logService = _logService.Object;
             Algorithm._dayProfileService = _dayProfileService.Object;
+            Algorithm._scalarService = _scalarService.Object;
             Algorithm._applicationProperties = _applicationProperies.Object;
 
             _dayProfileDB = new();
             _logDB = new();
             _reminderDB = new();
+            _scalarDB = new();
+
 
             _dayProfileDB.AddRange(new List<DayProfileModel>()
             {
@@ -83,6 +91,12 @@ namespace Tests.GlobalLogicTests
                 new LogModel(1, new(1), new(8), new DateTime(2022, 3, 4, 6, 58, 0), 9.92f, 9.5f, 11.8f, 4.36f, new()),
                 new LogModel(1, new(1), new(9), new DateTime(2022, 3, 4, 6, 58, 0), 9.92f, 9.5f, 11.8f, 4.36f, new()),
                 new LogModel(1, new(1), new(10), new DateTime(2022, 3, 4, 6, 58, 0), 9.92f, 9.5f, 11.8f, 4.36f, new()),
+            });
+
+            _scalarDB.AddRange(new List<ScalarModel>()
+            {
+                new ScalarModel(1, ScalarTypes.DAY_PROFILE_CARB, 1, 1.0f, new DateTime(2022, 3, 3)),
+                new ScalarModel(1, ScalarTypes.DAY_PROFILE_GLUCOSE, 1, 1.0f, new DateTime(2022, 3, 3))
             });
 
             _logDB.ForEach(log =>
@@ -204,7 +218,7 @@ namespace Tests.GlobalLogicTests
         }
 
         [Test]
-        async public Task UpdateDayProfileScalars_ErrorOnGetDayProfile_ThrowsNullReferenceException_ReturnsFalse()
+        async public Task UpdateDayProfileScalars_ErrorOnGetDayProfile_NotEnoughData_ReturnsTrue()
         {
             ReminderModel reminder = _reminderDB[^1];
             _reminderService.Setup(r => r.UpdateReminderAsync(reminder)).Returns(Task.FromResult(true));
@@ -217,8 +231,22 @@ namespace Tests.GlobalLogicTests
             });
 
             _logService.Setup(r => r.UpdateLogAsync(It.IsAny<LogModel>())).Returns(Task.FromResult(true));
+            _logService.Setup(r => r.GetAllLogsWithDayProfileIDAsync(It.IsAny<int>())).Returns((int id) =>
+            {
+                return Task.FromResult(_logDB.FindAll(log => log.DayProfile.DayProfileID == id));
+            });
 
-            _dayProfileService.Setup(r => r.GetDayProfileAsync(It.IsAny<int>())).Returns(Task.FromResult<DayProfileModel>(null));
+            _dayProfileService.Setup(r => r.GetDayProfileAsync(It.IsAny<int>())).Returns((int id) =>
+            {
+                DayProfileModel dayProfile = _dayProfileDB.Find(d => d.DayProfileID == id);
+                return Task.FromResult<DayProfileModel>(dayProfile);
+            });
+
+            _scalarService.Setup(r => r.GetNewestScalarForTypeWithObjectIDAsync(It.IsAny<ScalarTypes>(), It.IsAny<int>(), It.IsAny<DateTime>())).Returns((ScalarTypes type, int id, DateTime date) =>
+            {
+                ScalarModel scalar = _scalarDB.FindAll(s => s.TypeOfScalar == type && s.ScalarObjectID == id && s.DateTimeCreated < date).OrderBy(s => s.DateTimeCreated).First();
+                return Task.FromResult<ScalarModel>(scalar);
+            });
 
             _applicationProperies.Setup(r => r.GetProperty<float>(It.IsAny<string>())).Returns(2.0f);
 
