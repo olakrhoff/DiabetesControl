@@ -12,6 +12,7 @@ using DiabetesContolApp.Service;
 
 using Xamarin.Forms;
 using Xamarin.Essentials;
+using System.Diagnostics;
 
 namespace DiabetesContolApp.GlobalLogic
 {
@@ -66,11 +67,15 @@ namespace DiabetesContolApp.GlobalLogic
             }
             catch (FormatException fe)
             {
+                Debug.WriteLine(fe.StackTrace);
+                Debug.WriteLine(fe.Message);
                 //Format was not valid
                 return false;
             }
             catch (Exception e)
             {
+                Debug.WriteLine(e.StackTrace);
+                Debug.WriteLine(e.Message);
                 //This should not happen, but for safety it is still here
                 return false;
             }
@@ -122,8 +127,8 @@ namespace DiabetesContolApp.GlobalLogic
 
         async private static void WriteBreadToCSVFile(string filePath)
         {
-            ReminderService reminderService = new();
-            LogService logService = new();
+            ReminderService reminderService = ReminderService.GetReminderService();
+            LogService logService = LogService.GetLogService();
 
             List<LogModel> logs = new();
 
@@ -302,6 +307,35 @@ namespace DiabetesContolApp.GlobalLogic
         public static float Calculate100Rule(float averageTDD)
         {
             return 100 / averageTDD;
+        }
+
+        /// <summary>
+        /// This method takes a double value and rounds it of to
+        /// the "digits"-number of significant digits
+        /// </summary>
+        /// <example>
+        /// value = 0.001234
+        /// We want the 2 (digits = 2) most significant digits
+        ///
+        /// Step by step
+        /// 0.001234 => 1.234000
+        /// 1.234000 => 1.230000
+        /// 1.230000 => 0.001230
+        ///
+        /// 
+        /// </example>
+        /// <param name="value"></param>
+        /// <param name="digits"></param>
+        public static void FirstNSignificantDigits(this ref double value, uint digits)
+        {
+            if (value == 0d)
+                return; //There is nothing her to change.
+
+            //We then scale the number to be on scientific format
+            double scaleFactor = Math.Pow(10, Math.Floor(Math.Log10(Math.Abs(value))) + 1);
+
+            //Then we round to the correct number of significant figures, then scale the value back
+            value = scaleFactor * Math.Round(value / scaleFactor, (int)digits);
         }
     }
 }

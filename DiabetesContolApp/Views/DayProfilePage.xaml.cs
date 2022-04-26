@@ -17,7 +17,7 @@ namespace DiabetesContolApp.Views
     {
         public ObservableCollection<DayProfileModel> DayProfiles { get; set; }
 
-        private DayProfileService dayProfileService = new();
+        private DayProfileService dayProfileService = DayProfileService.GetDayProfileService();
 
         public DayProfilePage()
         {

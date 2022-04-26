@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
+using System.Diagnostics;
 
 using DiabetesContolApp.DAO;
-using System.Diagnostics;
+using DiabetesContolApp.Persistence.Interfaces;
 
 namespace DiabetesContolApp.Persistence
 {
-    public class ScalarDatabase : ModelDatabaseAbstract
+    public class ScalarDatabase : ModelDatabaseAbstract, IScalarDatabase
     {
-        private static ScalarDatabase instance = null;
+        private static readonly ScalarDatabase _instance = null;
 
         public ScalarDatabase()
         {
@@ -18,7 +18,7 @@ namespace DiabetesContolApp.Persistence
 
         public static ScalarDatabase GetInstance()
         {
-            return instance == null ? new ScalarDatabase() : instance;
+            return _instance == null ? new ScalarDatabase() : _instance;
         }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                List<ScalarModelDAO> scalarDAOs = await connection.Table<ScalarModelDAO>().Where(scalarDAO => scalarDAO.TypeOfScalar == type && scalarDAO.ScalarObjectID == objectID).ToListAsync();
+                List<ScalarModelDAO> scalarDAOs = await _connection.Table<ScalarModelDAO>().Where(scalarDAO => scalarDAO.TypeOfScalar == type && scalarDAO.ScalarObjectID == objectID).ToListAsync();
                 return scalarDAOs;
             }
             catch (Exception e)
@@ -51,7 +51,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                return await connection.UpdateAsync(scalarDAO);
+                return await _connection.UpdateAsync(scalarDAO);
             }
             catch (Exception e)
             {
@@ -70,7 +70,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                List<ScalarModelDAO> scalarDAOs = await connection.Table<ScalarModelDAO>().Where(scalar => scalar.TypeOfScalar == type).ToListAsync();
+                List<ScalarModelDAO> scalarDAOs = await _connection.Table<ScalarModelDAO>().Where(scalar => scalar.TypeOfScalar == type).ToListAsync();
                 return scalarDAOs;
             }
             catch (Exception e)
@@ -89,7 +89,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                return await connection.InsertAsync(newScalarDAO);
+                return await _connection.InsertAsync(newScalarDAO);
             }
             catch (Exception e)
             {
@@ -107,7 +107,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                return await connection.GetAsync<ScalarModelDAO>(scalarID);
+                return await _connection.GetAsync<ScalarModelDAO>(scalarID);
             }
             catch (Exception e)
             {
@@ -124,7 +124,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                return await connection.Table<ScalarModelDAO>().ToListAsync();
+                return await _connection.Table<ScalarModelDAO>().ToListAsync();
             }
             catch (Exception e)
             {

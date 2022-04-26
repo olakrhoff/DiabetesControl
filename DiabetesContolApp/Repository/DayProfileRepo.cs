@@ -1,20 +1,28 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Collections.Generic;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.DAO;
 using DiabetesContolApp.Persistence;
-using System.Collections.Generic;
+using DiabetesContolApp.Persistence.Interfaces;
+using DiabetesContolApp.Repository.Interfaces;
 
 namespace DiabetesContolApp.Repository
 {
-    public class DayProfileRepo
+    public class DayProfileRepo : IDayProfileRepo
     {
-        private DayProfileDatabase dayProfileDatabase = DayProfileDatabase.GetInstance();
+        private readonly IDayProfileDatabase _dayProfileDatabase;
 
-        public DayProfileRepo()
+        public DayProfileRepo(IDayProfileDatabase dayProfileDatabase)
         {
+            _dayProfileDatabase = dayProfileDatabase;
+        }
+
+        public static DayProfileRepo GetDayProfileRepo()
+        {
+            return new DayProfileRepo(DayProfileDatabase.GetInstance());
         }
 
         /// <summary>
@@ -24,7 +32,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>List of DayProfileModels.</returns>
         async public Task<List<DayProfileModel>> GetAllDayProfilesAsync()
         {
-            List<DayProfileModelDAO> dayProfilesDAO = await dayProfileDatabase.GetAllDayProfilesAsync();
+            List<DayProfileModelDAO> dayProfilesDAO = await _dayProfileDatabase.GetAllDayProfilesAsync();
 
             List<DayProfileModel> dayProfiles = new();
 
@@ -35,22 +43,6 @@ namespace DiabetesContolApp.Repository
         }
 
         /// <summary>
-        /// Gets the DayProfile with the highest ID.
-        /// </summary>
-        /// <returns>DayProfileModel with the highest ID, null if no DayProfiles exists</returns>
-        async public Task<DayProfileModel> GetNewestDayProfileAsync()
-        {
-            List<DayProfileModelDAO> dayProfileDAOs = await dayProfileDatabase.GetAllDayProfilesAsync();
-
-            if (dayProfileDAOs.Count == 0)
-                return null;
-
-            int newestDayProfileDAOID = dayProfileDAOs.Max(dayProfileDAO => dayProfileDAO.DayProfileID);
-
-            return await GetDayProfileAsync(newestDayProfileDAOID);
-        }
-
-        /// <summary>
         /// Converts a DayProfileModel to a DAO, then
         /// updates into the database.
         /// </summary>
@@ -58,7 +50,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>True if inserted, else false.</returns>
         async public Task<bool> UpdateDayProfileAsync(DayProfileModel dayProfile)
         {
-            return await dayProfileDatabase.UpdateDayProfileAsync(new(dayProfile)) > 0;
+            return await _dayProfileDatabase.UpdateDayProfileAsync(new(dayProfile)) > 0;
         }
 
         /// <summary>
@@ -69,7 +61,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>True if deleted, else false.</returns>
         async public Task<bool> DeleteDayProfileAsync(int dayProfileID)
         {
-            return await dayProfileDatabase.DeleteDayProfileAsync(dayProfileID) > 0;
+            return await _dayProfileDatabase.DeleteDayProfileAsync(dayProfileID) > 0;
         }
 
         /// <summary>
@@ -81,7 +73,7 @@ namespace DiabetesContolApp.Repository
         {
             DayProfileModelDAO dayProfileDAO = new(newDayProfile);
 
-            return await dayProfileDatabase.InsertDayProfileAsync(dayProfileDAO) > 0;
+            return await _dayProfileDatabase.InsertDayProfileAsync(dayProfileDAO) > 0;
         }
 
         /// <summary>
@@ -91,7 +83,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>Returns null if DAO wasn't found, else the new Model with the given ID.</returns>
         async public Task<DayProfileModel> GetDayProfileAsync(int dayProfileID)
         {
-            DayProfileModelDAO dayProfileDAO = await dayProfileDatabase.GetDayProfileAsync(dayProfileID);
+            DayProfileModelDAO dayProfileDAO = await _dayProfileDatabase.GetDayProfileAsync(dayProfileID);
 
             if (dayProfileDAO == null)
                 return null;

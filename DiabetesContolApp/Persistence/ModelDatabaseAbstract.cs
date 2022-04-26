@@ -11,22 +11,25 @@ namespace DiabetesContolApp.Persistence
 {
     public abstract class ModelDatabaseAbstract
     {
-        protected readonly SQLiteAsyncConnection connection;
+        protected readonly SQLiteAsyncConnection _connection;
 
-        public ModelDatabaseAbstract()
+        public ModelDatabaseAbstract(SQLiteAsyncConnection connection = null)
         {
-            connection = DependencyService.Get<ISQLiteDB>().GetConnection();
+            if (connection == null)
+                _connection = DependencyService.Get<ISQLiteDB>().GetConnection();
+            else
+                _connection = connection;
 
-            connection.CreateTableAsync<DayProfileModelDAO>().Wait();
-            connection.CreateTableAsync<GroceryModelDAO>().Wait();
+            _connection.CreateTableAsync<DayProfileModelDAO>().Wait();
+            _connection.CreateTableAsync<GroceryModelDAO>().Wait();
             //connection.DropTableAsync<ReminderModelDAO>().Wait();
-            connection.CreateTableAsync<ReminderModelDAO>().Wait();
+            _connection.CreateTableAsync<ReminderModelDAO>().Wait();
             //connection.DropTableAsync<LogModelDAO>().Wait();
-            connection.CreateTableAsync<LogModelDAO>().Wait();
+            _connection.CreateTableAsync<LogModelDAO>().Wait();
             //connection.DropTableAsync<GroceryLogModelDAO>().Wait();
-            connection.CreateTableAsync<GroceryLogModelDAO>().Wait();
+            _connection.CreateTableAsync<GroceryLogModelDAO>().Wait();
             //connection.DropTableAsync<ScalarModelDAO>().Wait();
-            connection.CreateTableAsync<ScalarModelDAO>().Wait();
+            _connection.CreateTableAsync<ScalarModelDAO>().Wait();
         }
 
         public abstract Task<List<IModelDAO>> GetAllAsync();

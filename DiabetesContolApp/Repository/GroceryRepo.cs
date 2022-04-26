@@ -5,24 +5,32 @@ using System.Threading.Tasks;
 using DiabetesContolApp.Models;
 using DiabetesContolApp.DAO;
 using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Persistence.Interfaces;
+using DiabetesContolApp.Repository.Interfaces;
 
 namespace DiabetesContolApp.Repository
 {
-    public class GroceryRepo
+    public class GroceryRepo : IGroceryRepo
     {
-        private GroceryDatabase groceryDatabase = GroceryDatabase.GetInstance();
+        private readonly IGroceryDatabase _groceryDatabase;
 
-        public GroceryRepo()
+        public GroceryRepo(IGroceryDatabase groceryDatabase)
         {
+            _groceryDatabase = groceryDatabase;
+        }
+
+        public static GroceryRepo GetGroceryRepo()
+        {
+            return new GroceryRepo(GroceryDatabase.GetInstance());
         }
 
         /// <summary>
         /// Gets all the groceryDAOs and converts them into GroceryModels
         /// </summary>
-        /// <returns>List of GroceryModels.</returns>
+        /// <returns>List of GroceryModels, might be empty.</returns>
         async public Task<List<GroceryModel>> GetAllGroceriesAsync()
         {
-            List<GroceryModelDAO> groceriesDAO = await groceryDatabase.GetGroceriesAsync();
+            List<GroceryModelDAO> groceriesDAO = await _groceryDatabase.GetAllGroceriesAsync();
 
             List<GroceryModel> groceries = new();
 
@@ -40,7 +48,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>The GroceryModel with the given ID, null if not found</returns>
         async public Task<GroceryModel> GetGroceryAsync(int groceryID)
         {
-            GroceryModelDAO groceryDAO = await groceryDatabase.GetGroceryAsync(groceryID);
+            GroceryModelDAO groceryDAO = await _groceryDatabase.GetGroceryAsync(groceryID);
             if (groceryDAO == null)
                 return null;
 
@@ -55,7 +63,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>True if updated, else false.</returns>
         async public Task<bool> UpdateGroceryAsync(GroceryModel grocery)
         {
-            return await groceryDatabase.UpdateGroceryAsync(new(grocery)) > 0;
+            return await _groceryDatabase.UpdateGroceryAsync(new(grocery)) > 0;
         }
 
         /// <summary>
@@ -63,10 +71,10 @@ namespace DiabetesContolApp.Repository
         /// object in the database.
         /// </summary>
         /// <param name="groceryID"></param>
-        /// <returns>True if delete, else false</returns>
+        /// <returns>False if an error occured, else true.</returns>
         async public Task<bool> DeleteGroceryAsync(int groceryID)
         {
-            return await groceryDatabase.DeleteGroceryAsync(groceryID) > 0;
+            return await _groceryDatabase.DeleteGroceryAsync(groceryID) >= 0;
         }
 
         /// <summary>
@@ -79,7 +87,7 @@ namespace DiabetesContolApp.Repository
         {
             GroceryModelDAO groceryDAO = new(newGrocery);
 
-            if (await groceryDatabase.InsertGroceryAsync(groceryDAO) > 0)
+            if (await _groceryDatabase.InsertGroceryAsync(groceryDAO) > 0)
                 return true;
             return false;
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
@@ -29,6 +30,16 @@ namespace DiabetesContolApp.Models
         public DayProfileModel(int dayProfileID)
         {
             DayProfileID = dayProfileID;
+        }
+
+        public DayProfileModel(int dayProfileID, float targetGlucoseValue, string name, DateTime startTime, float carbScalar, float glucoseScalar)
+        {
+            DayProfileID = dayProfileID;
+            TargetGlucoseValue = targetGlucoseValue;
+            Name = name;
+            StartTime = startTime;
+            CarbScalar = carbScalar;
+            GlucoseScalar = glucoseScalar;
         }
 
         public DayProfileModel(DayProfileModelDAO dayProfileDAO)
@@ -73,6 +84,8 @@ namespace DiabetesContolApp.Models
                 }
                 catch (ArgumentOutOfRangeException aoore)
                 {
+                    Debug.WriteLine(aoore.StackTrace);
+                    Debug.WriteLine(aoore.Message);
                     //If an error occurs, we simply do not set the value
                     return;
                 }
@@ -116,6 +129,8 @@ namespace DiabetesContolApp.Models
                 }
                 catch (ArgumentOutOfRangeException aoore)
                 {
+                    Debug.WriteLine(aoore.StackTrace);
+                    Debug.WriteLine(aoore.Message);
                     //If an error occurs, we simply do not set the value
                     return;
                 }
@@ -142,6 +157,8 @@ namespace DiabetesContolApp.Models
                 }
                 catch (ArgumentOutOfRangeException aoore)
                 {
+                    Debug.WriteLine(aoore.StackTrace);
+                    Debug.WriteLine(aoore.Message);
                     //If an error occurs, we simply do not set the value
                     return;
                 }

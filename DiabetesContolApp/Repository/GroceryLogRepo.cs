@@ -5,15 +5,23 @@ using System.Collections.Generic;
 using DiabetesContolApp.Models;
 using DiabetesContolApp.DAO;
 using DiabetesContolApp.Persistence;
+using DiabetesContolApp.Persistence.Interfaces;
+using DiabetesContolApp.Repository.Interfaces;
 
 namespace DiabetesContolApp.Repository
 {
-    public class GroceryLogRepo
+    public class GroceryLogRepo : IGroceryLogRepo
     {
-        private GroceryLogDatabase groceryLogDatabase = GroceryLogDatabase.GetInstance();
+        private readonly IGroceryLogDatabase _groceryLogDatabase;
 
-        public GroceryLogRepo()
+        public GroceryLogRepo(IGroceryLogDatabase groceryLogDatabase)
         {
+            _groceryLogDatabase = groceryLogDatabase;
+        }
+
+        public static GroceryLogRepo GetGroceryLogRepo()
+        {
+            return new GroceryLogRepo(GroceryLogDatabase.GetInstance());
         }
 
         /// <summary>
@@ -22,7 +30,7 @@ namespace DiabetesContolApp.Repository
         /// </summary>
         /// <param name="groceryLogs"></param>
         /// <returns>Return false if an error occured, else true</returns>
-        async public Task<bool> InsertAllGroceryLogsAsync(List<GroceryLogModel> groceryLogs, int logID)
+        async public Task<bool> InsertAllGroceryLogsAsync(List<GroceryLogModel> groceryLogs)
         {
             if (groceryLogs.Count == 0)
                 return true; //Empty list
@@ -32,15 +40,9 @@ namespace DiabetesContolApp.Repository
             foreach (GroceryLogModel groceryLog in groceryLogs)
                 groceryLogDAOs.Add(new(groceryLog));
 
-            int rowsAdded = await groceryLogDatabase.InsertAllGroceryLogsAsync(groceryLogDAOs);
+            int rowsAdded = await _groceryLogDatabase.InsertAllGroceryLogsAsync(groceryLogDAOs);
 
-            if (rowsAdded == groceryLogs.Count)
-                return true; //All elements was added
-            else if (rowsAdded == 0)
-                return false;
-
-            throw new Exception("This state should never happen");
-            //return false;
+            return rowsAdded > 0;
         }
 
         /// <summary>
@@ -50,7 +52,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>Return false if an error occurs, else true.</returns>
         async public Task<bool> DeleteAllGroceryLogsWithLogIDAsync(int logID)
         {
-            if (await groceryLogDatabase.DeleteAllGroceryLogsWithLogIDAsync(logID) >= 0)
+            if (await _groceryLogDatabase.DeleteAllGroceryLogsWithLogIDAsync(logID) >= 0)
                 return true;
             return false;
         }
@@ -62,7 +64,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>Returns false if an error occurs, else true.</returns>
         async public Task<bool> DeleteAllGroceryLogsWithGroceryIDAsync(int groceryID)
         {
-            if (await groceryLogDatabase.DeleteAllGroceryLogsWithGroceryIDAsync(groceryID) >= 0)
+            if (await _groceryLogDatabase.DeleteAllGroceryLogsWithGroceryIDAsync(groceryID) >= 0)
                 return true;
             return false;
         }
@@ -75,7 +77,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>List of GroceryLogModels.</returns>
         async public Task<List<GroceryLogModel>> GetAllGroceryLogsWithGroceryID(int groceryID)
         {
-            List<GroceryLogModelDAO> groceryLogsDAO = await groceryLogDatabase.GetAllGroceryLogsWithGroceryID(groceryID);
+            List<GroceryLogModelDAO> groceryLogsDAO = await _groceryLogDatabase.GetAllGroceryLogsWithGroceryID(groceryID);
 
             List<GroceryLogModel> groceryLogs = new();
 
@@ -93,7 +95,7 @@ namespace DiabetesContolApp.Repository
         /// <returns>Return list of GroceryLogModel, might be empty.</returns>
         async public Task<List<GroceryLogModel>> GetAllGroceryLogsWithLogID(int logID)
         {
-            List<GroceryLogModelDAO> groceryLogDAOs = await groceryLogDatabase.GetAllGroceryLogsWithLogID(logID);
+            List<GroceryLogModelDAO> groceryLogDAOs = await _groceryLogDatabase.GetAllGroceryLogsWithLogID(logID);
 
             List<GroceryLogModel> groceryLogs = new();
 

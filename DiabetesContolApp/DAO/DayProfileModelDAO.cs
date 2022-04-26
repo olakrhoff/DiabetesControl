@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 
 using DiabetesContolApp.Models;
@@ -13,7 +14,7 @@ namespace DiabetesContolApp.DAO
         [PrimaryKey, AutoIncrement]
         public int DayProfileID { get; set; }
 
-        private string _name;
+        private string _name = "";
         private long _startTime;
         private float _carbScalar;
         private float _glucoseScalar;
@@ -69,6 +70,8 @@ namespace DiabetesContolApp.DAO
                 }
                 catch (ArgumentOutOfRangeException aoore)
                 {
+                    Debug.WriteLine(aoore.StackTrace);
+                    Debug.WriteLine(aoore.Message);
                     //If an error occurs, we simply do not set the value
                     return;
                 }
@@ -114,6 +117,8 @@ namespace DiabetesContolApp.DAO
                 }
                 catch (ArgumentOutOfRangeException aoore)
                 {
+                    Debug.WriteLine(aoore.StackTrace);
+                    Debug.WriteLine(aoore.Message);
                     //If an error occurs, we simply do not set the value
                     return;
                 }
@@ -141,6 +146,8 @@ namespace DiabetesContolApp.DAO
                 }
                 catch (ArgumentOutOfRangeException aoore)
                 {
+                    Debug.WriteLine(aoore.StackTrace);
+                    Debug.WriteLine(aoore.Message);
                     //If an error occurs, we simply do not set the value
                     return;
                 }

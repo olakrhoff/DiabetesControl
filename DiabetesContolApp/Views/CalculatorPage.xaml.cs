@@ -20,8 +20,8 @@ namespace DiabetesContolApp.Views
         public ObservableCollection<NumberOfGroceryModel> NumberOfGroceriesSummary { get; set; }
         private LogModel _tempLog = new();
 
-        private DayProfileService dayProfileService = new();
-        private LogService logService = new();
+        private DayProfileService dayProfileService = DayProfileService.GetDayProfileService();
+        private LogService logService = LogService.GetLogService();
 
         public CalculatorPage()
         {
@@ -251,8 +251,8 @@ namespace DiabetesContolApp.Views
 
             //The previous log overlaps in time with the
             //new log, if it is to be added now
-
-            SetOverlappingMeals(!log.Reminder.ReadyToHandle(), log);
+            else
+                SetOverlappingMeals(!log.Reminder.ReadyToHandle(), log);
         }
     }
 }

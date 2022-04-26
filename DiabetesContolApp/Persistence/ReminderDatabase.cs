@@ -2,16 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using System.Linq;
 
 using DiabetesContolApp.DAO;
+using DiabetesContolApp.Persistence.Interfaces;
 
-using SQLite;
-using Xamarin.Forms;
 
 namespace DiabetesContolApp.Persistence
 {
-    public class ReminderDatabase : ModelDatabaseAbstract
+    public class ReminderDatabase : ModelDatabaseAbstract, IReminderDatabase
     {
 
         private static ReminderDatabase instance = null;
@@ -32,7 +30,7 @@ namespace DiabetesContolApp.Persistence
         /// <returns>The number of rows added.</returns>
         async public Task<int> InsertReminderAsync(ReminderModelDAO reminderModel)
         {
-            return await connection.InsertAsync(reminderModel);
+            return await _connection.InsertAsync(reminderModel);
         }
 
         /// <summary>
@@ -43,7 +41,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                List<ReminderModelDAO> unhandledRemidners = await connection.Table<ReminderModelDAO>().Where(reminder => !reminder.IsHandled).ToListAsync();
+                List<ReminderModelDAO> unhandledRemidners = await _connection.Table<ReminderModelDAO>().Where(reminder => !reminder.IsHandled).ToListAsync();
                 return unhandledRemidners;
             }
             catch (Exception e)
@@ -59,30 +57,11 @@ namespace DiabetesContolApp.Persistence
         /// <returns>List of all ReminderDAOs, might be empty.</returns>
         async public Task<List<ReminderModelDAO>> GetAllRemindersAsync()
         {
-            List<ReminderModelDAO> reminderDAOs = await connection.Table<ReminderModelDAO>().ToListAsync();
+            List<ReminderModelDAO> reminderDAOs = await _connection.Table<ReminderModelDAO>().ToListAsync();
             if (reminderDAOs == null)
                 return new();
             return reminderDAOs;
         }
-
-        /*
-        /// <summary>
-        /// This method loops through all reminders,
-        /// and call the Handle()-method on the ones who
-        /// are yet to be handled.If they were changed in
-        /// the handle()-method, they are updated in the database
-        /// </summary>
-        /// <returns>void</returns>
-        async public void HandleReminders()
-        {
-            List<ReminderModelDAO> reminders = await GetRemindersAsync();
-
-            reminders.ForEach(async e =>
-            {
-                if (!e.IsHandled && await e.Handle())
-                    await UpdateReminderAsync(e);
-            });
-        }*/
 
         /// <summary>
         /// Gets the newest Reminder.
@@ -90,7 +69,7 @@ namespace DiabetesContolApp.Persistence
         /// <returns>ReminderDAO for the newest reminder, null if no reminders exist.</returns>
         async public Task<ReminderModelDAO> GetNewestReminderAsync()
         {
-            List<ReminderModelDAO> remindersDAO = await connection.Table<ReminderModelDAO>().ToListAsync();
+            List<ReminderModelDAO> remindersDAO = await _connection.Table<ReminderModelDAO>().ToListAsync();
 
             if (remindersDAO.Count == 0)
                 return null;
@@ -107,7 +86,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                return await connection.UpdateAsync(reminder);
+                return await _connection.UpdateAsync(reminder);
             }
             catch (Exception e)
             {
@@ -131,7 +110,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                ReminderModelDAO reminder = await connection.GetAsync<ReminderModelDAO>(reminderID);
+                ReminderModelDAO reminder = await _connection.GetAsync<ReminderModelDAO>(reminderID);
                 return reminder;
             }
             catch (InvalidOperationException ioe)
@@ -169,7 +148,7 @@ namespace DiabetesContolApp.Persistence
         {
             try
             {
-                return await connection.DeleteAsync<ReminderModelDAO>(reminderID);
+                return await _connection.DeleteAsync<ReminderModelDAO>(reminderID);
             }
             catch (Exception e)
             {
@@ -185,7 +164,7 @@ namespace DiabetesContolApp.Persistence
 
         async public override Task<List<IModelDAO>> GetAllAsync()
         {
-            return new(await connection.Table<ReminderModelDAO>().ToListAsync());
+            return new(await _connection.Table<ReminderModelDAO>().ToListAsync());
         }
     }
 }

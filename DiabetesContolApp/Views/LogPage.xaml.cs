@@ -16,7 +16,7 @@ namespace DiabetesContolApp.Views
         public ObservableCollection<LogModel> Logs { get; set; }
         DateTime localDate = DateTime.Now;
 
-        private LogService logService = new();
+        private LogService logService = LogService.GetLogService();
 
         private string dateString
         {

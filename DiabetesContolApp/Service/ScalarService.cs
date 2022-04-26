@@ -5,28 +5,24 @@ using System.Linq;
 
 using DiabetesContolApp.Models;
 using DiabetesContolApp.Repository;
+using DiabetesContolApp.Repository.Interfaces;
+using DiabetesContolApp.Service.Interfaces;
 
 namespace DiabetesContolApp.Service
 {
-    public class ScalarService
+    public class ScalarService : IScalarService
     {
-        private ScalarRepo scalarRepo = new();
+        private readonly IScalarRepo _scalarRepo;
 
-        /*
-        /// <summary>
-        /// Gets the newest scalar of the given an IScalarObject.
-        /// </summary>
-        /// <param name="scalarObject"></param>
-        /// <returns>Newest ScalarModel with the given type and objectID, if not exists then null.</returns>
-        async public Task<ScalarModel> GetNewestScalarForScalarObjectAsync(IScalarObject scalarObject)
+        public ScalarService(IScalarRepo scalarRepo)
         {
-            List<ScalarModel> scalars = await scalarRepo.GetAllScalarsOfTypeWithObjectID(scalarObject.GetScalarType(), scalarObject.GetIDForScalarObject());
+            _scalarRepo = scalarRepo;
+        }
 
-            if (scalars.Count == 0)
-                return null;
-
-            return scalars.Max();
-        }*/
+        public static ScalarService GetScalarService()
+        {
+            return new(ScalarRepo.GetScalarRepo());
+        }
 
         /// <summary>
         /// Gets the newest scalar of the type and objectID.
@@ -36,7 +32,7 @@ namespace DiabetesContolApp.Service
         /// <returns>Newest ScalarModel with given type and objectID, might be null</returns>
         async public Task<ScalarModel> GetNewestScalarForTypeWithObjectIDAsync(ScalarTypes type, int objectID, DateTime oldestOfObject)
         {
-            List<ScalarModel> scalarsWithType = await scalarRepo.GetAllScalarsOfType(type);
+            List<ScalarModel> scalarsWithType = await _scalarRepo.GetAllScalarsOfTypeAsync(type);
 
             if (type != ScalarTypes.CORRECTION_INSULIN && objectID >= 0) //Edge case, correction insulin does not have an object represenation in the database, hens no objectID
                 scalarsWithType = scalarsWithType.FindAll(scalar => scalar.ScalarObjectID == objectID); //Filter out only the ones with the correct objectID
@@ -64,7 +60,7 @@ namespace DiabetesContolApp.Service
         /// <returns>int, the ID of the new Scalar, -1 if an error occured.</returns>
         async public Task<int> InsertScalarAsync(ScalarModel newScalar)
         {
-            if (!await scalarRepo.InsertScalarAsync(newScalar))
+            if (!await _scalarRepo.InsertScalarAsync(newScalar))
                 return -1;
             ScalarModel newlyInsertedScalar = await GetNewestScalarAsync();
 
@@ -80,7 +76,7 @@ namespace DiabetesContolApp.Service
         /// <returns>ScalarModel with highest ID, might be null.</returns>
         async private Task<ScalarModel> GetNewestScalarAsync()
         {
-            List<ScalarModel> scalars = await scalarRepo.GetAllScalarsAsync();
+            List<ScalarModel> scalars = await _scalarRepo.GetAllScalarsAsync();
 
             if (scalars.Count == 0)
                 return null;
@@ -95,7 +91,7 @@ namespace DiabetesContolApp.Service
         /// <returns>ScalarModel with given ID, might be null.</returns>
         async public Task<ScalarModel> GetScalarAsync(int scalarID)
         {
-            return await scalarRepo.GetScalarAsync(scalarID);
+            return await _scalarRepo.GetScalarAsync(scalarID);
         }
 
         /// <summary>
@@ -105,22 +101,7 @@ namespace DiabetesContolApp.Service
         /// <returns>True if updated, else false</returns>
         async public Task<bool> UpdateScalarAsync(ScalarModel scalar)
         {
-            return await scalarRepo.UpdateScalarAsync(scalar);
+            return await _scalarRepo.UpdateScalarAsync(scalar);
         }
-        /*
-        /// <summary>
-        /// Get the newest Scalar of the given type.
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns>Newest ScalarModel, null if not found.</returns>
-        async public Task<ScalarModel> GetNewestScalarOfScalarType(ScalarTypes type)
-        {
-            List<ScalarModel> scalarsWithType = await scalarRepo.GetAllScalarsOfType(type);
-            if (scalarsWithType.Count == 0)
-                return null;
-
-            return scalarsWithType.Max();
-        }
-        */
     }
 }
