@@ -231,6 +231,33 @@ namespace Tests.GlobalLogicTests
         }
 
         [Test]
+        async public Task PartitionGlucoseErrorToLogs_NoErrors_RetursLogs()
+        {
+            ReminderModel reminder = _reminderDB[^1];
+            _logDB.ForEach(log => log.GlucoseAfterMeal = null);
+
+            _reminderService.Setup(r => r.UpdateReminderAsync(reminder)).Returns(Task.FromResult(true));
+            _reminderService.Setup(r => r.GetReminderAsync(reminder.ReminderID)).Returns(Task.FromResult(reminder));
+
+            _logService.Setup(r => r.GetLogAsync(It.IsAny<int>())).Returns((int id) =>
+            {
+                LogModel log = _logDB.Find(log => log.LogID == id);
+                return Task.FromResult(log);
+            });
+
+            _logService.Setup(r => r.UpdateLogAsync(It.IsAny<LogModel>())).Returns(Task.FromResult(true));
+
+            _applicationProperies.Setup(r => r.GetProperty<float>(It.IsAny<string>())).Returns(2.0f);
+
+
+            List<LogModel> logs = await AlgorithmBase.PartitionGlucoseErrorToLogs(reminder);
+
+            Assert.NotNull(logs);
+            Assert.AreEqual(reminder.Logs.Count, logs.Count);
+            logs.ForEach(log => Assert.NotNull(log.GlucoseAfterMeal));
+        }
+
+        [Test]
         async public Task UpdateDayProfileScalars_ErrorInUpdateDayProfile_ReturnsFalse()
         {
             ReminderModel reminder = _reminderDB[^1];
@@ -686,6 +713,22 @@ namespace Tests.GlobalLogicTests
             DateTime today = DateTime.Now;
             List<DataPoint> dataPoints = new()
             {
+                new DataPoint(true, today.AddDays(75 - 200), 2.6d),
+                new DataPoint(true, today.AddDays(145 - 200), -1.09d),
+                new DataPoint(true, today.AddDays(55 - 200), 0.53d),
+                new DataPoint(true, today.AddDays(88 - 200), 0.97d),
+                new DataPoint(true, today.AddDays(122 - 200), 4.78d)
+            };
+
+            Assert.AreEqual(AlgorithmBase.ABSOLUTE_MAXIMUM_DISTANCE_CHANGE, Math.Abs(AlgorithmBase.GetGreatestSafeDistanceFromWantedLine(dataPoints)));
+        }
+
+        [Test]
+        public void GetGreatestSafeDistanceFromWantedLine_LessThanLimit_ReturnDistance()
+        {
+            DateTime today = DateTime.Now;
+            List<DataPoint> dataPoints = new()
+            {
                 new DataPoint(true, today.AddDays(75 - 200), 0.48d),
                 new DataPoint(true, today.AddDays(145 - 200), 1.09d),
                 new DataPoint(true, today.AddDays(55 - 200), 0.53d),
@@ -693,7 +736,7 @@ namespace Tests.GlobalLogicTests
                 new DataPoint(true, today.AddDays(122 - 200), 0.78d)
             };
 
-            Assert.AreEqual(AlgorithmBase.ABSOLUTE_MAXIMUM_DISTANCE_CHANGE, Math.Abs(AlgorithmBase.GetGreatestSafeDistanceFromWantedLine(dataPoints)));
+            Assert.AreEqual(Math.Round(0.6433, 3), Math.Round(Math.Abs(AlgorithmBase.GetGreatestSafeDistanceFromWantedLine(dataPoints)), 3));
         }
     }
 }
