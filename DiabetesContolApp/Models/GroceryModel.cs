@@ -31,6 +31,16 @@ namespace DiabetesContolApp.Models
             this._carbScalar = 1.0f; //This is the default of the scalar, when it is one it has no effect on the calculations
         }
 
+        public GroceryModel(int groceryID, float carbsPer100Grams, string nameOfPortion, float gramsPerPortion, string name, string brandName, float carbScalar) : this(groceryID)
+        {
+            CarbsPer100Grams = carbsPer100Grams;
+            NameOfPortion = nameOfPortion;
+            GramsPerPortion = gramsPerPortion;
+            Name = name;
+            BrandName = brandName;
+            CarbScalar = carbScalar;
+        }
+
         public GroceryModel(GroceryModelDAO groceryDAO)
         {
             GroceryID = groceryDAO.GroceryID;

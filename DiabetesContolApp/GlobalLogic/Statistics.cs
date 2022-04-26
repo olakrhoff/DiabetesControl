@@ -31,6 +31,7 @@ namespace DiabetesContolApp.GlobalLogic
                 if (Double.IsNaN(xValues[i]) || Double.IsNaN(yValues[i]))
                     throw new ArgumentException("NaN values are not accepted in prediction interval data.");
 
+
             alphaHat.FirstNSignificantDigits(NUMBER_OF_SIGNIFICAT_FIGURES + 1);
             betaHat.FirstNSignificantDigits(NUMBER_OF_SIGNIFICAT_FIGURES + 1);
 

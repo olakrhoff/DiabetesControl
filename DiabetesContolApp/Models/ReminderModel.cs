@@ -101,7 +101,7 @@ namespace DiabetesContolApp.Models
                 return true;
             }
 
-            await Algorithm.RunStatisticsOnReminder(this);
+            await Algorithm.RunAlgorithmOnReminder(this);
             IsHandled = true;
             return true;
         }
