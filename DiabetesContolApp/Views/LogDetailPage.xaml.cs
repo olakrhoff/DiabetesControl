@@ -32,11 +32,12 @@ namespace DiabetesContolApp.Views
         private ObservableCollection<NumberOfGroceryModel> NumberOfGrocerySummary;
         public ObservableCollection<DayProfileModel> DayProfiles { get; set; }
 
-        DayProfileService dayProfileService = DayProfileService.GetDayProfileService();
+        readonly DayProfileService dayProfileService = DayProfileService.GetDayProfileService();
+        readonly GroceryService groceryService = GroceryService.GetGroceryService();
 
         public LogDetailPage(LogModel log)
         {
-            Log = log == null ? new() : log;
+            Log = log ?? new();
 
             InitializeComponent();
 
@@ -55,12 +56,17 @@ namespace DiabetesContolApp.Views
                 datePickerDateOfMeal.Date = log.DateTimeValue.Date;
                 NumberOfGrocerySummary = new(log.NumberOfGroceries);
             }
-
             groceriesAddedList.ItemsSource = NumberOfGrocerySummary;
         }
 
         async protected override void OnAppearing()
         {
+            foreach (NumberOfGroceryModel numberOfGrocery in Log.NumberOfGroceries)
+                numberOfGrocery.Grocery = await groceryService.GetGroceryAsync(numberOfGrocery.Grocery.GroceryID);
+
+            NumberOfGrocerySummary = new(Log.NumberOfGroceries);
+            groceriesAddedList.ItemsSource = NumberOfGrocerySummary;
+
             var dayProfiles = await dayProfileService.GetAllDayProfilesAsync();
             dayProfiles.Sort(); //Sort the elements
 
