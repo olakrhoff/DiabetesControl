@@ -13,6 +13,7 @@ using DiabetesContolApp.Service;
 using Xamarin.Forms;
 using Xamarin.Essentials;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace DiabetesContolApp.GlobalLogic
 {
@@ -83,120 +84,121 @@ namespace DiabetesContolApp.GlobalLogic
             return true;
         }
 
-        public static List<ShareFile> DatabaseToString()
+        async public static Task<List<ShareFile>> DatabaseToString()
         {
+            List<ShareFile> shareFiles = new();
+
             //Write groceries to file
             string data = "groceryData.csv";
             string groceryFilePath = Path.Combine(FileSystem.CacheDirectory, data);
-            WriteDatabaseToCSVFile(groceryFilePath, GroceryDatabase.GetInstance());
+            await WriteDatabaseToCSVFile(groceryFilePath, GroceryDatabase.GetInstance());
+            shareFiles.Add(new ShareFile(groceryFilePath));
 
             //Write day profiles to file
             data = "dayProfileData.csv";
             string dayProfileFilePath = Path.Combine(FileSystem.CacheDirectory, data);
-            WriteDatabaseToCSVFile(dayProfileFilePath, DayProfileDatabase.GetInstance());
+            await WriteDatabaseToCSVFile(dayProfileFilePath, DayProfileDatabase.GetInstance());
+            shareFiles.Add(new ShareFile(dayProfileFilePath));
 
             //Write reminders to file
             data = "reminderData.csv";
             string reminderPath = Path.Combine(FileSystem.CacheDirectory, data);
-            WriteDatabaseToCSVFile(reminderPath, ReminderDatabase.GetInstance());
+            await WriteDatabaseToCSVFile(reminderPath, ReminderDatabase.GetInstance());
+            shareFiles.Add(new ShareFile(reminderPath));
 
             //Write logs to file
             data = "logData.csv";
             string logPath = Path.Combine(FileSystem.CacheDirectory, data);
-            WriteDatabaseToCSVFile(logPath, LogDatabase.GetInstance());
+            await WriteDatabaseToCSVFile(logPath, LogDatabase.GetInstance());
+            shareFiles.Add(new ShareFile(logPath));
 
             //Write logGrocery cross table to file
             data = "groceryLogData.csv";
             string groceryLogPath = Path.Combine(FileSystem.CacheDirectory, data);
-            WriteDatabaseToCSVFile(groceryLogPath, GroceryLogDatabase.GetInstance());
+            await WriteDatabaseToCSVFile(groceryLogPath, GroceryLogDatabase.GetInstance());
+            shareFiles.Add(new ShareFile(groceryLogPath));
 
 
-            //TODO: TEMP
-            data = "breadData.csv";
-            string breadDataPath = Path.Combine(FileSystem.CacheDirectory, data);
-            //WriteBreadToCSVFile(breadDataPath);
+            //Now we want to write the data needed for the analysis
+            //We start with the groceries
+            shareFiles.AddRange(await WriteGroceriesToCSVFile());
 
-            return new List<ShareFile> { new ShareFile(groceryFilePath),
-                new ShareFile(dayProfileFilePath),
-                new ShareFile(reminderPath),
-                new ShareFile(logPath),
-                new ShareFile(groceryLogPath),
-                new ShareFile(breadDataPath)
-            };
+
+            return shareFiles;
         }
 
-        async private static void WriteBreadToCSVFile(string filePath)
+        /// <summary>
+        /// Gets all Grocery-models and writes them to
+        /// ShareFiles.
+        /// </summary>
+        /// <returns>List of ShareFiles.</returns>
+        async private static Task<List<ShareFile>> WriteGroceriesToCSVFile()
         {
-            ReminderService reminderService = ReminderService.GetReminderService();
-            LogService logService = LogService.GetLogService();
+            List<ShareFile> shareFiles = new();
 
-            List<LogModel> logs = new();
+            List<GroceryModel> groceries = await GroceryService.GetGroceryService().GetAllGroceriesAsync();
 
-            List<ReminderModel> reminders = await reminderService.GetAllRemindersAsync();
-
-            reminders = reminders.Where(remidner => remidner.IsHandled && remidner.GlucoseAfterMeal > 0).ToList();
-
-            foreach (ReminderModel reminder in reminders)
+            foreach (GroceryModel grocery in groceries)
             {
-                List<LogModel> logsWithReminderID = await logService.GetAllLogsWithReminderIDAsync(reminder.ReminderID);
-                double totalInsulin = logsWithReminderID.Sum(log => log.InsulinEstimate);
-                double glucoseError = (float)reminder.GlucoseAfterMeal - logsWithReminderID[logsWithReminderID.Count - 1].DayProfile.TargetGlucoseValue;
-
-                foreach (LogModel log in logsWithReminderID)
+                string filename = "grocery_" + grocery.Name + "_" + grocery.BrandName + ".csv";
+                if (filename.Contains("/"))
+                    filename = filename.Replace("/", "-");
+                string groceryFilepath = Path.Combine(FileSystem.CacheDirectory, filename);
+                //Logic
+                List<LogModel> logsWithGrocery = (await LogService.GetLogService().GetAllLogsAsync()).Where(log =>
                 {
-                    float targetGlucose = log.DayProfile.TargetGlucoseValue;
-                    log.GlucoseAfterMeal = (float)(targetGlucose + glucoseError * (log.InsulinEstimate / totalInsulin));
+                    foreach (var nog in log.NumberOfGroceries)
+                        if (nog.Grocery.GroceryID == grocery.GroceryID)
+                            return true;
+                    return false;
+                }).ToList();
+
+                //Get all reminders connected to the Logs
+                List<ReminderModel> reminders = new();
+                foreach (var log in logsWithGrocery)
+                    if (reminders.Find(r => r.ReminderID == log.Reminder.ReminderID) == null)
+                    {
+                        reminders.Add(await ReminderService.GetReminderService().GetReminderAsync(log.Reminder.ReminderID));
+                        reminders.Last().Logs = logsWithGrocery.FindAll(log => log.Reminder.ReminderID == log.Reminder.ReminderID);
+                        reminders.Last().Logs.Sort();
+                    }
+
+                string output = "TimeStamp;Scalar;GlucoseError\n";
+
+
+                foreach (ReminderModel reminder in reminders)
+                {
+                    if (!reminder.IsGlucoseAfterMealValid())
+                        continue;
+                    output += reminder.DateTimeValue.ToString("yyyy/MM/dd HH/mm") + ";"
+                        + (await ScalarService.GetScalarService().GetFirstScalarBeforeDateForTypeWithObjectIDAsync(grocery.GetScalarType(), grocery.GetIDForScalarObject(), reminder.DateTimeValue)).ScalarValue + ";"
+                        + ((float)reminder.GlucoseAfterMeal - reminder.Logs.Last().DayProfile.TargetGlucoseValue) + "\n";
                 }
-                logs.AddRange(logsWithReminderID);
+
+                //Logic
+                File.WriteAllText(groceryFilepath, output);
+                shareFiles.Add(new ShareFile(groceryFilepath));
             }
 
-            string output = "TimeStamp,GlucoseErrorForBreadPerBread\n";
-
-            //Get all log with bread
-            logs = logs.Where(log =>
-            {
-                foreach (NumberOfGroceryModel g in log.NumberOfGroceries)
-                    if (g.Grocery.Name == "Brød")
-                        return true;
-                return false;
-            }).ToList();
-
-            //Find fault for bread per log
-            foreach (LogModel log in logs)
-            {
-                if (log.GlucoseAfterMeal == null || log.GlucoseAfterMeal == -1.0f)
-                    continue; //Not ready or corrupt data.
-
-                DayProfileModel dayProfile = log.DayProfile;
-                float targetGlucose = dayProfile.TargetGlucoseValue;
-                float gluoseError = (float)log.GlucoseAfterMeal - targetGlucose;
-
-                NumberOfGroceryModel numberOfGrocery = log.NumberOfGroceries.Find(log => log.Grocery.Name == "Brød");
-                float carbsPerBread = numberOfGrocery.Grocery.CarbsPer100Grams * numberOfGrocery.Grocery.GramsPerPortion * numberOfGrocery.Grocery.CarbScalar;
-
-                Application app = Application.Current as App;
-
-                float breadInsulin = numberOfGrocery.InsulinForGroceries;
-
-                float gluoseErrorForBreadPerBread = gluoseError * (breadInsulin / log.InsulinEstimate) / numberOfGrocery.NumberOfGrocery;
-
-                output += log.DateTimeValue.ToString("yyyy/MM/dd HH:mm") + "," + gluoseErrorForBreadPerBread.ToString("0.00", CultureInfo.InvariantCulture) + "\n";
-            }
-            //Write timestamp and fault to file
-
-            File.WriteAllText(filePath, output);
+            return shareFiles;
         }
 
-        async private static void WriteDatabaseToCSVFile(string filePath, ModelDatabaseAbstract databaseConnection)
+        /// <summary>
+        /// Writes the given database table to the spesified
+        /// filepath.
+        /// </summary>
+        /// <param name="filepath"></param>
+        /// <param name="databaseConnection"></param>
+        /// <returns></returns>
+        async private static Task WriteDatabaseToCSVFile(string filepath, ModelDatabaseAbstract databaseConnection)
         {
             string output = "";
 
             List<DAO.IModelDAO> models = await databaseConnection.GetAllAsync();
-            //TODO: THIS SHOULD USE THE SERVICE
             output += databaseConnection.HeaderForCSVFile();
             models.ForEach(model => output += model.ToStringCSV());
 
-            File.WriteAllText(filePath, output);
+            File.WriteAllText(filepath, output);
         }
 
         /*

@@ -103,5 +103,29 @@ namespace DiabetesContolApp.Service
         {
             return await _scalarRepo.UpdateScalarAsync(scalar);
         }
+
+        /// <summary>
+        /// Gets the first scalar before a given date
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="objectID"></param>
+        /// <param name="dateTime"></param>
+        /// <returns>The ScalarModel</returns>
+        async public Task<ScalarModel> GetFirstScalarBeforeDateForTypeWithObjectIDAsync(ScalarTypes type, int objectID, DateTime dateTime)
+        {
+            List<ScalarModel> scalarsWithType = await _scalarRepo.GetAllScalarsOfTypeAsync(type);
+
+            if (type != ScalarTypes.CORRECTION_INSULIN && objectID >= 0) //Edge case, correction insulin does not have an object represenation in the database, hens no objectID
+                scalarsWithType = scalarsWithType.FindAll(scalar => scalar.ScalarObjectID == objectID); //Filter out only the ones with the correct objectID
+
+            if (scalarsWithType.Count == 0)
+                return null;
+
+            ScalarModel currentMax = scalarsWithType.Last();
+            for (int i = scalarsWithType.Count - 1; i >= 0; i--)
+                if (scalarsWithType[i].DateTimeCreated.CompareTo(dateTime) >= 0)
+                    currentMax = scalarsWithType[i];
+            return await GetScalarAsync(currentMax.ScalarID);
+        }
     }
 }

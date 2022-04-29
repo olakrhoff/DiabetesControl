@@ -46,7 +46,7 @@ namespace DiabetesContolApp.Views
         /// <param name="e"></param>
         async void ShareClicked(System.Object sender, System.EventArgs e)
         {
-            List<ShareFile> databaseFiles = Helper.DatabaseToString();
+            List<ShareFile> databaseFiles = await Helper.DatabaseToString();
 
             await Share.RequestAsync(new ShareMultipleFilesRequest
             {
