@@ -134,6 +134,8 @@ namespace DiabetesContolApp.GlobalLogic
         /// <returns>List of ShareFiles.</returns>
         async private static Task<List<ShareFile>> WriteGroceriesToCSVFile()
         {
+            const int MINIMUM_NEEDED_DATA = 15;
+
             List<ShareFile> shareFiles = new();
 
             List<GroceryModel> groceries = await GroceryService.GetGroceryService().GetAllGroceriesAsync();
@@ -153,6 +155,9 @@ namespace DiabetesContolApp.GlobalLogic
                     return false;
                 }).ToList();
 
+                if (logsWithGrocery.Count < MINIMUM_NEEDED_DATA)
+                    continue;
+
                 //Get all reminders connected to the Logs
                 List<ReminderModel> reminders = new();
                 foreach (var log in logsWithGrocery)
@@ -162,6 +167,9 @@ namespace DiabetesContolApp.GlobalLogic
                         reminders.Last().Logs = logsWithGrocery.FindAll(log => log.Reminder.ReminderID == log.Reminder.ReminderID);
                         reminders.Last().Logs.Sort();
                     }
+
+                if (reminders.Count < MINIMUM_NEEDED_DATA)
+                    continue;
 
                 string output = "TimeStamp;Scalar;GlucoseError\n";
 
