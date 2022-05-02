@@ -121,9 +121,12 @@ namespace DiabetesContolApp.Service
             if (scalarsWithType.Count == 0)
                 return null;
 
-            ScalarModel currentMax = scalarsWithType.Last();
-            for (int i = scalarsWithType.Count - 1; i >= 0; i--)
-                if (scalarsWithType[i].DateTimeCreated.CompareTo(dateTime) >= 0)
+            scalarsWithType.Sort((a, b) => a.ScalarID.CompareTo(b.ScalarID));
+            ScalarModel currentMax = scalarsWithType.First();
+            for (int i = 0; i < scalarsWithType.Count; ++i)
+                if (scalarsWithType[i].DateTimeCreated.CompareTo(dateTime) > 0)
+                    break;
+                else
                     currentMax = scalarsWithType[i];
             return await GetScalarAsync(currentMax.ScalarID);
         }
