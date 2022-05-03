@@ -122,13 +122,16 @@ namespace DiabetesContolApp.GlobalLogic
             //Now we want to write the data needed for the analysis
             //We start with the groceries
             shareFiles.AddRange(await WriteGroceriesToCSVFile());
-
+            //We add the dayProfile-data
+            shareFiles.AddRange(await WriteDayProfilesToCSVFile());
+            //We add the correction insulin-data
+            shareFiles.Add(await WriteCorrectionInsulinToCSVFile());
 
             return shareFiles;
         }
 
         /// <summary>
-        /// Gets all Grocery-models and writes them to
+        /// Gets all Logs with Grocery-models and writes them to
         /// ShareFiles.
         /// </summary>
         /// <returns>List of ShareFiles.</returns>
@@ -189,6 +192,150 @@ namespace DiabetesContolApp.GlobalLogic
             }
 
             return shareFiles;
+        }
+
+        /// <summary>
+        /// Gets all Logs with DayProfiles-models and writes them to
+        /// ShareFiles.
+        /// </summary>
+        /// <returns>List of ShareFiles.</returns>
+        async private static Task<List<ShareFile>> WriteDayProfilesToCSVFile()
+        {
+            const int MINIMUM_NEEDED_DATA = 15;
+
+            List<ShareFile> shareFiles = new();
+
+            List<DayProfileModel> dayProfiles = await DayProfileService.GetDayProfileService().GetAllDayProfilesAsync();
+
+            foreach (DayProfileModel dayProfile in dayProfiles)
+            {
+                string filename = "dayProfile_" + dayProfile.Name + ".csv";
+                if (filename.Contains("/"))
+                    filename = filename.Replace("/", "-");
+                string dayProfilePath = Path.Combine(FileSystem.CacheDirectory, filename);
+                //Logic
+                List<LogModel> logsWithDayProfile = await LogService.GetLogService().GetAllLogsWithDayProfileIDAsync(dayProfile.DayProfileID);
+
+                if (logsWithDayProfile.Count < MINIMUM_NEEDED_DATA)
+                    continue; //There is not enough data to be used in statistical analysis
+
+                //Get all reminders connected to the Logs
+                List<ReminderModel> reminders = new();
+                foreach (var log in logsWithDayProfile)
+                    if (reminders.Find(r => r.ReminderID == log.Reminder.ReminderID) == null)
+                    {
+                        reminders.Add(await ReminderService.GetReminderService().GetReminderAsync(log.Reminder.ReminderID));
+                        reminders.Last().Logs = logsWithDayProfile.FindAll(log => log.Reminder.ReminderID == log.Reminder.ReminderID);
+                        reminders.Last().Logs.Sort();
+                    }
+
+                if (reminders.Count < MINIMUM_NEEDED_DATA)
+                    continue; //Again not enough data
+
+                string output = "TimeStamp;CarbScalar;GlucoseScalar;GlucoseError\n";
+
+
+                foreach (ReminderModel reminder in reminders)
+                {
+                    if (!reminder.IsGlucoseAfterMealValid())
+                        continue;
+                    dayProfile.SetScalarTypeToCarbScalar();
+                    output += reminder.DateTimeValue.ToString("yyyy/MM/dd HH/mm") + ";"
+                        + (await ScalarService.GetScalarService().GetFirstScalarBeforeDateForTypeWithObjectIDAsync(dayProfile.GetScalarType(), dayProfile.GetIDForScalarObject(), reminder.DateTimeValue)).ScalarValue + ";";
+                    dayProfile.SetScalarTypeToGlucoseScalar();
+                    output += (await ScalarService.GetScalarService().GetFirstScalarBeforeDateForTypeWithObjectIDAsync(dayProfile.GetScalarType(), dayProfile.GetIDForScalarObject(), reminder.DateTimeValue)).ScalarValue + ";"
+                    + ((float)reminder.GlucoseAfterMeal - reminder.Logs.Last().DayProfile.TargetGlucoseValue) + "\n";
+                }
+
+                //Logic
+                File.WriteAllText(dayProfilePath, output);
+                shareFiles.Add(new ShareFile(dayProfilePath));
+            }
+
+            return shareFiles;
+        }
+
+        /// <summary>
+        /// Gets all Logs with CorrectionInsulin and writes them to
+        /// ShareFiles.
+        /// </summary>
+        /// <returns>List of ShareFiles.</returns>
+        async private static Task<ShareFile> WriteCorrectionInsulinToCSVFile()
+        {
+            const int MINIMUM_NEEDED_DATA = 15;
+
+            ShareFile shareFile;
+
+            List<LogModel> logsWithCorrectionInsulin = (await LogService.GetLogService().GetAllLogsAsync()).Where(log => log.CorrectionInsulin != 0 && log.IsLogDataValid()).ToList();
+
+            if (logsWithCorrectionInsulin.Count < MINIMUM_NEEDED_DATA)
+                return null; //There is not enough data to be used in statistical analysis
+
+            //Get all reminders connected to the Logs
+            List<ReminderModel> reminders = new();
+            foreach (var log in logsWithCorrectionInsulin)
+                if (reminders.Find(r => r.ReminderID == log.Reminder.ReminderID) == null)
+                {
+                    reminders.Add(await ReminderService.GetReminderService().GetReminderAsync(log.Reminder.ReminderID));
+                    reminders.Last().Logs = logsWithCorrectionInsulin.FindAll(log => log.Reminder.ReminderID == log.Reminder.ReminderID);
+                    reminders.Last().Logs.Sort();
+                }
+
+            if (reminders.Count < MINIMUM_NEEDED_DATA)
+                return null; //Again not enough data
+
+            string output = "TimeStamp;Scalar;GlucoseInsulinSensitivity;GlucoseError\n";
+
+
+            string filename = "correctionInsulin.csv";
+            string dayProfilePath = Path.Combine(FileSystem.CacheDirectory, filename);
+            //Logic
+
+            List<string> timestamps = new();
+            List<float> scalars = new();
+            List<float> glucoseInsulinSensitivity = new();
+            List<float> glucoseError = new();
+
+            //foreach (ReminderModel reminder in reminders)
+            for (int i = reminders.Count - 1; i >= 0; i--)
+            {
+                if (!reminders[i].IsGlucoseAfterMealValid())
+                    continue;
+                ReminderModel reminder = reminders[i];
+                timestamps.Add(reminder.DateTimeValue.ToString("yyyy/MM/dd HH/mm"));
+                scalars.Add((await ScalarService.GetScalarService().GetFirstScalarBeforeDateForTypeWithObjectIDAsync(ScalarTypes.CORRECTION_INSULIN, -1, reminder.DateTimeValue)).ScalarValue);
+                /*if (glucoseInsulinSensitivity.Count == 0)
+                    glucoseInsulinSensitivity.Add((Application.Current as App).InsulinToGlucoseRatio);
+                else if (scalars.Last() != scalars[scalars.Count - 2])
+                    glucoseInsulinSensitivity.Add(glucoseInsulinSensitivity.Last() * scalars.Last());
+                else
+                    glucoseInsulinSensitivity.Add(glucoseInsulinSensitivity.Last());*/
+                glucoseError.Add((float)reminder.GlucoseAfterMeal - reminder.Logs.Last().DayProfile.TargetGlucoseValue);
+            }
+            timestamps.Reverse();
+            scalars.Reverse();
+            glucoseError.Reverse();
+
+            double test = 2.2d; //This was the inital value that was stared with
+            var values = scalars.Distinct();
+            foreach (var s in values)
+            {
+                test /= s;
+                foreach (var val in scalars)
+                    if (val == s)
+                        glucoseInsulinSensitivity.Add((float)test);
+            }
+            for (int i = 0; i < timestamps.Count; ++i)
+            {
+                output += timestamps[i] + ";"
+                    + scalars[i] + ";"
+                    + glucoseInsulinSensitivity[i] + ";"
+                    + glucoseError[i] + "\n";
+            }
+            //Logic
+            File.WriteAllText(dayProfilePath, output);
+            return new ShareFile(dayProfilePath);
+
         }
 
         /// <summary>
