@@ -167,7 +167,7 @@ namespace DiabetesContolApp.GlobalLogic
                     if (reminders.Find(r => r.ReminderID == log.Reminder.ReminderID) == null)
                     {
                         reminders.Add(await ReminderService.GetReminderService().GetReminderAsync(log.Reminder.ReminderID));
-                        reminders.Last().Logs = logsWithGrocery.FindAll(log => log.Reminder.ReminderID == log.Reminder.ReminderID);
+                        reminders.Last().Logs = logsWithGrocery.FindAll(log => log.Reminder.ReminderID == reminders.Last().ReminderID);
                         reminders.Last().Logs.Sort();
                     }
 
@@ -225,7 +225,7 @@ namespace DiabetesContolApp.GlobalLogic
                     if (reminders.Find(r => r.ReminderID == log.Reminder.ReminderID) == null)
                     {
                         reminders.Add(await ReminderService.GetReminderService().GetReminderAsync(log.Reminder.ReminderID));
-                        reminders.Last().Logs = logsWithDayProfile.FindAll(log => log.Reminder.ReminderID == log.Reminder.ReminderID);
+                        reminders.Last().Logs = logsWithDayProfile.FindAll(log => log.Reminder.ReminderID == reminders.Last().ReminderID);
                         reminders.Last().Logs.Sort();
                     }
 
@@ -277,7 +277,7 @@ namespace DiabetesContolApp.GlobalLogic
                 if (reminders.Find(r => r.ReminderID == log.Reminder.ReminderID) == null)
                 {
                     reminders.Add(await ReminderService.GetReminderService().GetReminderAsync(log.Reminder.ReminderID));
-                    reminders.Last().Logs = logsWithCorrectionInsulin.FindAll(log => log.Reminder.ReminderID == log.Reminder.ReminderID);
+                    reminders.Last().Logs = logsWithCorrectionInsulin.FindAll(log => log.Reminder.ReminderID == reminders.Last().ReminderID);
                     reminders.Last().Logs.Sort();
                 }
 
