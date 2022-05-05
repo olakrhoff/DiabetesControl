@@ -292,7 +292,7 @@ namespace DiabetesContolApp.GlobalLogic
 
                         await _dayProfileService.UpdateDayProfileAsync(dayProfile); //Update the DayProfile
 
-                        glucoseScalar.ScalarValue = (float)scaleFactor;
+                        glucoseScalar.ScalarValue = dayProfile.GlucoseScalar;
                         glucoseScalar.DateTimeCreated = DateTime.Now;
                         await _scalarService.InsertScalarAsync(glucoseScalar); //Create new scalar
                     }

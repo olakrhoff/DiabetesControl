@@ -7,6 +7,7 @@ using DiabetesContolApp.Models;
 
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
+using System.Linq;
 
 namespace DiabetesContolApp
 {
@@ -163,5 +164,6 @@ namespace DiabetesContolApp
             ReminderService reminderService = ReminderService.GetReminderService();
             await reminderService.HandleRemindersAsync();
         }
+
     }
 }
