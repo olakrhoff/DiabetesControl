@@ -687,13 +687,13 @@ namespace DiabetesContolApp.GlobalLogic
             for (int i = 0; i < xValues.Count; ++i)
                 xValues[i] -= minXValue;
 
-            Tuple<double, double> alphaAndBetaHat = Fit.Line(xValues.ToArray(), yValues.ToArray());
+            (double alpha, double beta) = Fit.Line(xValues.ToArray(), yValues.ToArray());
 
-            Tuple<double, double> predictionIntervallNextPoint = Statistics.PredictionInterval(xValues, yValues, alphaAndBetaHat.Item1, alphaAndBetaHat.Item2, 0.95);
+            Tuple<double, double> predictionIntervallNextPoint = Statistics.PredictionInterval(xValues, yValues, alpha, beta, 0.95);
 
 
             //Check the ends of the line to find the smallest distance to the wanted line on the X-axis
-            double smallestDifferenceToXAxis = Math.Min(alphaAndBetaHat.Item1 + alphaAndBetaHat.Item2 * xValues[0], alphaAndBetaHat.Item1 + alphaAndBetaHat.Item2 * xValues[xValues.Count - 1]);
+            double smallestDifferenceToXAxis = Math.Min(alpha + beta * xValues[0], alpha + beta * xValues[xValues.Count - 1]);
 
             //Returns the smallest distance either between the regression line and the X-axis or the lower prediction line and the LOWER_BOUND_FOR_PREDICTION_INTERVALL
             double distance = Math.Min(smallestDifferenceToXAxis, predictionIntervallNextPoint.Item2 - LOWER_BOUND_FOR_PREDICTION_INTERVAL);
