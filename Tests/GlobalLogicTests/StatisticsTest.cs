@@ -45,9 +45,9 @@ namespace Tests.GlobalLogicTests
         {
             List<double> x = new() { 75d, 145d, 55d, 88d, 122d }, y = new() { 0.48d, 1.09d, 0.53d, 0.97d, 0.78d };
             double knownX = 90d;
-            Tuple<double, double> alphaAndBetaHat = Fit.Line(x.ToArray(), y.ToArray());
+            (double alpha, double beta) = Fit.Line(x.ToArray(), y.ToArray());
             //95% prediction interval
-            Tuple<double, double> predictionIntervallNextPoint = Statistics.PredictionInterval(x, y, alphaAndBetaHat.Item1, alphaAndBetaHat.Item2, 0.95, knownX);
+            Tuple<double, double> predictionIntervallNextPoint = Statistics.PredictionInterval(x, y, alpha, beta, 0.95, knownX);
             double lower = predictionIntervallNextPoint.Item2;
             double upper = predictionIntervallNextPoint.Item1;
             lower.FirstNSignificantDigits(2);
@@ -61,11 +61,11 @@ namespace Tests.GlobalLogicTests
         {
             List<double> x = new() { 75d, 145d }, y = new() { 0.48d, 1.09d };
             double knownX = 90d;
-            Tuple<double, double> alphaAndBetaHat = Fit.Line(x.ToArray(), y.ToArray());
+            (double alpha, double beta) = Fit.Line(x.ToArray(), y.ToArray());
             //95% prediction interval
             try
             {
-                Tuple<double, double> predictionIntervallNextPoint = Statistics.PredictionInterval(x, y, alphaAndBetaHat.Item1, alphaAndBetaHat.Item2, 0.95, knownX);
+                Tuple<double, double> predictionIntervallNextPoint = Statistics.PredictionInterval(x, y, alpha, beta, 0.95, knownX);
                 Assert.Fail();
             }
             catch (ArgumentOutOfRangeException aoore)
@@ -79,12 +79,12 @@ namespace Tests.GlobalLogicTests
         {
             List<double> x = new() { 75d, 145d, 55d, 88d, 122d }, y = new() { 0.48d, 1.09d, 0.53d, 0.97d, 0.78d };
             double knownX = 90d;
-            Tuple<double, double> alphaAndBetaHat = Fit.Line(x.ToArray(), y.ToArray());
+            (double alpha, double beta) = Fit.Line(x.ToArray(), y.ToArray());
             //95% prediction interval
             try
             {
                 x.RemoveAt(x.Count - 1);
-                Tuple<double, double> predictionIntervallNextPoint = Statistics.PredictionInterval(x, y, alphaAndBetaHat.Item1, alphaAndBetaHat.Item2, 0.95, knownX);
+                Tuple<double, double> predictionIntervallNextPoint = Statistics.PredictionInterval(x, y, alpha, beta, 0.95, knownX);
                 Assert.Fail();
             }
             catch (ArgumentException ae)
@@ -98,12 +98,12 @@ namespace Tests.GlobalLogicTests
         {
             List<double> x = new() { 75d, 145d, 55d, 88d, 122d }, y = new() { 0.48d, 1.09d, 0.53d, 0.97d, 0.78d };
             double knownX = 90d;
-            Tuple<double, double> alphaAndBetaHat = Fit.Line(x.ToArray(), y.ToArray());
+            (double alpha, double beta) = Fit.Line(x.ToArray(), y.ToArray());
             //95% prediction interval
             try
             {
                 x[0] = Double.NaN;
-                Tuple<double, double> predictionIntervallNextPoint = Statistics.PredictionInterval(x, y, alphaAndBetaHat.Item1, alphaAndBetaHat.Item2, 0.95, knownX);
+                Tuple<double, double> predictionIntervallNextPoint = Statistics.PredictionInterval(x, y, alpha, beta, 0.95, knownX);
                 Assert.Fail();
             }
             catch (ArgumentException ae)
@@ -117,11 +117,11 @@ namespace Tests.GlobalLogicTests
         {
             List<double> x = new() { 75d, 145d, 55d, 88d, 122d }, y = new() { 0d, 0d, 0d, 0d, 0d };
             double knownX = 90d;
-            Tuple<double, double> alphaAndBetaHat = Fit.Line(x.ToArray(), y.ToArray());
+            (double alpha, double beta) = Fit.Line(x.ToArray(), y.ToArray());
             //95% prediction interval
             try
             {
-                Tuple<double, double> predictionIntervallNextPoint = Statistics.PredictionInterval(x, y, alphaAndBetaHat.Item1, alphaAndBetaHat.Item2, 0.95, knownX);
+                Tuple<double, double> predictionIntervallNextPoint = Statistics.PredictionInterval(x, y, alpha, beta, 0.95, knownX);
                 Assert.Fail();
             }
             catch (ArithmeticException ae)
@@ -135,9 +135,9 @@ namespace Tests.GlobalLogicTests
         {
             List<double> x = new() { 75d, 145d, 55d, 88d, 122d }, y = new() { 0.48d, 1.09d, 0.53d, 0.97d, 0.78d };
 
-            Tuple<double, double> alphaAndBetaHat = Fit.Line(x.ToArray(), y.ToArray());
+            (double alpha, double beta) = Fit.Line(x.ToArray(), y.ToArray());
             //95% prediction interval
-            Tuple<double, double> predictionIntervallNextPoint = Statistics.PredictionInterval(x, y, alphaAndBetaHat.Item1, alphaAndBetaHat.Item2, 0.95);
+            Tuple<double, double> predictionIntervallNextPoint = Statistics.PredictionInterval(x, y, alpha, beta, 0.95);
 
             double lower = predictionIntervallNextPoint.Item2;
             double upper = predictionIntervallNextPoint.Item1;
