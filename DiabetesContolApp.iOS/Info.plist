@@ -18,7 +18,7 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>MinimumOSVersion</key>
-	<string>15.2</string>
+	<string>15.0</string>
 	<key>CFBundleDisplayName</key>
 	<string>DiabetesContolApp</string>
 	<key>CFBundleIdentifier</key>
